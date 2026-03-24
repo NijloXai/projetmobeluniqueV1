@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Möbel Unique — Schéma Projet V4</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #08080c;
+      color: #d0d0d0;
+      line-height: 1.5;
+    }
+
+    .nav {
+      position: sticky; top: 0; z-index: 100;
+      background: #0d0d14; border-bottom: 1px solid #1a1a2e;
+      padding: 12px 24px; display: flex; gap: 8px; overflow-x: auto;
+    }
+    .nav a {
+      color: #888; text-decoration: none; padding: 6px 14px;
+      border-radius: 6px; font-size: 0.85em; font-weight: 500;
+      white-space: nowrap; transition: all 0.2s;
+    }
+    .nav a:hover { background: #1a1a2e; color: #E49400; }
+
+    .section { max-width: 1200px; margin: 0 auto; padding: 50px 24px; }
+    .section-title { font-size: 1.8em; color: #fff; margin-bottom: 8px; }
+    .section-sub { color: #666; margin-bottom: 40px; font-size: 0.95em; }
+
+    .hero { text-align: center; padding: 60px 24px 40px; background: linear-gradient(180deg, #0d0d14 0%, #08080c 100%); }
+    .hero h1 { font-size: 2.4em; color: #fff; margin-bottom: 8px; }
+    .hero .tag {
+      display: inline-block; background: #E4940022; color: #E49400;
+      padding: 4px 14px; border-radius: 20px; font-size: 0.85em; margin-top: 12px;
+    }
+    .hero .v4-badge {
+      display: inline-block; background: #7bc77d22; color: #7bc77d;
+      padding: 4px 14px; border-radius: 20px; font-size: 0.85em; margin-left: 8px;
+    }
+    .hero .change-note {
+      color: #ff6b6b; font-size: 0.85em; margin-top: 16px;
+      background: #ff6b6b11; padding: 8px 20px; border-radius: 8px; display: inline-block;
+    }
+
+    .stats {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px; margin-bottom: 50px;
+    }
+    .stat {
+      background: #0d0d14; border: 1px solid #1a1a2e;
+      border-radius: 10px; padding: 16px; text-align: center;
+    }
+    .stat .num { font-size: 2em; font-weight: 700; color: #E49400; }
+    .stat .lbl { font-size: 0.8em; color: #666; margin-top: 2px; }
+
+    .tech-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px; margin-bottom: 20px;
+    }
+    .tech-item {
+      background: #0d0d14; border: 1px solid #1a1a2e; border-radius: 8px;
+      padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .tech-item .key { color: #888; font-size: 0.85em; }
+    .tech-item .val { color: #e0e0e0; font-weight: 600; font-size: 0.9em; }
+    .tech-item.struck .val { text-decoration: line-through; color: #444; }
+    .tech-item.new { border-color: #7bc77d44; }
+    .tech-item.new .val { color: #7bc77d; }
+
+    .modules-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px;
+    }
+    .mod-card {
+      background: #0d0d14; border: 1px solid #1a1a2e;
+      border-radius: 12px; padding: 20px; transition: border-color 0.2s;
+    }
+    .mod-card:hover { border-color: #2a2a4e; }
+    .mod-card.front { border-left: 3px solid #4a9eff; }
+    .mod-card.back { border-left: 3px solid #c77dba; }
+    .mod-card.changed { border-left: 3px solid #ff6b6b; }
+    .mod-card.removed { border-left: 3px solid #444; opacity: 0.4; }
+
+    .mod-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .mod-id { font-size: 1.1em; font-weight: 700; color: #fff; }
+    .mod-badge { font-size: 0.75em; padding: 3px 10px; border-radius: 12px; font-weight: 600; }
+    .badge-f { background: #1a2a4a; color: #4a9eff; }
+    .badge-b { background: #2a1a2a; color: #c77dba; }
+    .badge-changed { background: #3a1a1a; color: #ff6b6b; }
+    .badge-removed { background: #1a1a1a; color: #666; }
+    .badge-new { background: #1a2e1a; color: #7bc77d; }
+
+    .mod-desc { color: #888; font-size: 0.85em; margin-bottom: 14px; line-height: 1.4; }
+    .func-list { list-style: none; counter-reset: fn; }
+    .func-list li {
+      counter-increment: fn; padding: 5px 0 5px 28px;
+      position: relative; font-size: 0.88em; border-bottom: 1px solid #0a0a12;
+    }
+    .func-list li:last-child { border-bottom: none; }
+    .func-list li::before {
+      content: counter(fn); position: absolute; left: 0; top: 5px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #1a1a2e; color: #666; font-size: 0.75em;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .func-list li.new { color: #7bc77d; }
+    .func-list li.new::before { background: #1a2e1a; color: #7bc77d; }
+    .func-list li.removed { color: #555; text-decoration: line-through; }
+    .shared-tag { color: #E49400; font-size: 0.75em; margin-left: 4px; }
+
+    .flow { display: flex; flex-direction: column; align-items: center; gap: 0; margin: 30px 0; }
+    .flow-step {
+      background: #0d0d14; border: 1px solid #1a1a2e; border-radius: 10px;
+      padding: 14px 28px; text-align: center; min-width: 280px; position: relative;
+    }
+    .flow-step.client { border-color: #4a9eff44; background: #0d1220; }
+    .flow-step.admin { border-color: #c77dba44; background: #140d14; }
+    .flow-step.shopify { border-color: #96bf4844; background: #0d140d; }
+    .flow-step .step-title { font-weight: 700; color: #fff; font-size: 0.95em; }
+    .flow-step .step-detail { color: #888; font-size: 0.82em; margin-top: 4px; }
+    .flow-arrow { color: #333; font-size: 1.4em; padding: 4px 0; }
+    .flow-row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+
+    .db-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .db-table {
+      background: #0d0d14; border: 1px solid #1a1a2e;
+      border-radius: 10px; overflow: hidden;
+    }
+    .db-table-head {
+      background: #1a1a2e; padding: 10px 16px; font-weight: 700;
+      color: #fff; font-size: 0.95em; display: flex;
+      justify-content: space-between; align-items: center;
+    }
+    .db-table-head .icon { font-size: 0.8em; color: #E49400; }
+    .db-col {
+      padding: 6px 16px; border-bottom: 1px solid #0a0a12;
+      font-size: 0.85em; display: flex; justify-content: space-between;
+    }
+    .db-col:last-child { border-bottom: none; }
+    .db-col .col-name { color: #e0e0e0; }
+    .db-col .col-type { color: #666; font-size: 0.85em; }
+    .db-col.pk .col-name { color: #E49400; font-weight: 600; }
+    .db-col.fk .col-name { color: #4a9eff; }
+    .db-col.new .col-name { color: #7bc77d; }
+    .db-col.new::after {
+      content: "NEW"; font-size: 0.65em; color: #7bc77d;
+      margin-left: 6px; background: #1a2e1a; padding: 1px 6px; border-radius: 4px;
+    }
+    .db-col.changed .col-name { color: #ff6b6b; }
+    .db-col.changed::after {
+      content: "MAJ"; font-size: 0.65em; color: #ff6b6b;
+      margin-left: 6px; background: #2e1a1a; padding: 1px 6px; border-radius: 4px;
+    }
+
+    .relations {
+      background: #0d0d14; border: 1px solid #1a1a2e;
+      border-radius: 10px; padding: 24px; margin: 20px 0;
+      font-family: monospace; font-size: 0.9em; line-height: 2; color: #888;
+    }
+    .relations .tbl { color: #E49400; font-weight: 700; }
+    .relations .arrow { color: #4a9eff; }
+    .relations .note { color: #666; font-style: italic; }
+
+    .shared-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px;
+    }
+    .shared-item {
+      background: #0d0d14; border: 1px solid #E4940022; border-radius: 8px; padding: 12px 16px;
+    }
+    .shared-item .fn-name { font-weight: 600; color: #e0e0e0; font-size: 0.9em; }
+    .shared-item .fn-where { font-size: 0.8em; color: #888; margin-top: 4px; }
+    .shared-item .fn-count { color: #E49400; font-weight: 700; }
+
+    .build-flow { display: flex; flex-direction: column; align-items: center; gap: 0; margin: 30px 0; }
+    .build-step {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 12px 24px; border-radius: 10px; font-weight: 600; font-size: 0.95em;
+    }
+    .build-step.db { background: #14120d; border: 1px solid #E4940044; color: #E49400; }
+    .build-step.back { background: #140d14; border: 1px solid #c77dba44; color: #c77dba; }
+    .build-step.front { background: #0d1420; border: 1px solid #4a9eff44; color: #4a9eff; }
+    .build-step.green { background: #0d140d; border: 1px solid #7bc77d44; color: #7bc77d; }
+    .build-arrow { color: #333; font-size: 1.3em; padding: 4px 0; }
+    .build-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .build-note { font-size: 0.8em; color: #555; margin-top: 4px; text-align: center; }
+
+    .logic-box {
+      background: #0d0d14; border: 1px solid #1a1a2e;
+      border-radius: 10px; padding: 24px; margin: 20px 0;
+    }
+    .logic-box h4 { color: #E49400; font-size: 0.95em; margin-bottom: 12px; }
+    .logic-rule { padding: 8px 0; border-bottom: 1px solid #0a0a12; font-size: 0.9em; }
+    .logic-rule:last-child { border-bottom: none; }
+    .logic-rule code {
+      background: #1a1a2e; padding: 2px 8px; border-radius: 4px;
+      font-size: 0.85em; color: #E49400;
+    }
+
+    .change-log {
+      background: #0d0d14; border: 1px solid #1a1a2e;
+      border-radius: 10px; padding: 24px; margin: 20px 0;
+    }
+    .change-log h4 { color: #ff6b6b; font-size: 0.95em; margin-bottom: 12px; }
+    .change-item { padding: 6px 0; font-size: 0.9em; border-bottom: 1px solid #0a0a12; }
+    .change-item:last-child { border-bottom: none; }
+    .change-item .removed { color: #ff6b6b; text-decoration: line-through; }
+    .change-item .added { color: #7bc77d; }
+    .change-item .changed { color: #E49400; }
+
+    .answered { color: #7bc77d; }
+    .answered::after {
+      content: "✅ RÉSOLU"; font-size: 0.65em; color: #7bc77d;
+      margin-left: 8px; background: #1a2e1a; padding: 2px 8px; border-radius: 4px;
+      vertical-align: middle;
+    }
+
+    .footer {
+      text-align: center; padding: 40px 24px; color: #444;
+      font-size: 0.8em; border-top: 1px solid #1a1a2e;
+    }
+
+    @media print {
+      body { background: #fff; color: #222; }
+      .nav { display: none; }
+      .mod-card, .db-table, .shared-item, .stat, .tech-item, .logic-box, .flow-step, .build-step {
+        background: #f9f9f9; border-color: #ddd;
+      }
+      .section-title, .mod-id, .db-table-head, .flow-step .step-title, h1 { color: #000; }
+      .hero { background: none; }
+      .stat .num, .shared-item .fn-count, h2, .logic-box h4 { color: #8a6d1b; }
+    }
+    @media (max-width: 768px) {
+      .modules-grid { grid-template-columns: 1fr; }
+      .db-grid { grid-template-columns: 1fr; }
+      .shared-grid { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 1.6em; }
+      .flow-row { flex-direction: column; align-items: center; }
+      .build-row { flex-direction: column; align-items: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <a href="#changes">Changements V4</a>
+    <a href="#overview">Vue d'ensemble</a>
+    <a href="#stack">Stack</a>
+    <a href="#frontend">Front-End</a>
+    <a href="#backend">Back-End</a>
+    <a href="#database">Base de données</a>
+    <a href="#flow-shopify">Parcours Shopify</a>
+    <a href="#flow-direct">Parcours direct</a>
+    <a href="#admin-flow">Parcours admin</a>
+    <a href="#shared">Fonctions partagées</a>
+    <a href="#build">Ordre de construction</a>
+    <a href="#logic">Règles métier</a>
+    <a href="#questions">Questions</a>
+  </nav>
+
+  <div class="hero">
+    <h1>🛋️ Möbel Unique</h1>
+    <p style="color:#888;">App de visualisation IA — Configurateur de canapés</p>
+    <span class="tag">Schéma Projet V4 — 18 mars 2026</span>
+    <span class="v4-badge">Nouveau scope</span>
+    <div class="change-note">⚠️ Scope réduit : Shopify reste le site principal. Notre app = outil de visualisation uniquement.</div>
+  </div>
+
+  <!-- CHANGEMENTS V3 → V4 -->
+  <div class="section" id="changes">
+    <h2 class="section-title">🔄 Changements V3 → V4</h2>
+    <p class="section-sub">Ce qui a changé après discussion client du 18 mars 2026</p>
+    <div class="change-log">
+      <h4>❌ Retiré</h4>
+      <div class="change-item"><span class="removed">F1 — Landing page complète</span> → remplacé par un hero immersif simple</div>
+      <div class="change-item"><span class="removed">F5 — Layout global (header/footer/navigation)</span> → plus de navigation multi-pages</div>
+      <div class="change-item"><span class="removed">F6 — Pages statiques (À propos, Contact, Mentions légales)</span> → supprimées</div>
+      <div class="change-item"><span class="removed">Navigation multi-pages</span> → tout sur une seule page</div>
+    </div>
+    <div class="change-log" style="margin-top: 12px;">
+      <h4 style="color: #7bc77d;">✅ Ajouté</h4>
+      <div class="change-item"><span class="added">Lien intelligent depuis Shopify</span> → URL avec paramètre produit (?produit=slug)</div>
+      <div class="change-item"><span class="added">Deux parcours</span> → entrée directe (hero → catalogue → config) ou depuis Shopify (config direct)</div>
+      <div class="change-item"><span class="added">Ajout classique sans IA</span> → upload de photos manuelles sans génération</div>
+      <div class="change-item"><span class="added">Générer tout / un par un</span> → choix de générer tous les angles ou un seul</div>
+      <div class="change-item"><span class="added">Export ZIP</span> → télécharger les rendus validés en archive</div>
+    </div>
+    <div class="change-log" style="margin-top: 12px;">
+      <h4 style="color: #E49400;">🔀 Modifié</h4>
+      <div class="change-item"><span class="changed">Pricing tissus</span> → Standards (inclus) / Premium (+80€ fixe). Plus de question à poser.</div>
+      <div class="change-item"><span class="changed">Concept global</span> → Shopify = site principal. Notre app = outil de visualisation lié par URL.</div>
+      <div class="change-item"><span class="changed">Responsive</span> → Mobile first (clients principalement sur mobile)</div>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="section" id="overview">
+    <h2 class="section-title">📈 Vue d'ensemble</h2>
+    <p class="section-sub">Chiffres clés du projet — V4</p>
+    <div class="stats">
+      <div class="stat"><div class="num">6</div><div class="lbl">Modules</div></div>
+      <div class="stat"><div class="num">~50</div><div class="lbl">Fonctions</div></div>
+      <div class="stat"><div class="num">4</div><div class="lbl">Tables BDD</div></div>
+      <div class="stat"><div class="num">3 000€</div><div class="lbl">Budget</div></div>
+      <div class="stat"><div class="num">1</div><div class="lbl">Page (SPA)</div></div>
+    </div>
+  </div>
+
+  <!-- STACK -->
+  <div class="section" id="stack">
+    <h2 class="section-title">🔧 Stack technique</h2>
+    <p class="section-sub">Inchangée — validée en V3</p>
+    <div class="tech-grid">
+      <div class="tech-item"><span class="key">Frontend</span><span class="val">Next.js App Router</span></div>
+      <div class="tech-item"><span class="key">UI</span><span class="val">Radix UI + CSS Modules</span></div>
+      <div class="tech-item"><span class="key">State</span><span class="val">Zustand + Immer</span></div>
+      <div class="tech-item"><span class="key">Backend</span><span class="val">Supabase</span></div>
+      <div class="tech-item"><span class="key">Hébergement</span><span class="val">Vercel</span></div>
+      <div class="tech-item"><span class="key">IA</span><span class="val">Nano Banana 2</span></div>
+      <div class="tech-item"><span class="key">Typo</span><span class="val">Montserrat</span></div>
+      <div class="tech-item"><span class="key">Couleur primaire</span><span class="val">#E49400</span></div>
+      <div class="tech-item new"><span class="key">Architecture</span><span class="val">Single Page App</span></div>
+      <div class="tech-item new"><span class="key">Lien Shopify</span><span class="val">URL paramétrique</span></div>
+      <div class="tech-item struck"><span class="key">CRM</span><span class="val">Sellsy — retiré</span></div>
+      <div class="tech-item struck"><span class="key">Email</span><span class="val">Resend — retiré</span></div>
+      <div class="tech-item struck"><span class="key">Multi-pages</span><span class="val">Retiré en V4</span></div>
+    </div>
+  </div>
+
+  <!-- FRONT-END -->
+  <div class="section" id="frontend">
+    <h2 class="section-title">🖥️ Front-End — 3 modules</h2>
+    <p class="section-sub">Tout sur une seule page — deux parcours d'entrée</p>
+    <div class="modules-grid">
+
+      <div class="mod-card front">
+        <div class="mod-head">
+          <span class="mod-id">F1 — Hero + Catalogue</span>
+          <span class="mod-badge badge-f">7 fonctions</span>
+        </div>
+        <p class="mod-desc">Hero immersif présentant la visualisation IA + catalogue de tous les canapés. Point d'entrée direct. Si accès via Shopify (?produit=slug), cette section est bypassée.</p>
+        <ul class="func-list">
+          <li>Hero immersif (visuel plein écran, baseline, CTA)</li>
+          <li>Lire les produits actifs depuis Supabase</li>
+          <li>Afficher la grille de canapés (cartes : image, nom, prix)</li>
+          <li>Aperçu swatches tissu sur chaque carte</li>
+          <li>Clic sur canapé → scroll vers configurateur</li>
+          <li class="new">Détection paramètre URL (?produit=slug) → skip vers F2</li>
+          <li>Adaptation responsive (mobile first)</li>
+        </ul>
+      </div>
+
+      <div class="mod-card front">
+        <div class="mod-head">
+          <span class="mod-id">F2 — Configurateur</span>
+          <span class="mod-badge badge-f">10 fonctions</span>
+        </div>
+        <p class="mod-desc">Sélection tissu + rendu IA + récap prix. Deux modes : standard (inclus) et premium (+80€). Point d'entrée depuis Shopify.</p>
+        <ul class="func-list">
+          <li>Afficher le canapé sélectionné (photos multi-angles)</li>
+          <li>Lire les tissus avec rendu validé+publié</li>
+          <li>Afficher les swatches tissu (badge "Inclus" / "+80€")</li>
+          <li>Charger le rendu IA (canapé × tissu × angle actif)</li>
+          <li>Navigation entre angles du canapé</li>
+          <li>Calculer le prix (base + premium si applicable)</li>
+          <li>Récap : modèle + tissu + prix total</li>
+          <li>Bouton "Commander" → redirection fiche produit Shopify</li>
+          <li>Bouton "Visualiser chez moi" → scroll vers F3</li>
+          <li>Bouton "Changer de canapé" → retour catalogue</li>
+        </ul>
+      </div>
+
+      <div class="mod-card front">
+        <div class="mod-head">
+          <span class="mod-id">F3 — Simulation IA "chez moi"</span>
+          <span class="mod-badge badge-f">7 fonctions</span>
+        </div>
+        <p class="mod-desc">Upload photo du salon → Nano Banana 2 place le canapé configuré dans l'espace du client. Résultat éphémère (pas stocké).</p>
+        <ul class="func-list">
+          <li>Récupérer canapé + tissu du configurateur (Zustand)</li>
+          <li>Instructions (photo + feuille A4 pour référence taille)</li>
+          <li>Upload image du salon</li>
+          <li>Appel API Nano Banana 2 (temps réel)</li>
+          <li>Overlay logo Möbel Unique (watermark)</li>
+          <li>Télécharger l'image générée</li>
+          <li>Bouton "Commander" → Shopify / "Réessayer"</li>
+        </ul>
+      </div>
+
+      <!-- MODULES RETIRÉS -->
+      <div class="mod-card removed">
+        <div class="mod-head">
+          <span class="mod-id" style="color:#666;">F5 — Layout global</span>
+          <span class="mod-badge badge-removed">RETIRÉ V4</span>
+        </div>
+        <p class="mod-desc">Plus de navigation multi-pages. Remplacé par un header minimal (logo + lien retour Shopify).</p>
+      </div>
+
+      <div class="mod-card removed">
+        <div class="mod-head">
+          <span class="mod-id" style="color:#666;">F6 — Pages statiques</span>
+          <span class="mod-badge badge-removed">RETIRÉ V4</span>
+        </div>
+        <p class="mod-desc">Plus de pages À propos, Contact, Mentions légales. Tout reste sur Shopify.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BACK-END -->
+  <div class="section" id="backend">
+    <h2 class="section-title">⚙️ Back-End — 3 modules</h2>
+    <p class="section-sub">Admin + gestion + génération IA</p>
+    <div class="modules-grid">
+
+      <div class="mod-card back">
+        <div class="mod-head">
+          <span class="mod-id">B1 — Auth admin</span>
+          <span class="mod-badge badge-b">4 fonctions</span>
+        </div>
+        <p class="mod-desc">Connexion admin sécurisée, protection des routes back-office.</p>
+        <ul class="func-list">
+          <li>Formulaire de connexion (email / mot de passe)</li>
+          <li>Authentification Supabase Auth</li>
+          <li>Protection des routes admin (middleware)</li>
+          <li>Gestion session (connexion, déconnexion)</li>
+        </ul>
+      </div>
+
+      <div class="mod-card changed">
+        <div class="mod-head">
+          <span class="mod-id">B2 — Produits + Génération IA</span>
+          <span class="mod-badge badge-changed">16 fonctions ⚡</span>
+        </div>
+        <p class="mod-desc">CRUD canapés + photos multi-angles + génération IA. Deux modes d'ajout : classique (sans IA) ou avec génération. Module le plus lourd.</p>
+        <ul class="func-list">
+          <li>Afficher liste des canapés (tableau)</li>
+          <li>Formulaire ajout canapé (nom, prix, dimensions, lien Shopify)</li>
+          <li>Formulaire modification canapé</li>
+          <li>Upload photos multi-angles (face, profil, 3/4, etc.)</li>
+          <li>Toggle actif/inactif canapé</li>
+          <li>Suppression avec confirmation</li>
+          <li>Validation des champs</li>
+          <li class="new">Mode ajout classique : upload photos finales sans génération IA</li>
+          <li>Choisir un tissu pour la génération IA</li>
+          <li>Lancer Nano Banana 2 (photo canapé + ref tissu → rendu)</li>
+          <li class="new">Bouton "Générer tout" → lance tous les angles d'un coup</li>
+          <li class="new">Bouton "Générer" par angle → relance un seul rendu</li>
+          <li>Preview → Valider ou Régénérer (écrase le précédent)</li>
+          <li>Toggle publié/masqué par rendu</li>
+          <li>Galerie des rendus validés par canapé</li>
+          <li class="new">Export ZIP des rendus validés (télécharger pour Shopify)</li>
+        </ul>
+      </div>
+
+      <div class="mod-card changed">
+        <div class="mod-head">
+          <span class="mod-id">B3 — Gestion tissus</span>
+          <span class="mod-badge badge-changed">8 fonctions ⚡</span>
+        </div>
+        <p class="mod-desc">CRUD tissus + catégorie standard/premium. Photo de référence pour Nano Banana.</p>
+        <ul class="func-list">
+          <li>Afficher liste des tissus (tableau)</li>
+          <li>Formulaire ajout tissu</li>
+          <li>Formulaire modification tissu</li>
+          <li>Upload image swatch (texture)</li>
+          <li>Upload photo de référence (pour Nano Banana)</li>
+          <li class="new">Catégorie : Standard (inclus) / Premium (+80€)</li>
+          <li>Toggle actif/inactif (global)</li>
+          <li>Suppression avec confirmation</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DATABASE -->
+  <div class="section" id="database">
+    <h2 class="section-title">🗄️ Base de données</h2>
+    <p class="section-sub">4 tables Supabase — mise à jour V4</p>
+
+    <div class="db-grid">
+      <div class="db-table">
+        <div class="db-table-head">models <span class="icon">🛋️ Canapés</span></div>
+        <div class="db-col pk"><span class="col-name">id</span><span class="col-type">UUID PK</span></div>
+        <div class="db-col"><span class="col-name">slug</span><span class="col-type">TEXT UNIQUE</span></div>
+        <div class="db-col"><span class="col-name">name</span><span class="col-type">TEXT</span></div>
+        <div class="db-col"><span class="col-name">description</span><span class="col-type">TEXT</span></div>
+        <div class="db-col"><span class="col-name">price</span><span class="col-type">NUMERIC</span></div>
+        <div class="db-col"><span class="col-name">dimensions</span><span class="col-type">TEXT</span></div>
+        <div class="db-col"><span class="col-name">shopify_url</span><span class="col-type">TEXT</span></div>
+        <div class="db-col"><span class="col-name">is_active</span><span class="col-type">BOOLEAN</span></div>
+        <div class="db-col"><span class="col-name">created_at</span><span class="col-type">TIMESTAMP</span></div>
+      </div>
+
+      <div class="db-table">
+        <div class="db-table-head">model_images <span class="icon">📷 Photos (multi-angles)</span></div>
+        <div class="db-col pk"><span class="col-name">id</span><span class="col-type">UUID PK</span></div>
+        <div class="db-col fk"><span class="col-name">model_id</span><span class="col-type">→ models</span></div>
+        <div class="db-col"><span class="col-name">image_url</span><span class="col-type">TEXT</span></div>
+        <div class="db-col"><span class="col-name">view_type</span><span class="col-type">TEXT (face, profil, 3/4...)</span></div>
+        <div class="db-col"><span class="col-name">sort_order</span><span class="col-type">INT</span></div>
+      </div>
+
+      <div class="db-table">
+        <div class="db-table-head">fabrics <span class="icon">🧵 Tissus</span></div>
+        <div class="db-col pk"><span class="col-name">id</span><span class="col-type">UUID PK</span></div>
+        <div class="db-col"><span class="col-name">slug</span><span class="col-type">TEXT UNIQUE</span></div>
+        <div class="db-col"><span class="col-name">name</span><span class="col-type">TEXT</span></div>
+        <div class="db-col"><span class="col-name">category</span><span class="col-type">TEXT</span></div>
+        <div class="db-col changed"><span class="col-name">is_premium</span><span class="col-type">BOOLEAN (false=inclus, true=+80€)</span></div>
+        <div class="db-col"><span class="col-name">swatch_url</span><span class="col-type">TEXT</span></div>
+        <div class="db-col"><span class="col-name">reference_image_url</span><span class="col-type">TEXT</span></div>
+        <div class="db-col"><span class="col-name">is_active</span><span class="col-type">BOOLEAN</span></div>
+        <div class="db-col"><span class="col-name">created_at</span><span class="col-type">TIMESTAMP</span></div>
+      </div>
+
+      <div class="db-table">
+        <div class="db-table-head">generated_visuals <span class="icon">🎨 Rendus IA</span></div>
+        <div class="db-col pk"><span class="col-name">id</span><span class="col-type">UUID PK</span></div>
+        <div class="db-col fk"><span class="col-name">model_id</span><span class="col-type">→ models</span></div>
+        <div class="db-col fk"><span class="col-name">model_image_id</span><span class="col-type">→ model_images</span></div>
+        <div class="db-col fk"><span class="col-name">fabric_id</span><span class="col-type">→ fabrics</span></div>
+        <div class="db-col"><span class="col-name">generated_image_url</span><span class="col-type">TEXT</span></div>
+        <div class="db-col"><span class="col-name">is_validated</span><span class="col-type">BOOLEAN</span></div>
+        <div class="db-col"><span class="col-name">is_published</span><span class="col-type">BOOLEAN</span></div>
+        <div class="db-col"><span class="col-name">created_at</span><span class="col-type">TIMESTAMP</span></div>
+      </div>
+    </div>
+
+    <div class="relations" style="margin-top: 20px;">
+      <span class="tbl">models</span> <span class="arrow">──1:N──▶</span> <span class="tbl">model_images</span> <span class="note">(un canapé → plusieurs angles)</span><br>
+      <span class="tbl">models</span> <span class="arrow">──1:N──▶</span> <span class="tbl">generated_visuals</span> <span class="note">(un canapé → plusieurs rendus)</span><br>
+      <span class="tbl">fabrics</span> <span class="arrow">──1:N──▶</span> <span class="tbl">generated_visuals</span> <span class="note">(un tissu → utilisé dans plusieurs rendus)</span><br>
+      <span class="tbl">model_images</span> <span class="arrow">──1:N──▶</span> <span class="tbl">generated_visuals</span> <span class="note">(un angle → plusieurs rendus avec différents tissus)</span>
+    </div>
+  </div>
+
+  <!-- PARCOURS SHOPIFY -->
+  <div class="section" id="flow-shopify">
+    <h2 class="section-title">🔗 Parcours depuis Shopify</h2>
+    <p class="section-sub">Le client clique "Visualiser" sur une fiche produit Shopify</p>
+    <div class="flow">
+      <div class="flow-step shopify">
+        <div class="step-title">🛒 Fiche produit Shopify</div>
+        <div class="step-detail">Bouton "Visualiser ce canapé chez moi"</div>
+      </div>
+      <div class="flow-arrow">↓ lien : configurateur.mobelunique.fr/?produit=canape-oslo</div>
+      <div class="flow-step client" style="border-color: #4a9eff88;">
+        <div class="step-title">🎨 Configurateur (F2)</div>
+        <div class="step-detail">Canapé pré-sélectionné → choisir un tissu → voir le rendu IA</div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step client" style="border-color: #4a9eff88;">
+        <div class="step-title">📝 Récap + Prix</div>
+        <div class="step-detail">Modèle + Tissu + Prix total (base + premium si applicable)</div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-row">
+        <div class="flow-step shopify">
+          <div class="step-title">🛒 Commander</div>
+          <div class="step-detail">Retour fiche produit Shopify</div>
+        </div>
+        <div class="flow-step client" style="border-color: #E4940088;">
+          <div class="step-title">📷 Visualiser chez moi (F3)</div>
+          <div class="step-detail">Upload photo salon → rendu IA temps réel</div>
+        </div>
+      </div>
+      <div class="flow-arrow">↓ (si simulation)</div>
+      <div class="flow-step client" style="border-color: #E4940088;">
+        <div class="step-title">📤 Résultat</div>
+        <div class="step-detail">Image avec watermark → télécharger → Commander sur Shopify</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PARCOURS DIRECT -->
+  <div class="section" id="flow-direct">
+    <h2 class="section-title">👤 Parcours direct</h2>
+    <p class="section-sub">Le client arrive sur l'app directement (sans passer par Shopify)</p>
+    <div class="flow">
+      <div class="flow-step client">
+        <div class="step-title">🏠 Hero immersif (F1)</div>
+        <div class="step-detail">Présentation du concept de visualisation IA</div>
+      </div>
+      <div class="flow-arrow">↓ scroll ou CTA</div>
+      <div class="flow-step client">
+        <div class="step-title">📋 Catalogue (F1)</div>
+        <div class="step-detail">Grille de tous les canapés disponibles</div>
+      </div>
+      <div class="flow-arrow">↓ clic sur un canapé</div>
+      <div class="flow-step client" style="border-color: #4a9eff88;">
+        <div class="step-title">🎨 Configurateur (F2)</div>
+        <div class="step-detail">Tissu → Rendu IA → Prix → Commander / Visualiser</div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-row">
+        <div class="flow-step shopify">
+          <div class="step-title">🛒 Commander sur Shopify</div>
+        </div>
+        <div class="flow-step client" style="border-color: #E4940088;">
+          <div class="step-title">📷 Simulation IA (F3)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN FLOW -->
+  <div class="section" id="admin-flow">
+    <h2 class="section-title">🔐 Parcours admin</h2>
+    <p class="section-sub">Deux modes d'ajout : classique ou avec génération IA</p>
+    <div class="flow">
+      <div class="flow-step admin">
+        <div class="step-title">🔑 Connexion (B1)</div>
+        <div class="step-detail">Email + mot de passe → Supabase Auth</div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step admin" style="border-color: #c77dba88;">
+        <div class="step-title">🧵 Gérer les tissus (B3)</div>
+        <div class="step-detail">Ajouter/modifier tissus. Catégorie : Standard (inclus) ou Premium (+80€)</div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step admin" style="border-color: #c77dba88;">
+        <div class="step-title">🛋️ Ajouter un canapé (B2)</div>
+        <div class="step-detail">Nom, prix, dimensions, lien Shopify + photos multi-angles</div>
+      </div>
+      <div class="flow-arrow">↓ Choix du mode</div>
+      <div class="flow-row">
+        <div class="flow-step admin" style="border-color: #7bc77d88;">
+          <div class="step-title">📷 Mode classique</div>
+          <div class="step-detail">Upload des photos finales. Pas de génération IA.</div>
+        </div>
+        <div class="flow-step admin" style="border-color: #ff6b6b88;">
+          <div class="step-title">🎨 Mode génération IA</div>
+          <div class="step-detail">Choisir tissu → Générer tout ou un par un</div>
+        </div>
+      </div>
+      <div class="flow-arrow">↓ (si génération IA)</div>
+      <div class="flow-row">
+        <div class="flow-step admin" style="border-color: #7bc77d88;">
+          <div class="step-title">✅ Valider</div>
+          <div class="step-detail">Le rendu est bon → publier</div>
+        </div>
+        <div class="flow-step admin" style="border-color: #ff6b6b44;">
+          <div class="step-title">🔄 Régénérer</div>
+          <div class="step-detail">Pas satisfait → relancer (un seul ou tous)</div>
+        </div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step admin" style="border-color: #E4940088;">
+        <div class="step-title">📦 Export ZIP</div>
+        <div class="step-detail">Télécharger les rendus validés pour les mettre sur Shopify</div>
+      </div>
+    </div>
+
+    <div class="logic-box" style="margin-top: 30px;">
+      <h4>🔀 Deux niveaux de contrôle des tissus</h4>
+      <div class="logic-rule"><strong>B3 — Contrôle global :</strong> désactiver un tissu → disparaît de <strong>tous</strong> les canapés</div>
+      <div class="logic-rule"><strong>B2 — Contrôle par canapé :</strong> masquer un rendu → le tissu disparaît de <strong>ce</strong> canapé seulement</div>
+    </div>
+  </div>
+
+  <!-- SHARED FUNCTIONS -->
+  <div class="section" id="shared">
+    <h2 class="section-title">🔗 Fonctions partagées</h2>
+    <p class="section-sub">Code réutilisable — V4</p>
+    <div class="shared-grid">
+      <div class="shared-item"><div class="fn-name">Lire produits actifs (Supabase)</div><div class="fn-where">F1, F2 — <span class="fn-count">2×</span></div></div>
+      <div class="shared-item"><div class="fn-name">Afficher tissus (swatches)</div><div class="fn-where">F1, F2 — <span class="fn-count">2×</span></div></div>
+      <div class="shared-item"><div class="fn-name">Adaptation responsive</div><div class="fn-where">F1, F2, F3 — <span class="fn-count">3×</span></div></div>
+      <div class="shared-item"><div class="fn-name">Tableau admin (liste)</div><div class="fn-where">B2, B3 — <span class="fn-count">2×</span></div></div>
+      <div class="shared-item"><div class="fn-name">Formulaire ajout / modification</div><div class="fn-where">B2, B3 — <span class="fn-count">2× chacun</span></div></div>
+      <div class="shared-item"><div class="fn-name">Upload images (Supabase Storage)</div><div class="fn-where">B2, B3, F3 — <span class="fn-count">3×</span></div></div>
+      <div class="shared-item"><div class="fn-name">Toggle actif / inactif</div><div class="fn-where">B2, B3 — <span class="fn-count">2×</span></div></div>
+      <div class="shared-item"><div class="fn-name">Suppression + confirmation</div><div class="fn-where">B2, B3 — <span class="fn-count">2×</span></div></div>
+      <div class="shared-item"><div class="fn-name">Appel Nano Banana 2</div><div class="fn-where">B2, F3 — <span class="fn-count">2×</span></div></div>
+      <div class="shared-item"><div class="fn-name">Protection routes admin</div><div class="fn-where">B1, B2, B3 — <span class="fn-count">3×</span></div></div>
+      <div class="shared-item"><div class="fn-name">Redirection Shopify (URL dynamique)</div><div class="fn-where">F2, F3 — <span class="fn-count">2×</span></div></div>
+    </div>
+  </div>
+
+  <!-- BUILD ORDER -->
+  <div class="section" id="build">
+    <h2 class="section-title">🔨 Ordre de construction</h2>
+    <p class="section-sub">Simplifié en V4</p>
+    <div class="build-flow">
+      <div class="build-step db">① B4 — Schéma BDD + API</div>
+      <div class="build-note">La fondation</div>
+      <div class="build-arrow">↓</div>
+      <div class="build-step back">② B1 — Auth admin</div>
+      <div class="build-note">Protéger le back-office</div>
+      <div class="build-arrow">↓</div>
+      <div class="build-step back">③ B3 — Gestion tissus</div>
+      <div class="build-note">Les tissus doivent exister avant la génération</div>
+      <div class="build-arrow">↓</div>
+      <div class="build-step back">④ B2 — Produits + Génération IA</div>
+      <div class="build-note">Module le plus lourd — utilise B3</div>
+      <div class="build-arrow">↓</div>
+      <div class="build-step front">⑤ F1 — Hero + Catalogue</div>
+      <div class="build-note">Page principale + détection paramètre Shopify</div>
+      <div class="build-arrow">↓</div>
+      <div class="build-step front">⑥ F2 — Configurateur</div>
+      <div class="build-note">Sélection tissu + rendus + prix + Shopify</div>
+      <div class="build-arrow">↓</div>
+      <div class="build-step front">⑦ F3 — Simulation IA</div>
+      <div class="build-note">Upload salon + rendu temps réel</div>
+    </div>
+  </div>
+
+  <!-- LOGIC -->
+  <div class="section" id="logic">
+    <h2 class="section-title">⚡ Règles métier</h2>
+    <p class="section-sub">V4 — simplifié</p>
+
+    <div class="logic-box">
+      <h4>Visibilité côté client</h4>
+      <div class="logic-rule">Un canapé est visible si <code>models.is_active = true</code></div>
+      <div class="logic-rule">Un tissu est visible si <code>fabrics.is_active = true</code> ET au moins 1 rendu <code>is_validated = true</code> ET <code>is_published = true</code></div>
+      <div class="logic-rule">Tissu désactivé (B3) → disparaît de <strong>tous</strong> les canapés</div>
+      <div class="logic-rule">Rendu masqué (B2) → tissu disparaît de <strong>ce</strong> canapé uniquement</div>
+    </div>
+
+    <div class="logic-box">
+      <h4>Pricing V4</h4>
+      <div class="logic-rule">Tissu Standard (<code>is_premium = false</code>) → Prix = <code>models.price</code></div>
+      <div class="logic-rule">Tissu Premium (<code>is_premium = true</code>) → Prix = <code>models.price + 80€</code></div>
+      <div class="logic-rule">Le supplément est <strong>fixe à 80€</strong>, identique pour tous les modèles</div>
+    </div>
+
+    <div class="logic-box">
+      <h4>Génération IA (Nano Banana 2)</h4>
+      <div class="logic-rule"><strong>Back-office (B2)</strong> : pré-généré. "Générer tout" (tous les angles) ou "Générer" (un angle). Validé → publié → exportable en ZIP.</div>
+      <div class="logic-rule"><strong>Simulation "chez moi" (F3)</strong> : temps réel. Résultat éphémère (pas stocké en BDD).</div>
+      <div class="logic-rule">La régénération <strong>écrase</strong> le rendu précédent.</div>
+      <div class="logic-rule">La photo de référence est stockée sur le <strong>tissu</strong> (B3).</div>
+    </div>
+
+    <div class="logic-box">
+      <h4>Lien intelligent Shopify ↔ App</h4>
+      <div class="logic-rule"><strong>Shopify → App</strong> : <code>?produit=canape-oslo</code> → le configurateur charge le bon canapé via <code>models.slug</code></div>
+      <div class="logic-rule"><strong>App → Shopify</strong> : bouton "Commander" → redirige vers <code>models.shopify_url</code> (fiche produit)</div>
+      <div class="logic-rule">Si le slug n'existe pas ou le produit est inactif → fallback vers le catalogue</div>
+    </div>
+  </div>
+
+  <!-- QUESTIONS -->
+  <div class="section" id="questions">
+    <h2 class="section-title">❓ Questions — État</h2>
+    <p class="section-sub">Mise à jour après discussion client 18 mars 2026</p>
+    <ul class="q-list">
+      <li class="answered"><div class="q-text">Le supplément tissu est-il fixe ou variable ?</div><div class="q-impact">→ Fixe : +80€ pour les tissus premium, standards inclus.</div></li>
+      <li class="answered"><div class="q-text">Existe-t-il un logo et une charte graphique ?</div><div class="q-impact">→ Oui : Brand Style Guide 48 pages, #E49400, Montserrat, logo MU.</div></li>
+      <li class="answered"><div class="q-text">Photos haute qualité des canapés ?</div><div class="q-impact">→ Oui : dossier Drive partagé avec tous les angles à venir.</div></li>
+      <li class="answered"><div class="q-text">Importance mobile vs desktop ?</div><div class="q-impact">→ Les deux, mobile first.</div></li>
+      <li class="answered"><div class="q-text">Le site est un site complet ?</div><div class="q-impact">→ Non. Shopify reste le site principal. Notre app = outil de visualisation.</div></li>
+      <li><div class="q-text">Nom de domaine exact ?</div><div class="q-impact">Idée : sous-domaine type visualiser.mobelunique.fr — à confirmer</div></li>
+      <li><div class="q-text">Combien de canapés au lancement ?</div><div class="q-impact">Impact : volume de setup initial + rendus IA</div></li>
+      <li><div class="q-text">Combien de tissus (standards + premium) ?</div><div class="q-impact">Impact : volume de rendus IA (canapés × tissus × angles)</div></li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    <p>Möbel Unique — Schéma Projet V4 • 18 mars 2026</p>
+    <p>6 modules • ~50 fonctions • Single Page App • Nano Banana 2 • Next.js + Supabase + Vercel</p>
+    <p style="margin-top: 8px;">Scope révisé après discussion client — Shopify = site principal</p>
+  </div>
+
+</body>
+</html>

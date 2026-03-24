@@ -1,0 +1,78 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.dropzone {
+  position: relative;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  overflow: hidden;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s ease;
+}
+
+.dropzone:hover {
+  border-color: var(--color-primary);
+}
+
+.input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-lg);
+  color: var(--color-muted);
+}
+
+.icon {
+  font-size: 1.5rem;
+}
+
+.text {
+  font-size: var(--font-size-sm);
+}
+
+.hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-border);
+}
+
+.preview {
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+}
+
+.removeBtn {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: var(--color-error);
+  font-size: var(--font-size-xs);
+  padding: 0;
+  text-decoration: underline;
+}
+
+.error {
+  font-size: var(--font-size-xs);
+  color: var(--color-error);
+}

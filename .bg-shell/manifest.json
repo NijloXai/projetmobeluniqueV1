@@ -1,16 +1,16 @@
 [
   {
-    "id": "9ab9f0cc",
+    "id": "355d9b06",
     "label": "next-dev",
     "command": "cd /Users/salah/Desktop/projetmobelunique && npm run dev 2>&1",
     "cwd": "/Users/salah/Desktop/projetmobelunique",
     "ownerSessionFile": "/Users/salah/.gsd/sessions/--Users-salah-Desktop-projetmobelunique--/2026-03-24T00-08-38-527Z_348b10dd-b8ad-4abd-b24b-92974629ecc3.jsonl",
     "persistAcrossSessions": false,
-    "startedAt": 1774311561250,
+    "startedAt": 1774312845819,
     "processType": "server",
     "group": null,
     "readyPattern": null,
     "readyPort": 3000,
-    "pid": 20051
+    "pid": 29336
   }
 ]

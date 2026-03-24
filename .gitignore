@@ -2,13 +2,6 @@
 
 # dependencies
 /node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
 
 # testing
 /coverage
@@ -23,15 +16,22 @@
 # misc
 .DS_Store
 *.pem
+Thumbs.db
+*.swp
+*.swo
+*~
 
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+*.log
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files
+.env
+.env.*
+!.env.example
 
 # vercel
 .vercel
@@ -40,29 +40,30 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# ── GSD baseline (auto-generated) ──
-.gsd
-Thumbs.db
-*.swp
-*.swo
-*~
+# editors
 .idea/
 .vscode/
 *.code-workspace
-.env
-.env.*
-!.env.example
-node_modules/
-.next/
-dist/
-build/
-__pycache__/
-*.pyc
-.venv/
-venv/
-target/
-vendor/
-*.log
-coverage/
-.cache/
-tmp/
+
+# ── GSD (track planning artifacts, ignore runtime data) ──
+.gsd/runtime/
+.gsd/activity/
+.gsd/worktrees/
+.gsd/browser-state/
+.gsd/browser-baselines/
+.gsd/completed-units.json
+.gsd/.cache/
+.gsd/gsd.db*
+.gsd/journal/
+.gsd/metrics.json
+.gsd/doctor-history.jsonl
+.gsd/DISCUSSION-MANIFEST.json
+.gsd/QUEUE-ORDER.json
+.gsd/repo-meta.json
+.gsd/STATE.md
+
+# ── GSD project symlink ──
+.gsd
+
+# ── Runtime artifacts ──
+.bg-shell/

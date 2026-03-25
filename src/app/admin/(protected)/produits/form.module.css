@@ -787,3 +787,72 @@
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
 }
+
+/* ============================
+   Section Export ZIP
+   ============================ */
+
+.exportSection {
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--color-border);
+}
+
+.exportHeader {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.exportTitle {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.exportDescription {
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+  margin-bottom: var(--spacing-md);
+}
+
+.exportError {
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-md);
+}
+
+.exportBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-xl);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  background: #1e293b;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.exportBtn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.exportBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.exportSpinner {
+  display: inline-block;
+  animation: iaSpin 1s linear infinite;
+}

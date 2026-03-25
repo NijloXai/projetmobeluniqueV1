@@ -56,6 +56,10 @@ export function ModelForm({ model }: ModelFormProps) {
   const [uploadingClassique, setUploadingClassique] = useState(false)
   const [classiqueError, setClassiqueError] = useState<string | null>(null)
 
+  // --- Export ZIP state ---
+  const [exporting, setExporting] = useState(false)
+  const [exportError, setExportError] = useState<string | null>(null)
+
   const {
     register,
     handleSubmit,
@@ -327,6 +331,40 @@ export function ModelForm({ model }: ModelFormProps) {
       await refreshVisuals()
     } catch {
       alert('Erreur de connexion.')
+    }
+  }
+
+  /** Export validated visuals as a ZIP archive */
+  async function handleExportZip() {
+    if (!model) return
+    setExporting(true)
+    setExportError(null)
+
+    try {
+      const res = await fetch(`/api/admin/visuals/export/${model.id}`)
+
+      const contentType = res.headers.get('content-type') || ''
+      if (contentType.includes('application/zip')) {
+        // Success — trigger browser download
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `${model.slug}-visuels.zip`
+        document.body.appendChild(a)
+        a.click()
+        // Cleanup
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      } else {
+        // Error response — parse JSON message
+        const data = await res.json()
+        setExportError(data.error || 'Erreur lors de l\'export.')
+      }
+    } catch {
+      setExportError('Erreur de connexion lors de l\'export.')
+    } finally {
+      setExporting(false)
     }
   }
 
@@ -705,6 +743,36 @@ export function ModelForm({ model }: ModelFormProps) {
           visuals={visuals}
           onVisualsChange={refreshVisuals}
         />
+      )}
+
+      {/* Section Export ZIP — visible en édition */}
+      {isEdit && model && (
+        <div className={styles.exportSection}>
+          <div className={styles.exportHeader}>
+            <h2 className={styles.exportTitle}>Export</h2>
+          </div>
+          <p className={styles.exportDescription}>
+            Téléchargez un ZIP contenant tous les rendus validés de ce produit.
+          </p>
+          {exportError && (
+            <p className={styles.exportError}>{exportError}</p>
+          )}
+          <button
+            type="button"
+            className={styles.exportBtn}
+            onClick={handleExportZip}
+            disabled={exporting}
+          >
+            {exporting ? (
+              <>
+                <span className={styles.exportSpinner} aria-hidden="true">⏳</span>
+                Export en cours…
+              </>
+            ) : (
+              <>📦 Exporter ZIP</>
+            )}
+          </button>
+        </div>
       )}
 
       {/* Actions */}

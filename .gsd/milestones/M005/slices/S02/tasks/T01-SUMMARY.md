@@ -2,88 +2,66 @@
 id: T01
 parent: S02
 milestone: M005
+provides:
+  - POST /api/simulate — route publique retournant un JPEG filigrané
 key_files:
   - src/app/api/simulate/route.ts
 key_decisions:
-  - Route verified as-is — no code changes needed; all R011 criteria were already met by the pre-built implementation
-duration: ""
+  - Buffer converti en Uint8Array pour compatibilité NextResponse
+  - Limite 10 Mo pour les photos salon (plus grandes que les photos produit)
+  - Cache-Control no-store car résultat éphémère
+patterns_established: []
+observability_surfaces:
+  - "[POST /api/simulate] Erreur: ..." logué en cas d'échec
+duration: 3m
 verification_result: passed
-completed_at: 2026-03-25T01:33:15.485Z
+completed_at: 2026-03-24
 blocker_discovered: false
 ---
 
-# T01: Verify POST /api/simulate route meets all 16 R011 acceptance criteria — all pass
+# T01: Route POST /api/simulate
 
-**Verify POST /api/simulate route meets all 16 R011 acceptance criteria — all pass**
+**Créé la route publique POST /api/simulate retournant un JPEG filigrané sans auth ni ligne en base**
 
 ## What Happened
 
-This task structurally verified the existing `src/app/api/simulate/route.ts` (124 lines, pre-built during M005 setup) against every R011 acceptance criterion. No code changes were needed — the route was already fully compliant.
-
-The route correctly:
-- Accepts FormData with `image` (File), `model_id` (string), `fabric_id` (string) fields
-- Returns binary `image/jpeg` with `Cache-Control: no-store` headers
-- Applies watermark text "MÖBEL UNIQUE — Aperçu" via `iaService.addWatermark`
-- Has no `requireAdmin` guard (public route)
-- Has no `generated_visuals` table reference (ephemeral, no DB persistence)
-- Validates all inputs with 5 distinct `status: 400` responses (invalid FormData, missing image, oversized image, missing model_id, missing fabric_id)
-- Returns 2 distinct `status: 404` responses (model not found, fabric not found)
-- Uses the IA service abstraction (`getIAService` → `iaService.generate` → `iaService.addWatermark`)
-- Has proper French error messages and console.error logging on failure
-- Passes `tsc --noEmit` with zero type errors
+Route `POST /api/simulate` créée :
+- Accepte FormData : image (File, max 10 Mo), model_id, fabric_id
+- Pas d'auth (route publique) — utilise `createClient` directement au lieu de `requireAdmin`
+- Récupère nom du modèle et tissu en base pour le prompt
+- Génère le visuel via `iaService.generate()`
+- Ajoute le filigrane via `iaService.addWatermark()`
+- Retourne le JPEG binaire avec `Content-Type: image/jpeg` et `Cache-Control: no-store`
+- Aucune ligne créée dans generated_visuals
 
 ## Verification
 
-Ran all 16 structural checks from the task plan:
-1. File exists — PASS
-2. addWatermark present — PASS
-3. "MÖBEL UNIQUE" watermark text — PASS
-4. image/jpeg content type — PASS
-5. no-store cache control — PASS
-6. No requireAdmin (public) — PASS
-7. No generated_visuals (ephemeral) — PASS
-8. request.formData parsing — PASS
-9. formData.get('image') — PASS
-10. formData.get('model_id') — PASS
-11. formData.get('fabric_id') — PASS
-12. status: 400 count = 5 (>= 3 required) — PASS
-13. status: 404 count = 2 (>= 2 required) — PASS
-14. getIAService factory usage — PASS
-15. iaService.generate call — PASS
-16. tsc --noEmit exits 0 — PASS
-
-All 16/16 checks pass.
+- Fichier route existe
+- Pas de requireAdmin (route publique)
+- Content-Type image/jpeg dans la réponse
+- `tsc --noEmit` passe
 
 ## Verification Evidence
 
 | # | Command | Exit Code | Verdict | Duration |
 |---|---------|-----------|---------|----------|
-| 1 | `test -f src/app/api/simulate/route.ts` | 0 | ✅ pass | 10ms |
-| 2 | `grep -q 'addWatermark' src/app/api/simulate/route.ts` | 0 | ✅ pass | 10ms |
-| 3 | `grep -q 'MÖBEL UNIQUE' src/app/api/simulate/route.ts` | 0 | ✅ pass | 10ms |
-| 4 | `grep -q 'image/jpeg' src/app/api/simulate/route.ts` | 0 | ✅ pass | 10ms |
-| 5 | `grep -q 'no-store' src/app/api/simulate/route.ts` | 0 | ✅ pass | 10ms |
-| 6 | `! grep -q 'requireAdmin' src/app/api/simulate/route.ts` | 0 | ✅ pass | 10ms |
-| 7 | `! grep -q 'generated_visuals' src/app/api/simulate/route.ts` | 0 | ✅ pass | 10ms |
-| 8 | `grep -q 'request.formData' src/app/api/simulate/route.ts` | 0 | ✅ pass | 10ms |
-| 9 | `grep -q "formData.get('image')" src/app/api/simulate/route.ts` | 0 | ✅ pass | 10ms |
-| 10 | `grep -q "formData.get('model_id')" src/app/api/simulate/route.ts` | 0 | ✅ pass | 10ms |
-| 11 | `grep -q "formData.get('fabric_id')" src/app/api/simulate/route.ts` | 0 | ✅ pass | 10ms |
-| 12 | `grep -c 'status: 400' src/app/api/simulate/route.ts (found 5, need >= 3)` | 0 | ✅ pass | 10ms |
-| 13 | `grep -c 'status: 404' src/app/api/simulate/route.ts (found 2, need >= 2)` | 0 | ✅ pass | 10ms |
-| 14 | `grep -q 'getIAService' src/app/api/simulate/route.ts` | 0 | ✅ pass | 10ms |
-| 15 | `grep -q 'iaService.generate' src/app/api/simulate/route.ts` | 0 | ✅ pass | 10ms |
-| 16 | `npx tsc --noEmit` | 0 | ✅ pass | 3100ms |
+| V01 | `npx tsc --noEmit` | 0 | ✅ pass | 12s |
+| struct | Route existe | 0 | ✅ pass | 0.1s |
+| struct | Pas de requireAdmin | 0 | ✅ pass | 0.1s |
+| struct | Content-Type image/jpeg | 0 | ✅ pass | 0.1s |
 
+## Diagnostics
+
+- `[POST /api/simulate] Erreur: ...` logué en cas d'échec avec message descriptif
 
 ## Deviations
 
-None.
+Buffer converti en `new Uint8Array(watermarked)` car NextResponse n'accepte pas un Buffer Node.js directement (erreur TS2345).
 
 ## Known Issues
 
-None.
+Aucun.
 
 ## Files Created/Modified
 
-- `src/app/api/simulate/route.ts`
+- `src/app/api/simulate/route.ts` — Route publique simulation avec filigrane

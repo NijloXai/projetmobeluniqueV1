@@ -27,3 +27,20 @@ export function formatPrice(price: number): string {
     currency: 'EUR',
   }).format(price)
 }
+
+/**
+ * Extrait le chemin du fichier depuis une URL Supabase Storage.
+ * Ex: "https://xxx.supabase.co/storage/v1/object/public/fabric-swatches/velours-bleu-swatch.jpg"
+ * → "velours-bleu-swatch.jpg"
+ */
+export function extractStoragePath(url: string): string | null {
+  try {
+    const u = new URL(url)
+    // Pattern: /storage/v1/object/public/{bucket}/{path}
+    // or: /storage/v1/object/sign/{bucket}/{path}?token=...
+    const match = u.pathname.match(/\/storage\/v1\/object\/(?:public|sign)\/[^/]+\/(.+)/)
+    return match ? decodeURIComponent(match[1]) : null
+  } catch {
+    return null
+  }
+}

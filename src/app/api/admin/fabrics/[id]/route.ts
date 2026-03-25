@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/supabase/admin'
 import { updateFabricSchema } from '@/lib/schemas'
-import { slugify } from '@/lib/utils'
+import { slugify, extractStoragePath } from '@/lib/utils'
 import type { FabricUpdate } from '@/types/database'
 
 /**
@@ -236,21 +236,4 @@ export async function DELETE(
   }
 
   return NextResponse.json({ success: true })
-}
-
-/**
- * Extrait le chemin du fichier depuis une URL Supabase Storage.
- * Ex: "https://xxx.supabase.co/storage/v1/object/public/fabric-swatches/velours-bleu-swatch.jpg"
- * → "velours-bleu-swatch.jpg"
- */
-function extractStoragePath(url: string): string | null {
-  try {
-    const u = new URL(url)
-    // Pattern: /storage/v1/object/public/{bucket}/{path}
-    // or: /storage/v1/object/sign/{bucket}/{path}?token=...
-    const match = u.pathname.match(/\/storage\/v1\/object\/(?:public|sign)\/[^/]+\/(.+)/)
-    return match ? decodeURIComponent(match[1]) : null
-  } catch {
-    return null
-  }
 }

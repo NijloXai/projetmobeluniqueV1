@@ -62,8 +62,5 @@ next-env.d.ts
 .gsd/repo-meta.json
 .gsd/STATE.md
 
-# ── GSD project symlink ──
-.gsd
-
 # ── Runtime artifacts ──
 .bg-shell/

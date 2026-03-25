@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T02",
+  "unitId": "M005/S03/T02",
+  "timestamp": 1774405294498,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "npx tsx scripts/verify-e2e-m005.ts exits 0 with all checks passing",
+      "exitCode": 0,
+      "durationMs": 6663,
+      "verdict": "pass"
+    }
+  ]
+}

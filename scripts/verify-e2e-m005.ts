@@ -15,7 +15,11 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import sharp from 'sharp'
 
 // ─── Load environment ───────────────────────────────────────────────────────
-const envPath = resolve(process.cwd(), '.env.local')
+// Try .env.local first, fall back to .env
+const envLocal = resolve(process.cwd(), '.env.local')
+const envFallback = resolve(process.cwd(), '.env')
+import { existsSync } from 'node:fs'
+const envPath = existsSync(envLocal) ? envLocal : envFallback
 process.loadEnvFile(envPath)
 
 // ─── Configuration ──────────────────────────────────────────────────────────

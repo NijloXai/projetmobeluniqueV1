@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: milestone
 status: verifying
-stopped_at: Phase 3 UI-SPEC approved
-last_updated: "2026-03-26T22:56:25.208Z"
+stopped_at: Completed 03-howitworks-assemblage-01-PLAN.md
+last_updated: "2026-03-26T23:21:32.727Z"
 last_activity: 2026-03-26
 progress:
   total_phases: 3
-  completed_phases: 2
-  total_plans: 2
-  completed_plans: 2
+  completed_phases: 3
+  total_plans: 3
+  completed_plans: 3
   percent: 0
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-26)
 
 **Core value:** Le client peut visualiser un canapé dans le tissu de son choix et le simuler dans son salon avant d'acheter.
-**Current focus:** Phase 02 — hero-plein-cran
+**Current focus:** Phase 03 — howitworks-assemblage
 
 ## Current Position
 
-Phase: 3
-Plan: Not started
+Phase: 03 (howitworks-assemblage) — EXECUTING
+Plan: 1 of 1
 Status: Phase complete — ready for verification
 Last activity: 2026-03-26
 
@@ -54,6 +54,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 01 P01 | 3 | 3 tasks | 6 files |
 | Phase 02-hero-plein-cran P01 | 2 | 2 tasks | 5 files |
+| Phase 03-howitworks-assemblage P01 | 8 | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,9 @@ Contexte hérité des milestones précédents :
 - [Phase 02-hero-plein-cran]: motion@12 (motion/react) pour animations Framer Motion — package unifié, même API
 - [Phase 02-hero-plein-cran]: Fond hero #2C2418 couleur unie CSS comme placeholder — background-image ajouté en phase future
 - [Phase 02-hero-plein-cran]: Seuil scrollY > 0 pour indicateur scroll (vs 80 pour Header) — disparaît dès le premier pixel
+- [Phase 03-howitworks-assemblage]: lucide-react@1.7.0 installe — icones Sofa, Palette, Home pour les etapes HowItWorks
+- [Phase 03-howitworks-assemblage]: useInView ref sur .grid (pas section) pour declencher l'animation au bon moment
+- [Phase 03-howitworks-assemblage]: useReducedMotion respecte: y:0, duration:0, delay:0 quand prefers-reduced-motion actif
 
 ### Pending Todos
 
@@ -94,6 +98,6 @@ Aucun pour l'instant.
 
 ## Session Continuity
 
-Last session: 2026-03-26T22:56:25.206Z
-Stopped at: Phase 3 UI-SPEC approved
-Resume file: .planning/phases/03-howitworks-assemblage/03-UI-SPEC.md
+Last session: 2026-03-26T23:21:32.725Z
+Stopped at: Completed 03-howitworks-assemblage-01-PLAN.md
+Resume file: None

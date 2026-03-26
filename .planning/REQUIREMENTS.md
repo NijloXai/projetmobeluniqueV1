@@ -23,9 +23,9 @@ Requirements pour le milestone v7.0 — Header + Hero + Comment ca marche.
 
 ### Comment ca marche
 
-- [ ] **STEP-01**: 3 cartes etapes (choisir, personnaliser, visualiser) avec icones
-- [ ] **STEP-02**: Layout responsive (1 col mobile -> 3 col desktop, fond alterne)
-- [ ] **STEP-03**: Animation apparition au scroll via IntersectionObserver
+- [x] **STEP-01**: 3 cartes etapes (choisir, personnaliser, visualiser) avec icones
+- [x] **STEP-02**: Layout responsive (1 col mobile -> 3 col desktop, fond alterne)
+- [x] **STEP-03**: Animation apparition au scroll via IntersectionObserver
 
 ### Fondation
 
@@ -89,9 +89,9 @@ Requirements pour le milestone v7.0 — Header + Hero + Comment ca marche.
 | HERO-02 | Phase 2 | Complete |
 | HERO-03 | Phase 2 | Complete |
 | HERO-04 | Phase 2 | Complete |
-| STEP-01 | Phase 3 | Pending |
-| STEP-02 | Phase 3 | Pending |
-| STEP-03 | Phase 3 | Pending |
+| STEP-01 | Phase 3 | Complete |
+| STEP-02 | Phase 3 | Complete |
+| STEP-03 | Phase 3 | Complete |
 
 **Coverage:**
 - v7.0 requirements: 14 total

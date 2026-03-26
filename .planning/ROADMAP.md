@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Fondation + Header** - Tokens globals.css, skip link accessibilité, Header sticky `'use client'` avec transition transparence/blanc au scroll
 - [x] **Phase 2: Hero plein écran** - Section 100svh avec image de fond, badge IA, H1, sous-titre, CTA et indicateur de scroll animé (completed 2026-03-26)
-- [ ] **Phase 3: HowItWorks + assemblage** - 3 cartes étapes responsive, fade-in IntersectionObserver, remplacement complet du template page.tsx
+- [x] **Phase 3: HowItWorks + assemblage** - 3 cartes étapes responsive, fade-in IntersectionObserver, remplacement complet du template page.tsx (completed 2026-03-26)
 
 ## Phase Details
 
@@ -60,7 +60,7 @@ Plans:
   3. Les cartes apparaissent avec une animation au scroll via IntersectionObserver (stagger 100ms)
 **Plans**: 1 plan
 Plans:
-- [ ] 03-01-PLAN.md — Composant HowItWorks (3 cartes, CSS Grid responsive, animation useInView stagger 100ms) + integration page.tsx
+- [x] 03-01-PLAN.md — Composant HowItWorks (3 cartes, CSS Grid responsive, animation useInView stagger 100ms) + integration page.tsx
 **UI hint**: yes
 
 ## Progress
@@ -72,7 +72,7 @@ Phases execute in numeric order: 1 → 2 → 3
 |-------|----------------|--------|-----------|
 | 1. Fondation + Header | 1/1 | Complete | 2026-03-26 |
 | 2. Hero plein écran | 1/1 | Complete   | 2026-03-26 |
-| 3. HowItWorks + assemblage | 0/1 | Planning complete | - |
+| 3. HowItWorks + assemblage | 1/1 | Complete   | 2026-03-26 |
 
 ---
 *Roadmap created: 2026-03-26*

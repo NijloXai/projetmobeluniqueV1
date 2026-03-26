@@ -1,39 +1,85 @@
 /* === Design Tokens Möbel Unique === */
+/* Ref: CHARTE-GRAPHIQUE.md */
 :root {
+  /* --- Couleurs principales --- */
   --color-primary: #E49400;
+  --color-primary-dark: #845400;
   --color-secondary: #EFC806;
   --color-text: #1D1D1B;
+  --color-muted: #888888;
+  --color-error: #BA1A1A;
+  --color-success: #4CAF50;
+
+  /* --- Surfaces (tonal layering) --- */
   --color-background: #FFFFFF;
   --color-background-alt: #F8F4EE;
+  --surface: #FCF9F5;
+  --surface-dim: #DCDAD6;
+  --surface-container-lowest: #FFFFFF;
+  --surface-container-low: #F6F3EF;
+  --surface-container: #F0EDEA;
+  --surface-container-high: #EBE8E4;
+  --surface-container-highest: #E5E2DE;
+
+  /* --- Outline --- */
+  --outline: #857461;
+  --outline-variant: #D8C3AD;
   --color-border: #E5E5E5;
-  --color-error: #DC3545;
-  --color-success: #28A745;
-  --color-muted: #6C757D;
 
+  /* --- Couleurs spécifiques --- */
+  --color-whatsapp: #25D366;
+  --color-whatsapp-hover: #1FB855;
+  --color-overlay: rgba(0, 0, 0, 0.55);
+  --color-dimension-line: rgba(255, 255, 255, 0.7);
+
+  /* --- Typographie --- */
   --font-family: var(--font-montserrat), 'Montserrat', sans-serif;
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.875rem;
-  --font-size-base: 1rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.25rem;
-  --font-size-2xl: 1.5rem;
+  --font-size-display: 3.5rem;
+  --font-size-hero-mobile: 2.25rem;
   --font-size-3xl: 2rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-xl: 1.25rem;
+  --font-size-lg: 1.125rem;
+  --font-size-base: 1rem;
+  --font-size-sm: 0.875rem;
+  --font-size-xs: 0.75rem;
 
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-
+  /* --- Espacement --- */
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
   --spacing-md: 1rem;
   --spacing-lg: 1.5rem;
   --spacing-xl: 2rem;
   --spacing-2xl: 3rem;
+  --spacing-3xl: 3.5rem;
+  --spacing-4xl: 5.5rem;
+  --spacing-section: 7rem;
+
+  /* --- Rayons --- */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* --- Ombres --- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 40px rgba(28, 28, 26, 0.04);
+  --shadow-header: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --shadow-sticky: 0 -4px 12px rgba(0, 0, 0, 0.1);
+
+  /* --- Layout --- */
+  --container-max: 1280px;
+  --container-padding-mobile: 24px;
+  --container-padding-desktop: 48px;
+  --container-padding-large: 64px;
+  --header-height: 64px;
+
+  /* --- Transitions --- */
+  --transition-fast: 300ms ease;
+  --transition-smooth: 400ms ease-in-out;
 }
 
 /* === Reset === */

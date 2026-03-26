@@ -45,6 +45,9 @@ next-env.d.ts
 .vscode/
 *.code-workspace
 
+# ── Claude Code (tooling local) ──
+.claude/
+
 # ── GSD (track planning artifacts, ignore runtime data) ──
 .gsd/runtime/
 .gsd/activity/

@@ -3,7 +3,7 @@ import { Header } from '@/components/public/Header/Header'
 import styles from './page.module.css'
 
 export const metadata: Metadata = {
-  title: 'Accueil',
+  title: 'Accueil | Möbel Unique',
   description: 'Visualisez votre canapé personnalisé dans le tissu de votre choix grâce à notre configurateur IA. Livraison Paris et Île-de-France.',
 }
 

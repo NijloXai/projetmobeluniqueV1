@@ -58,7 +58,9 @@ Plans:
   1. 3 cartes étapes (choisir, personnaliser, visualiser) avec icônes sont visibles sur fond #F8F4EE
   2. Sur mobile les cartes s'affichent en colonne unique, sur desktop en grille 3 colonnes
   3. Les cartes apparaissent avec une animation au scroll via IntersectionObserver (stagger 100ms)
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 03-01-PLAN.md — Composant HowItWorks (3 cartes, CSS Grid responsive, animation useInView stagger 100ms) + integration page.tsx
 **UI hint**: yes
 
 ## Progress
@@ -70,7 +72,7 @@ Phases execute in numeric order: 1 → 2 → 3
 |-------|----------------|--------|-----------|
 | 1. Fondation + Header | 1/1 | Complete | 2026-03-26 |
 | 2. Hero plein écran | 1/1 | Complete   | 2026-03-26 |
-| 3. HowItWorks + assemblage | 0/TBD | Not started | - |
+| 3. HowItWorks + assemblage | 0/1 | Planning complete | - |
 
 ---
 *Roadmap created: 2026-03-26*

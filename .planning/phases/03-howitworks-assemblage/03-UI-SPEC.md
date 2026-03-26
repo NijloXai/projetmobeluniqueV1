@@ -5,6 +5,7 @@ status: draft
 shadcn_initialized: false
 preset: none
 created: 2026-03-26
+revised: 2026-03-26
 ---
 
 # Phase 3 — UI Design Contract : HowItWorks + assemblage
@@ -22,7 +23,7 @@ created: 2026-03-26
 | Preset | non applicable | Convention projet — pas de shadcn |
 | Component library | Radix UI (headless) — non utilisé dans cette phase | CLAUDE.md |
 | Icon library | lucide-react@1.7.0 | D-08 (CONTEXT.md) |
-| Font | Montserrat (400, 500, 600, 700) — Google Fonts | CHARTE-GRAPHIQUE.md |
+| Font | Montserrat (400, 700) — Google Fonts | CHARTE-GRAPHIQUE.md |
 
 > Pas de `components.json` dans ce projet. Pas de shadcn. Pile validée : Next.js 16.2.1 App Router + CSS Modules.
 
@@ -56,11 +57,12 @@ Police unique : Montserrat pour tous les éléments. Définie dans `layout.tsx` 
 |------|-----------|-----------|-------|-------------|------------------------|
 | Numéro étape | `--font-size-xs` / label | 12px | 700 | 1.0 | Numéro "01", "02", "03" au-dessus de l'icône |
 | Corps / description card | `--font-size-base` | 16px | 400 | 1.6 | Description de chaque étape |
-| Sous-titre section | `--font-size-lg` | 18px | 400 | 1.6 | Texte muted sous le H2 |
-| Titre card H3 | `--font-size-2xl` | 24px | 600 | 1.2 | Titre de chaque étape |
+| Sous-titre section | `--font-size-base` | 16px | 400 | 1.6 | Texte muted sous le H2 — différencié par `color: var(--color-muted)` |
+| Titre card H3 | `--font-size-2xl` | 24px | 700 | 1.2 | Titre de chaque étape |
 | Titre section H2 | `--font-size-3xl` | 32px | 700 | 1.2 | "Comment ça marche" |
 
-> 4 tailles déclarées (12, 16, 18, 24, 32 — 5 niveaux justifiés par la hiérarchie section + card).
+> 4 tailles déclarées : 12 / 16 / 24 / 32 — hiérarchie section + card en 4 niveaux clairs.
+> 2 poids déclarés : 400 (corps, sous-titre) + 700 (numéros, H3, H2). Le H3 à 24px est déjà distinct du corps à 16px par la taille seule — le poids 600 n'est pas nécessaire.
 > Letter-spacing numéros : `0.1em` (style label ALL-CAPS conforme CHARTE-GRAPHIQUE).
 > Jamais `#000000` — toujours `var(--color-text)` (#1D1D1B).
 
@@ -80,6 +82,8 @@ Source : CHARTE-GRAPHIQUE.md + globals.css (tokens vérifiés).
 
 Accent réservé exclusivement à : les numéros d'étapes (1, 2, 3) en haut de chaque card.
 L'accent n'est PAS utilisé sur les icônes, les titres, les descriptions, ni les bordures.
+
+**Point focal primaire :** numéros 01, 02, 03 en `--color-primary` (#E49400) — premier élément qui capte l'œil sur chaque card.
 
 Couleur de texte principal : `--color-text` (#1D1D1B) pour titres H3 et descriptions.
 Couleur muted : `--color-muted` (#888888) pour le sous-titre de section.
@@ -340,4 +344,5 @@ Pas de registre tiers. Lucide React est un package npm standard, pas un bloc sha
 
 *Phase : 03-howitworks-assemblage*
 *UI-SPEC créé : 2026-03-26*
+*UI-SPEC révisé : 2026-03-26 — corrections checker : typographie 4 tailles / 2 poids, point focal primaire déclaré*
 *Sources : 03-CONTEXT.md (12 décisions), 03-RESEARCH.md (stack + patterns), CHARTE-GRAPHIQUE.md (tokens), globals.css (variables CSS), Hero.tsx + Hero.module.css (patterns existants)*

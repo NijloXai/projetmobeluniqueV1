@@ -23,11 +23,11 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 - [x] **EXPORT-01**: Export ZIP des visuels publies par modele -- M006
 - [x] **FRONT-01**: Header minimal sticky avec transition transparent -> blanc au scroll -- Validated in Phase 01
 - [x] **FRONT-02**: Hero plein ecran avec badge IA, titre, sous-titre et CTA -- Validated in Phase 02
+- [x] **FRONT-03**: Section "Comment ca marche" en 3 etapes illustrees -- Validated in Phase 03
 
 ### Active
 
 <!-- M007: Frontend public - Header + Hero + Comment ca marche -->
-- [ ] **FRONT-03**: Section "Comment ca marche" en 3 etapes illustrees
 - [ ] **FRONT-04**: Design system Stitch applique (CSS Modules, tonal layering, no-border)
 - [ ] **FRONT-05**: Responsive complet (mobile < 640px, tablet >= 640px, desktop >= 1024px, large >= 1280px)
 
@@ -47,7 +47,7 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 - Wireframe detaille v4 sauvegarde en local : `.planning/maquette/wireframe-page-unique.md`
 - Charte graphique creee : `CHARTE-GRAPHIQUE.md` avec tous les tokens et dimensions
 - globals.css mis a jour avec tokens complets
-- Page actuelle: Header sticky + Hero plein ecran implementes (Phase 01-02 completes)
+- Page actuelle: Header sticky + Hero plein ecran + HowItWorks implementes (Phase 01-03 completes)
 
 ## Constraints
 
@@ -95,4 +95,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-26 after Phase 02 hero-plein-cran completion*
+*Last updated: 2026-03-27 after Phase 03 howitworks-assemblage completion*

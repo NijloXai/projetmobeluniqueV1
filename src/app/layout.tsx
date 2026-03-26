@@ -9,8 +9,11 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: "Möbel Unique — Back-office",
-  description: "Administration Möbel Unique — Visualisation IA de canapés personnalisables",
+  title: {
+    template: '%s | Möbel Unique',
+    default: 'Möbel Unique — Canapés personnalisables Paris',
+  },
+  description: 'Configurateur IA de canapés personnalisables. Visualisez votre canapé dans le tissu de votre choix.',
 };
 
 export default function RootLayout({

@@ -31,7 +31,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Au scroll de 80px, le header passe de transparent à blanc avec une ombre visible (300ms)
   4. Le skip link "Aller au contenu" est invisible au repos et visible au focus clavier
   5. Les breakpoints responsive (640/1024/1280px) et scroll-padding-top sont actifs dans globals.css
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 01-01-PLAN.md — Fondation CSS (globals.css + layout.tsx + page.module.css) + Header sticky avec scroll et glassmorphism
 **UI hint**: yes
 
 ### Phase 2: Hero plein écran
@@ -64,7 +66,7 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Fondation + Header | 0/TBD | Not started | - |
+| 1. Fondation + Header | 0/1 | Not started | - |
 | 2. Hero plein écran | 0/TBD | Not started | - |
 | 3. HowItWorks + assemblage | 0/TBD | Not started | - |
 

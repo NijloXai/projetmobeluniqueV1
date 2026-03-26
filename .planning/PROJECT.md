@@ -21,13 +21,12 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 - [x] **IA-01**: Generation IA rendus (mock Sharp + stub Nano Banana, single/all angles) -- M005
 - [x] **IA-02**: Workflow visuals (generate -> validate -> publish, bulk ops) -- M005
 - [x] **EXPORT-01**: Export ZIP des visuels publies par modele -- M006
+- [x] **FRONT-01**: Header minimal sticky avec transition transparent -> blanc au scroll -- Validated in Phase 01
+- [x] **FRONT-02**: Hero plein ecran avec badge IA, titre, sous-titre et CTA -- Validated in Phase 02
 
 ### Active
 
 <!-- M007: Frontend public - Header + Hero + Comment ca marche -->
-
-- [ ] **FRONT-01**: Header minimal sticky avec transition transparent -> blanc au scroll
-- [ ] **FRONT-02**: Hero plein ecran avec badge IA, titre, sous-titre et CTA
 - [ ] **FRONT-03**: Section "Comment ca marche" en 3 etapes illustrees
 - [ ] **FRONT-04**: Design system Stitch applique (CSS Modules, tonal layering, no-border)
 - [ ] **FRONT-05**: Responsive complet (mobile < 640px, tablet >= 640px, desktop >= 1024px, large >= 1280px)
@@ -48,7 +47,7 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 - Wireframe detaille v4 sauvegarde en local : `.planning/maquette/wireframe-page-unique.md`
 - Charte graphique creee : `CHARTE-GRAPHIQUE.md` avec tous les tokens et dimensions
 - globals.css mis a jour avec tokens complets
-- Page actuelle: template Next.js par defaut (a remplacer)
+- Page actuelle: Header sticky + Hero plein ecran implementes (Phase 01-02 completes)
 
 ## Constraints
 
@@ -96,4 +95,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-26 after milestone v7.0 initialization*
+*Last updated: 2026-03-26 after Phase 02 hero-plein-cran completion*

@@ -45,8 +45,8 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 
 - Backend complet (~5350 lignes, M001-M006)
 - Maquette Stitch "Mobel Unique -- SPA Desktop" (project ID: 16534774796210155266)
-- Wireframe detaille v4 (wireframe-page-unique.md dans Stitch)
-- Charte graphique creee (CHARTE-GRAPHIQUE.md) avec tous les tokens
+- Wireframe detaille v4 sauvegarde en local : `.planning/maquette/wireframe-page-unique.md`
+- Charte graphique creee : `CHARTE-GRAPHIQUE.md` avec tous les tokens et dimensions
 - globals.css mis a jour avec tokens complets
 - Page actuelle: template Next.js par defaut (a remplacer)
 

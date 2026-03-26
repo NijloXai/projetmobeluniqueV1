@@ -21,7 +21,7 @@ created: 2026-03-26
 | Preset | not applicable | — |
 | Component library | Radix UI (headless) — non requis pour cette phase | CLAUDE.md |
 | Icon library | aucune externe — SVG inline ou Radix Icons si besoin | CLAUDE.md |
-| Font | Montserrat (400, 500, 600, 700) via `--font-family` | globals.css confirmé |
+| Font | Montserrat (400, 700) via `--font-family` | globals.css confirmé |
 | Animation library | Framer Motion | CONTEXT.md D-13 |
 
 ---
@@ -38,9 +38,9 @@ Tokens CSS définis dans `src/app/globals.css` — utiliser exclusivement ces to
 | `--spacing-lg` | 24px | Gap entre sous-titre et CTA |
 | `--spacing-xl` | 32px | Padding latéral mobile (`--container-padding-mobile` = 24px, voir exception) |
 | `--spacing-2xl` | 48px | Padding latéral desktop (`--container-padding-desktop`) |
-| `--spacing-section` | 112px | Marge supérieure du contenu hero (compensation header 64px + breathing room) |
 
 Exceptions :
+- `--spacing-section` = 112px — token layout dédié (64px header-height + 48px breathing room) — hors échelle standard, usage réservé à la compensation header hero
 - Padding latéral mobile : `var(--container-padding-mobile)` = 24px (token dédié, non dans l'échelle standard)
 - Padding latéral desktop : `var(--container-padding-desktop)` = 48px
 - Padding latéral large : `var(--container-padding-large)` = 64px (>= 1280px)
@@ -53,14 +53,14 @@ Exceptions :
 
 Tous les tokens sont définis dans `src/app/globals.css`. Utiliser uniquement les valeurs déclarées.
 
+2 poids autorisés : **400** (corps, détails) et **700** (titres, labels uppercase).
+
 | Rôle | Token CSS | Taille | Poids | Line-Height | Usage dans le Hero |
 |------|-----------|--------|-------|-------------|--------------------|
 | H1 desktop | `--font-size-display` | 56px (3.5rem) | 700 | 1.2 | Titre principal au-dessus de >=1024px |
 | H1 mobile | `--font-size-hero-mobile` | 36px (2.25rem) | 700 | 1.2 | Titre principal en dessous de 1024px |
 | Sous-titre | `--font-size-lg` | 18px (1.125rem) | 400 | 1.6 | Paragraphe bénéfice sous le H1 |
-| Badge | `--font-size-xs` | 12px (0.75rem) | 700 | 1 | Label "Visualisation par IA" en ALL-CAPS |
-| CTA | `--font-size-sm` | 14px (0.875rem) | 600 | 1 | Libellé bouton en uppercase |
-| Indicateur scroll | `--font-size-sm` | 14px (0.875rem) | 500 | 1 | Texte "Défiler" si présent |
+| Badge + CTA + Scroll | `--font-size-sm` | 14px (0.875rem) | 700 (badge, CTA) / 400 (scroll) | 1 | Badge "Visualisation par IA", libellé CTA, texte "Défiler" |
 
 Règles :
 - Letter-spacing H1 display : `-0.02em` (token charte)
@@ -141,9 +141,9 @@ Intégration : `src/app/page.tsx` — remplacer `{/* Phase 2 : <Hero /> */}` par
 | Style | Pill pleine dorée (doré plein, pas outline) — meilleure lisibilité sur fond sombre (D-06) |
 | Background | `var(--color-primary)` à 90% opacité |
 | Couleur texte | `#FFFFFF` |
-| Padding | `6px 14px` |
+| Padding | `8px 16px` |
 | Border-radius | `var(--radius-full)` = 9999px |
-| Font | 12px, 700, uppercase, letter-spacing 0.05em |
+| Font | 14px (`--font-size-sm`), 700, uppercase, letter-spacing 0.05em |
 | Margin-bottom | `var(--spacing-sm)` = 8px (avant H1) |
 
 ### Bouton CTA
@@ -154,9 +154,9 @@ Intégration : `src/app/page.tsx` — remplacer `{/* Phase 2 : <Hero /> */}` par
 | href | `#catalogue` | CONTEXT.md D-07 (lien mort temporaire) |
 | Background | `linear-gradient(135deg, var(--color-primary-dark), var(--color-primary))` | CONTEXT.md D-08 |
 | Couleur texte | `#FFFFFF` | CONTEXT.md D-08 |
-| Padding | `14px 32px` | Équilibre visuel premium (D-09) |
+| Padding | `16px 32px` | Multiples de 4 — équilibre visuel premium (D-09) |
 | Border-radius | `var(--radius-sm)` = 4px | CHARTE-GRAPHIQUE.md — bouton sharp |
-| Font | 14px, 600, uppercase, letter-spacing 0.05em | CHARTE-GRAPHIQUE.md |
+| Font | 14px (`--font-size-sm`), 700, uppercase, letter-spacing 0.05em | CHARTE-GRAPHIQUE.md |
 | Hover | `transform: translateY(-2px)` + `box-shadow: var(--shadow-md)` à 300ms ease | Effet premium cohérent (D-10) |
 | Margin-top | `var(--spacing-lg)` = 24px (après sous-titre) | — |
 
@@ -167,6 +167,7 @@ Intégration : `src/app/page.tsx` — remplacer `{/* Phase 2 : <Hero /> */}` par
 | Style | Chevron SVG animé + texte "Défiler" en dessous | D-14 — style choisi |
 | Position | `position: absolute; bottom: var(--spacing-2xl); left: 50%; transform: translateX(-50%)` | — |
 | Couleur | `rgba(255,255,255,0.7)` | Discret, non intrusif |
+| Font | 14px (`--font-size-sm`), 400 | — |
 | Animation chevron | `translateY(0) → translateY(8px)` oscillation, 1.5s ease-in-out infinite | CHARTE-GRAPHIQUE.md transitions |
 | Comportement décoratif | Aucun onClick — décoratif uniquement | CONTEXT.md D-16 |
 | Fade-out | `opacity: 0` quand `scrollY > 0` via `useState` + scroll listener (pattern Header) | CONTEXT.md D-15 |

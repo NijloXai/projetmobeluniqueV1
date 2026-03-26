@@ -16,10 +16,10 @@ Requirements pour le milestone v7.0 — Header + Hero + Comment ca marche.
 
 ### Hero
 
-- [ ] **HERO-01**: Section plein ecran (100svh) avec image de fond et overlay
-- [ ] **HERO-02**: Badge "Visualisation par IA", titre H1, sous-titre et CTA
-- [ ] **HERO-03**: Indicateur de scroll anime en bas du hero
-- [ ] **HERO-04**: Animation fade-in des elements au chargement
+- [x] **HERO-01**: Section plein ecran (100svh) avec image de fond et overlay
+- [x] **HERO-02**: Badge "Visualisation par IA", titre H1, sous-titre et CTA
+- [x] **HERO-03**: Indicateur de scroll anime en bas du hero
+- [x] **HERO-04**: Animation fade-in des elements au chargement
 
 ### Comment ca marche
 
@@ -85,10 +85,10 @@ Requirements pour le milestone v7.0 — Header + Hero + Comment ca marche.
 | HEAD-02 | Phase 1 | Complete |
 | HEAD-03 | Phase 1 | Complete |
 | HEAD-04 | Phase 1 | Complete |
-| HERO-01 | Phase 2 | Pending |
-| HERO-02 | Phase 2 | Pending |
-| HERO-03 | Phase 2 | Pending |
-| HERO-04 | Phase 2 | Pending |
+| HERO-01 | Phase 2 | Complete |
+| HERO-02 | Phase 2 | Complete |
+| HERO-03 | Phase 2 | Complete |
+| HERO-04 | Phase 2 | Complete |
 | STEP-01 | Phase 3 | Pending |
 | STEP-02 | Phase 3 | Pending |
 | STEP-03 | Phase 3 | Pending |

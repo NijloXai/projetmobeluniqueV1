@@ -1,0 +1,160 @@
+/* === Hero plein écran — Hero.module.css === */
+/* Phase 02 — hero-plein-cran */
+
+/* Conteneur hero */
+.hero {
+  position: relative;
+  height: 100vh; /* fallback navigateurs anciens */
+  height: 100svh; /* correctif mobile (barre d'adresse) per D-17 */
+  background-color: #2C2418; /* warm dark placeholder per D-01 */
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Overlay sombre per D-02 */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--color-overlay); /* rgba(0,0,0,0.55) */
+  z-index: 1;
+}
+
+/* Contenu centré */
+.heroContent {
+  position: relative;
+  z-index: 2;
+  max-width: var(--container-max); /* 1280px */
+  padding: 0 var(--container-padding-mobile); /* 24px mobile */
+  padding-top: var(--header-height); /* 64px pour compenser header fixe */
+  text-align: center;
+}
+
+/* Badge pill dorée per D-06 */
+.badge {
+  display: inline-block;
+  background: rgba(228, 148, 0, 0.9); /* --color-primary à 90% */
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: var(--radius-full); /* 9999px */
+  font-size: var(--font-size-sm); /* 14px */
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--spacing-sm); /* 8px avant H1 */
+}
+
+/* Titre H1 */
+.title {
+  font-size: var(--font-size-hero-mobile); /* 36px — mobile first */
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  margin-bottom: var(--spacing-md); /* 16px */
+}
+
+/* Sous-titre */
+.subtitle {
+  font-size: var(--font-size-lg); /* 18px */
+  font-weight: 400;
+  line-height: 1.6;
+  color: #ffffff;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+/* CTA gradient per D-08 */
+.cta {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary));
+  color: #ffffff;
+  padding: 16px 32px;
+  border-radius: var(--radius-sm); /* 4px */
+  font-size: var(--font-size-sm); /* 14px */
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  margin-top: var(--spacing-lg); /* 24px après sous-titre */
+}
+
+.cta:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.cta:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+}
+
+/* Indicateur de scroll per D-14 */
+.scrollIndicator {
+  position: absolute;
+  bottom: var(--spacing-2xl); /* 48px du bas */
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs); /* 4px */
+  color: rgba(255, 255, 255, 0.7);
+  z-index: 2;
+  opacity: 1;
+  transition: opacity var(--transition-fast); /* 300ms ease per D-15 */
+}
+
+.scrollIndicatorHidden {
+  opacity: 0;
+}
+
+/* Chevron animé */
+.chevron {
+  animation: bounce 1.5s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+.scrollText {
+  font-size: var(--font-size-sm); /* 14px */
+  font-weight: 400;
+}
+
+/* Accessibilité — prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    animation: none;
+  }
+}
+
+/* === Responsive === */
+
+/* Desktop >= 1024px : H1 display size + padding latéral desktop */
+@media (min-width: 1024px) {
+  .title {
+    font-size: var(--font-size-display); /* 56px */
+  }
+
+  .heroContent {
+    padding: 0 var(--container-padding-desktop); /* 48px */
+    padding-top: var(--header-height);
+  }
+}
+
+/* Large >= 1280px : padding latéral large */
+@media (min-width: 1280px) {
+  .heroContent {
+    padding: 0 var(--container-padding-large); /* 64px */
+    padding-top: var(--header-height);
+  }
+}

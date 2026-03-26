@@ -77,27 +77,27 @@ Requirements pour le milestone v7.0 — Header + Hero + Comment ca marche.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| HEAD-01 | -- | Pending |
-| HEAD-02 | -- | Pending |
-| HEAD-03 | -- | Pending |
-| HEAD-04 | -- | Pending |
-| HERO-01 | -- | Pending |
-| HERO-02 | -- | Pending |
-| HERO-03 | -- | Pending |
-| HERO-04 | -- | Pending |
-| STEP-01 | -- | Pending |
-| STEP-02 | -- | Pending |
-| STEP-03 | -- | Pending |
-| FOND-01 | -- | Pending |
-| FOND-02 | -- | Pending |
-| FOND-03 | -- | Pending |
-| FOND-04 | -- | Pending |
+| FOND-01 | Phase 1 | Pending |
+| FOND-02 | Phase 1 | Pending |
+| FOND-03 | Phase 1 | Pending |
+| FOND-04 | Phase 1 | Pending |
+| HEAD-01 | Phase 1 | Pending |
+| HEAD-02 | Phase 1 | Pending |
+| HEAD-03 | Phase 1 | Pending |
+| HEAD-04 | Phase 1 | Pending |
+| HERO-01 | Phase 2 | Pending |
+| HERO-02 | Phase 2 | Pending |
+| HERO-03 | Phase 2 | Pending |
+| HERO-04 | Phase 2 | Pending |
+| STEP-01 | Phase 3 | Pending |
+| STEP-02 | Phase 3 | Pending |
+| STEP-03 | Phase 3 | Pending |
 
 **Coverage:**
 - v7.0 requirements: 14 total
-- Mapped to phases: 0
-- Unmapped: 14
+- Mapped to phases: 14
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-26*
-*Last updated: 2026-03-26 after initial definition*
+*Last updated: 2026-03-26 after roadmap creation — traceability complete*

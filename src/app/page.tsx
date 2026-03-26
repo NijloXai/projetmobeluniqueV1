@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Header } from '@/components/public/Header/Header'
 import { Hero } from '@/components/public/Hero/Hero'
+import { HowItWorks } from '@/components/public/HowItWorks/HowItWorks'
 import styles from './page.module.css'
 
 export const metadata: Metadata = {
@@ -14,7 +15,7 @@ export default function HomePage() {
       <Header />
       <main id="main-content" className={styles.main}>
         <Hero />
-        {/* Phase 3 : <HowItWorks /> */}
+        <HowItWorks />
       </main>
     </div>
   )

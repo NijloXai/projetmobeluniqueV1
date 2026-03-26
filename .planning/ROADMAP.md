@@ -45,7 +45,9 @@ Plans:
   2. Le badge "Visualisation par IA", le H1, le sous-titre et le bouton CTA sont visibles et centrés dans le hero
   3. Les éléments du hero apparaissent avec un fade-in au chargement de la page
   4. Un indicateur de scroll animé est visible en bas du hero et invite à continuer
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 02-01-PLAN.md — Hero complet (Hero.tsx + Hero.module.css + integration page.tsx) avec fade-in Framer Motion et indicateur scroll
 **UI hint**: yes
 
 ### Phase 3: HowItWorks + assemblage
@@ -66,8 +68,8 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Fondation + Header | 0/1 | Not started | - |
-| 2. Hero plein écran | 0/TBD | Not started | - |
+| 1. Fondation + Header | 1/1 | Complete | 2026-03-26 |
+| 2. Hero plein écran | 0/1 | Planned | - |
 | 3. HowItWorks + assemblage | 0/TBD | Not started | - |
 
 ---

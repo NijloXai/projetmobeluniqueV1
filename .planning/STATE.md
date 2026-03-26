@@ -1,3 +1,19 @@
+---
+gsd_state_version: 1.0
+milestone: v7.0
+milestone_name: milestone
+status: executing
+stopped_at: Checkpoint human-verify Tâche 4 — vérification visuelle header sticky
+last_updated: "2026-03-26T05:43:37.471Z"
+last_activity: 2026-03-26 -- Phase 01 execution started
+progress:
+  total_phases: 3
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
+  percent: 0
+---
+
 # Project State
 
 ## Project Reference
@@ -5,20 +21,21 @@
 See: .planning/PROJECT.md (updated 2026-03-26)
 
 **Core value:** Le client peut visualiser un canapé dans le tissu de son choix et le simuler dans son salon avant d'acheter.
-**Current focus:** Phase 1 — Fondation + Header
+**Current focus:** Phase 01 — fondation-header
 
 ## Current Position
 
-Phase: 1 of 3 (Fondation + Header)
-Plan: 0 of 1 in current phase
-Status: Planned — ready to execute
-Last activity: 2026-03-26 — Phase 1 planifiée (1 plan, 4 tâches, 6 fichiers)
+Phase: 01 (fondation-header) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 01
+Last activity: 2026-03-26 -- Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
 **Velocity:**
+
 - Total plans completed: 0
 - Average duration: -
 - Total execution time: 0h
@@ -30,28 +47,36 @@ Progress: [░░░░░░░░░░] 0%
 | - | - | - | - |
 
 **Recent Trend:**
+
 - Last 5 plans: -
 - Trend: -
 
 *Updated after each plan completion*
+| Phase 01 P01 | 3 | 3 tasks | 6 files |
 
 ## Accumulated Context
 
 ### Decisions
 
 Décisions en attente de confirmation (voir PROJECT.md Key Decisions) :
+
 - CSS Modules uniquement (pas de Tailwind)
 - Sections statiques M007 (aucune API nécessaire)
 
 Décisions techniques à valider en Phase 1 :
+
 - `100svh` vs `100vh` pour le Hero (svh = correctif mobile 2025)
 - Pattern `mounted` pour éviter hydration mismatch sur le Header
 
 Contexte hérité des milestones précédents :
+
 - Backend complet M001-M006 (~5350 lignes)
 - Charte graphique créée (CHARTE-GRAPHIQUE.md)
 - globals.css tokens complets
 - Maquette Stitch + wireframe comme référence
+- [Phase 01]: useState(false) pour scroll state — jamais d'accès à window dans l'initialisation useState (SSR)
+- [Phase 01]: title.template '%s | Möbel Unique' dans layout.tsx — pattern appliqué à toutes les pages
+- [Phase 01]: scroll-padding-top: var(--header-height) dans globals.css — 64px réservé pour toutes les ancres du site
 
 ### Pending Todos
 
@@ -65,6 +90,6 @@ Aucun pour l'instant.
 
 ## Session Continuity
 
-Last session: 2026-03-26
-Stopped at: Phase 1 planifiée — prêt pour execute-phase 1
+Last session: 2026-03-26T05:43:37.468Z
+Stopped at: Checkpoint human-verify Tâche 4 — vérification visuelle header sticky
 Resume file: None

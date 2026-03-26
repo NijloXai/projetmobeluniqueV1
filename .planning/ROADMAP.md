@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. Les breakpoints responsive (640/1024/1280px) et scroll-padding-top sont actifs dans globals.css
 **Plans**: 1 plan
 Plans:
-- [ ] 01-01-PLAN.md — Fondation CSS (globals.css + layout.tsx + page.module.css) + Header sticky avec scroll et glassmorphism
+- [x] 01-01-PLAN.md — Fondation CSS (globals.css + layout.tsx + page.module.css) + Header sticky avec scroll et glassmorphism
 **UI hint**: yes
 
 ### Phase 2: Hero plein écran

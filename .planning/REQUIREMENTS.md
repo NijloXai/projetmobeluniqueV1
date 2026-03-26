@@ -9,10 +9,10 @@ Requirements pour le milestone v7.0 — Header + Hero + Comment ca marche.
 
 ### Header
 
-- [ ] **HEAD-01**: Header sticky fixed avec logo MU et lien retour Shopify
-- [ ] **HEAD-02**: Transition transparent -> blanc au scroll (seuil 80px, 300ms)
-- [ ] **HEAD-03**: Effet glassmorphism sur le header au scroll (backdrop-blur 20px)
-- [ ] **HEAD-04**: Skip link accessibilite "Aller au contenu" (visible au focus)
+- [x] **HEAD-01**: Header sticky fixed avec logo MU et lien retour Shopify
+- [x] **HEAD-02**: Transition transparent -> blanc au scroll (seuil 80px, 300ms)
+- [x] **HEAD-03**: Effet glassmorphism sur le header au scroll (backdrop-blur 20px)
+- [x] **HEAD-04**: Skip link accessibilite "Aller au contenu" (visible au focus)
 
 ### Hero
 
@@ -29,10 +29,10 @@ Requirements pour le milestone v7.0 — Header + Hero + Comment ca marche.
 
 ### Fondation
 
-- [ ] **FOND-01**: Page publique remplace le template Next.js par defaut
-- [ ] **FOND-02**: Metadata publique (titre, description pour SEO)
-- [ ] **FOND-03**: Responsive 4 breakpoints (mobile/tablet/desktop/large)
-- [ ] **FOND-04**: scroll-padding-top et scroll-behavior smooth dans globals.css
+- [x] **FOND-01**: Page publique remplace le template Next.js par defaut
+- [x] **FOND-02**: Metadata publique (titre, description pour SEO)
+- [x] **FOND-03**: Responsive 4 breakpoints (mobile/tablet/desktop/large)
+- [x] **FOND-04**: scroll-padding-top et scroll-behavior smooth dans globals.css
 
 ## Future Requirements
 
@@ -77,14 +77,14 @@ Requirements pour le milestone v7.0 — Header + Hero + Comment ca marche.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOND-01 | Phase 1 | Pending |
-| FOND-02 | Phase 1 | Pending |
-| FOND-03 | Phase 1 | Pending |
-| FOND-04 | Phase 1 | Pending |
-| HEAD-01 | Phase 1 | Pending |
-| HEAD-02 | Phase 1 | Pending |
-| HEAD-03 | Phase 1 | Pending |
-| HEAD-04 | Phase 1 | Pending |
+| FOND-01 | Phase 1 | Complete |
+| FOND-02 | Phase 1 | Complete |
+| FOND-03 | Phase 1 | Complete |
+| FOND-04 | Phase 1 | Complete |
+| HEAD-01 | Phase 1 | Complete |
+| HEAD-02 | Phase 1 | Complete |
+| HEAD-03 | Phase 1 | Complete |
+| HEAD-04 | Phase 1 | Complete |
 | HERO-01 | Phase 2 | Pending |
 | HERO-02 | Phase 2 | Pending |
 | HERO-03 | Phase 2 | Pending |

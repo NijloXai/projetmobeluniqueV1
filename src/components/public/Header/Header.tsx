@@ -10,7 +10,8 @@ export function Header() {
 
   useEffect(() => {
     const handleScroll = () => {
-      const isScrolled = window.scrollY > 80
+      const heroHeight = window.innerHeight * 0.6
+      const isScrolled = window.scrollY > heroHeight
       setScrolled(prev => prev !== isScrolled ? isScrolled : prev)
     }
     window.addEventListener('scroll', handleScroll, { passive: true })

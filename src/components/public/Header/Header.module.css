@@ -33,19 +33,16 @@
   justify-content: space-between;
   padding: 0 var(--container-padding-mobile);
   background: transparent;
-  color: var(--color-text);
+  color: #ffffff;
   transition:
     background var(--transition-fast),
     box-shadow var(--transition-fast),
     color var(--transition-fast);
 }
 
-/* Etat scrollé — transition + glassmorphism (HEAD-02, HEAD-03) */
+/* Etat scrollé — fond subtil + swap couleurs (HEAD-02) */
 .scrolled {
-  background: rgba(252, 249, 245, 0.92);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
-  box-shadow: var(--shadow-header);
+  background: rgba(248, 244, 238, 0.85);
   color: var(--color-text);
 }
 
@@ -53,14 +50,15 @@
 .brand {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
   text-decoration: none;
   color: inherit;
+  height: 100%;
+  overflow: hidden;
 }
 
 /* Logo image conditionnel blanc/noir (HEAD-01) */
 .logoImage {
-  height: 36px;
+  height: 140px;
   width: auto;
   object-fit: contain;
   display: block;

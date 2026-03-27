@@ -15,25 +15,28 @@ final de page.tsx complètent la page (Phase 3). Aucune dépendance API — mile
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Fondation + Header** - Tokens globals.css, skip link accessibilité, Header sticky `'use client'` avec transition transparence/blanc au scroll
+- [ ] **Phase 1: Fondation + Header** - REDO : Integration des vrais assets brand (logos, favicon, app icon) + correction lien Shopify
 - [x] **Phase 2: Hero plein écran** - Section 100svh avec image de fond, badge IA, H1, sous-titre, CTA et indicateur de scroll animé (completed 2026-03-26)
 - [x] **Phase 3: HowItWorks + assemblage** - 3 cartes étapes responsive, fade-in IntersectionObserver, remplacement complet du template page.tsx (completed 2026-03-26)
 
 ## Phase Details
 
 ### Phase 1: Fondation + Header
-**Goal**: La fondation CSS est en place et le header sticky est visible et fonctionnel sur toute la page
+**Goal**: Le header affiche les vrais logos brand Möbel Unique (swap blanc/noir au scroll), le favicon et manifest PWA sont en place, et le lien Shopify pointe vers la vraie URL
 **Depends on**: Nothing (first phase)
 **Requirements**: FOND-01, FOND-02, FOND-03, FOND-04, HEAD-01, HEAD-02, HEAD-03, HEAD-04
 **Success Criteria** (what must be TRUE):
   1. La page publique s'affiche sans le template Next.js par défaut, avec le bon titre SEO dans l'onglet
-  2. Le header est sticky en haut de la page, affiche le logo MU et un lien retour Shopify
-  3. Au scroll de 80px, le header passe de transparent à blanc avec une ombre visible (300ms)
+  2. Le header est sticky en haut de la page, affiche le vrai logo Möbel Unique et un lien retour Shopify
+  3. Au scroll de 80px, le header passe de transparent à blanc avec une ombre visible (300ms) et le logo passe de blanc à noir
   4. Le skip link "Aller au contenu" est invisible au repos et visible au focus clavier
   5. Les breakpoints responsive (640/1024/1280px) et scroll-padding-top sont actifs dans globals.css
-**Plans**: 1 plan
+  6. Le favicon Möbel Unique apparaît dans l'onglet du navigateur
+  7. Le manifest PWA est servi avec les icônes 192x192 et 512x512
+**Plans**: 2 plans
 Plans:
 - [x] 01-01-PLAN.md — Fondation CSS (globals.css + layout.tsx + page.module.css) + Header sticky avec scroll et glassmorphism
+- [ ] 01-02-PLAN.md — Integration assets brand (logos, favicon, manifest) + Header next/image conditionnel + lien Shopify reel
 **UI hint**: yes
 
 ### Phase 2: Hero plein écran
@@ -70,7 +73,7 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Fondation + Header | 1/1 | Complete | 2026-03-26 |
+| 1. Fondation + Header | 1/2 | In Progress | — |
 | 2. Hero plein écran | 1/1 | Complete   | 2026-03-26 |
 | 3. HowItWorks + assemblage | 1/1 | Complete   | 2026-03-26 |
 

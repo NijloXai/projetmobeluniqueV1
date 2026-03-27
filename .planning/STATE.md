@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: milestone
 status: verifying
-stopped_at: Phase 1 replanned with brand assets
-last_updated: "2026-03-27T01:06:16.480Z"
-last_activity: 2026-03-26
+stopped_at: Completed 01-fondation-header-01-02-PLAN.md
+last_updated: "2026-03-27T01:13:56.023Z"
+last_activity: 2026-03-27
 progress:
   total_phases: 3
   completed_phases: 3
   total_plans: 3
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-26)
 
 **Core value:** Le client peut visualiser un canapé dans le tissu de son choix et le simuler dans son salon avant d'acheter.
-**Current focus:** Phase 03 — howitworks-assemblage
+**Current focus:** Phase 01 — fondation-header
 
 ## Current Position
 
-Phase: 03
-Plan: Not started
+Phase: 01 (fondation-header) — EXECUTING
+Plan: 1 of 1
 Status: Phase complete — ready for verification
-Last activity: 2026-03-26
+Last activity: 2026-03-27
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -55,6 +55,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P01 | 3 | 3 tasks | 6 files |
 | Phase 02-hero-plein-cran P01 | 2 | 2 tasks | 5 files |
 | Phase 03-howitworks-assemblage P01 | 8 | 3 tasks | 6 files |
+| Phase 01-fondation-header P02 | 2 | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,9 @@ Contexte hérité des milestones précédents :
 - [Phase 03-howitworks-assemblage]: lucide-react@1.7.0 installe — icones Sofa, Palette, Home pour les etapes HowItWorks
 - [Phase 03-howitworks-assemblage]: useInView ref sur .grid (pas section) pour declencher l'animation au bon moment
 - [Phase 03-howitworks-assemblage]: useReducedMotion respecte: y:0, duration:0, delay:0 quand prefers-reduced-motion actif
+- [Phase 01-fondation-header]: Logo-04 = logo-white.png (fond transparent), Logo-01 = logo-black.png — swap conditionnel next/image selon scrolled
+- [Phase 01-fondation-header]: NE PAS ajouter metadata.icons dans layout.tsx — fichiers convention src/app/ suffisent, evitent balises link dupliquees
+- [Phase 01-fondation-header]: manifest.ts avec MetadataRoute.Manifest — servi automatiquement a /manifest.webmanifest, theme_color #E49400
 
 ### Pending Todos
 
@@ -98,6 +102,6 @@ Aucun pour l'instant.
 
 ## Session Continuity
 
-Last session: 2026-03-27T01:06:16.478Z
-Stopped at: Phase 1 replanned with brand assets
-Resume file: .planning/phases/01-fondation-header/01-02-PLAN.md
+Last session: 2026-03-27T01:13:56.021Z
+Stopped at: Completed 01-fondation-header-01-02-PLAN.md
+Resume file: None

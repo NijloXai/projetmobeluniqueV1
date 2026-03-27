@@ -15,7 +15,7 @@ final de page.tsx complètent la page (Phase 3). Aucune dépendance API — mile
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Fondation + Header** - REDO : Integration des vrais assets brand (logos, favicon, app icon) + correction lien Shopify
+- [x] **Phase 1: Fondation + Header** - REDO : Integration des vrais assets brand (logos, favicon, app icon) + correction lien Shopify (completed 2026-03-27)
 - [x] **Phase 2: Hero plein écran** - Section 100svh avec image de fond, badge IA, H1, sous-titre, CTA et indicateur de scroll animé (completed 2026-03-26)
 - [x] **Phase 3: HowItWorks + assemblage** - 3 cartes étapes responsive, fade-in IntersectionObserver, remplacement complet du template page.tsx (completed 2026-03-26)
 
@@ -36,7 +36,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 Plans:
 - [x] 01-01-PLAN.md — Fondation CSS (globals.css + layout.tsx + page.module.css) + Header sticky avec scroll et glassmorphism
-- [ ] 01-02-PLAN.md — Integration assets brand (logos, favicon, manifest) + Header next/image conditionnel + lien Shopify reel
+- [x] 01-02-PLAN.md — Integration assets brand (logos, favicon, manifest) + Header next/image conditionnel + lien Shopify reel
 **UI hint**: yes
 
 ### Phase 2: Hero plein écran
@@ -73,7 +73,7 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Fondation + Header | 1/2 | In Progress | — |
+| 1. Fondation + Header | 2/1 | Complete   | 2026-03-27 |
 | 2. Hero plein écran | 1/1 | Complete   | 2026-03-26 |
 | 3. HowItWorks + assemblage | 1/1 | Complete   | 2026-03-26 |
 

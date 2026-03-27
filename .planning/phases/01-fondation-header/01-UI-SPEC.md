@@ -1,7 +1,8 @@
 ---
 phase: 1
 slug: fondation-header
-status: draft
+status: approved
+reviewed_at: 2026-03-27
 shadcn_initialized: false
 preset: none
 created: 2026-03-27

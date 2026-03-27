@@ -27,9 +27,9 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 
 ### Active
 
-<!-- M007: Frontend public - Header + Hero + Comment ca marche -->
-- [ ] **FRONT-04**: Design system Stitch applique (CSS Modules, tonal layering, no-border)
-- [ ] **FRONT-05**: Responsive complet (mobile < 640px, tablet >= 640px, desktop >= 1024px, large >= 1280px)
+- [ ] **CAT-01**: Cards produits reliees a l'API GET /api/models
+- [ ] **CONF-01**: Selection tissu avec swatches et zoom texture
+- [ ] **SIM-01**: Upload photo salon et simulation IA
 
 ### Out of Scope
 
@@ -43,11 +43,13 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 ## Context
 
 - Backend complet (~5350 lignes, M001-M006)
+- Frontend v7.0 livre : Header brand (logo swap blanc/noir, favicon, manifest PWA) + Hero + HowItWorks
+- Brand assets client integres depuis `fichier-mobelunique/` (logos, favicon, app icons)
+- URL Shopify reelle : https://www.mobelunique.fr/
 - Maquette Stitch "Mobel Unique -- SPA Desktop" (project ID: 16534774796210155266)
-- Wireframe detaille v4 sauvegarde en local : `.planning/maquette/wireframe-page-unique.md`
-- Charte graphique creee : `CHARTE-GRAPHIQUE.md` avec tous les tokens et dimensions
-- globals.css mis a jour avec tokens complets
-- Page actuelle: Header sticky + Hero plein ecran + HowItWorks implementes (Phase 01-03 completes)
+- Wireframe detaille v4 : `.planning/maquette/wireframe-page-unique.md`
+- Charte graphique : `CHARTE-GRAPHIQUE.md`
+- globals.css tokens complets, Montserrat configuree
 
 ## Constraints
 
@@ -61,21 +63,20 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| CSS Modules | Convention projet, composants isoles | -- Pending |
-| Tonal layering (pas de bordures) | Design system Stitch "Curated Atelier" | -- Pending |
-| Sections statiques M007 | Aucune API necessaire, fondation visuelle | -- Pending |
-| Charte graphique avant code | Controler dimensions/tokens des le depart | -- Pending |
+| CSS Modules | Convention projet, composants isoles | ✓ Good |
+| Tonal layering (pas de bordures) | Design system Stitch "Curated Atelier" | ✓ Good |
+| Sections statiques M007 | Aucune API necessaire, fondation visuelle | ✓ Good |
+| Charte graphique avant code | Controler dimensions/tokens des le depart | ✓ Good |
+| Logo swap blanc/noir | Lisibilite sur hero sombre et sections claires | ✓ Good |
+| Header transparent + fond subtil | Pas de glassmorphism lourd, seuil 60% viewport | ✓ Good |
+| Brand assets dans public/brand/ | Organisation propre, separee des assets Next.js | ✓ Good |
+| Favicon convention App Router | favicon.ico + icon.png + apple-icon.png dans src/app/ | ✓ Good |
 
-## Current Milestone: v7.0 Header + Hero + Comment ca marche
+## Current Milestone: Planning next
 
-**Goal:** Construire les 3 premieres sections de la page publique en remplacant le template Next.js par defaut.
+**Shipped:** v7.0 — Header + Hero + Comment ca marche (2026-03-27)
 
-**Target features:**
-- Header minimal sticky (transparent -> blanc au scroll)
-- Hero plein ecran (badge IA, H1, CTA)
-- Section "Comment ca marche" (3 etapes)
-- Design system Stitch applique
-- Responsive complet
+**Next:** Catalogue produits + Configurateur tissu (M008-M009)
 
 ## Evolution
 
@@ -95,4 +96,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-27 after Phase 03 howitworks-assemblage completion*
+*Last updated: 2026-03-27 after v7.0 milestone completion*

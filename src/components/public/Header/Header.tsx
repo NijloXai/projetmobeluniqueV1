@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import styles from './Header.module.css'
 
@@ -25,17 +26,23 @@ export function Header() {
         className={`${styles.header}${scrolled ? ` ${styles.scrolled}` : ''}`}
         role="banner"
       >
-        <Link href="/" className={styles.brand} aria-label="Möbel Unique — Accueil">
-          <div className={styles.logo} aria-hidden="true">MU</div>
-          <span className={styles.brandName}>Möbel Unique</span>
+        <Link href="/" className={styles.brand} aria-label="Mobel Unique — Accueil">
+          <Image
+            src={scrolled ? '/brand/logo-black.png' : '/brand/logo-white.png'}
+            alt="Mobel Unique"
+            width={144}
+            height={144}
+            className={styles.logoImage}
+            priority
+          />
         </Link>
         <a
-          href="#"
+          href="https://www.mobelunique.fr/"
           className={styles.shopifyLink}
-          rel="noopener noreferrer"
-          aria-label="Retourner à la boutique Shopify"
+          rel="noopener"
+          aria-label="Retourner a la boutique Mobel Unique"
         >
-          Retour à la boutique
+          Retour a la boutique
         </a>
       </header>
     </>

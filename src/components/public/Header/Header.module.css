@@ -49,23 +49,7 @@
   color: var(--color-text);
 }
 
-/* Logo monogramme MU (HEAD-01) */
-.logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: var(--color-primary);
-  color: #ffffff;
-  font-weight: 700;
-  font-size: var(--font-size-sm);
-  border-radius: var(--radius-sm);
-  flex-shrink: 0;
-  user-select: none;
-}
-
-/* Groupe marque (logo + nom) */
+/* Groupe marque (logo image) */
 .brand {
   display: flex;
   align-items: center;
@@ -74,10 +58,12 @@
   color: inherit;
 }
 
-.brandName {
-  font-weight: 600;
-  font-size: var(--font-size-lg);
-  letter-spacing: -0.01em;
+/* Logo image conditionnel blanc/noir (HEAD-01) */
+.logoImage {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  display: block;
 }
 
 /* Lien retour Shopify (HEAD-01) */

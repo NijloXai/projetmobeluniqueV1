@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: milestone
 status: verifying
-stopped_at: Phase 1 UI-SPEC approved
-last_updated: "2026-03-27T00:22:51.609Z"
+stopped_at: Phase 1 replanned with brand assets
+last_updated: "2026-03-27T01:06:16.480Z"
 last_activity: 2026-03-26
 progress:
   total_phases: 3
@@ -98,6 +98,6 @@ Aucun pour l'instant.
 
 ## Session Continuity
 
-Last session: 2026-03-27T00:22:51.607Z
-Stopped at: Phase 1 UI-SPEC approved
-Resume file: .planning/phases/01-fondation-header/01-UI-SPEC.md
+Last session: 2026-03-27T01:06:16.478Z
+Stopped at: Phase 1 replanned with brand assets
+Resume file: .planning/phases/01-fondation-header/01-02-PLAN.md

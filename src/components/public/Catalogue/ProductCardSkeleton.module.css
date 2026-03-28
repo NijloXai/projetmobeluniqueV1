@@ -1,0 +1,96 @@
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--surface-container) 0%,
+    var(--surface-container-highest) 50%,
+    var(--surface-container) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.card {
+  background-color: var(--surface-container-low);
+  overflow: hidden;
+}
+
+.imageZone {
+  aspect-ratio: 4 / 5;
+  width: 100%;
+}
+
+.body {
+  padding: var(--spacing-md);
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+}
+
+.lineName {
+  width: 60%;
+  height: 20px;
+  border-radius: var(--radius-sm);
+}
+
+.linePrice {
+  width: 40%;
+  height: 20px;
+  border-radius: var(--radius-sm);
+}
+
+.lineDesc {
+  width: 80%;
+  height: 14px;
+  border-radius: var(--radius-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.lineCta {
+  width: 100%;
+  height: 44px;
+  margin-top: var(--spacing-md);
+}
+
+/* Section skeleton — memes styles que la section catalogue */
+.section {
+  background-color: var(--color-background);
+  padding: var(--spacing-section) var(--container-padding-mobile);
+}
+
+.container {
+  max-width: var(--container-max);
+  margin: 0 auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-xl);
+}
+
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .section {
+    padding: var(--spacing-section) var(--container-padding-large);
+  }
+}

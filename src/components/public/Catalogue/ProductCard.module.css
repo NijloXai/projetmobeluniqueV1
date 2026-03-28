@@ -1,0 +1,115 @@
+/* Card — tonal layering, pas de bordures per D-04 */
+.card {
+  background-color: var(--surface-container-low); /* #F6F3EF */
+  border-radius: 0; /* design editorial bord-a-bord per D-02 */
+  overflow: hidden;
+  cursor: pointer;
+  transition: background-color var(--transition-fast); /* 300ms */
+}
+
+.card:hover {
+  background-color: var(--surface-container-high); /* #EBE8E4 per D-04 */
+}
+
+/* Image wrapper — aspect 4/5 portrait per D-02 */
+.imageWrapper {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+}
+
+.image {
+  transition: transform 700ms ease; /* per D-05 */
+}
+
+.card:hover .image {
+  transform: scale(1.05); /* per D-05 */
+}
+
+/* Placeholder quand aucune image per D-10 */
+.imagePlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--surface-container); /* #F0EDEA */
+}
+
+.placeholderIcon {
+  color: var(--color-muted); /* #888888 */
+}
+
+/* Corps card — padding 16px per UI-SPEC */
+.body {
+  padding: var(--spacing-md); /* 16px */
+}
+
+/* Row nom/prix — flex per D-02 */
+.metaRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-sm); /* 8px */
+}
+
+.nameGroup {
+  flex: 1;
+  min-width: 0; /* pour text-overflow */
+}
+
+/* Nom produit — Montserrat 700, 20px, uppercase per D-02 */
+.name {
+  font-size: var(--font-size-xl); /* 1.25rem = 20px */
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-text); /* #1D1D1B */
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+
+/* Description courte — 14px, muted, ellipsis per UI-SPEC */
+.description {
+  font-size: var(--font-size-sm); /* 0.875rem = 14px */
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--color-muted); /* #888888 */
+  margin-top: var(--spacing-xs); /* 4px */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Prix — 20px, primary bold, aligne droite per D-02 */
+.price {
+  font-size: var(--font-size-xl); /* 1.25rem = 20px */
+  font-weight: 700;
+  color: var(--color-primary); /* #E49400 */
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* CTA pleine largeur per D-03 */
+.cta {
+  display: block;
+  width: 100%;
+  margin-top: var(--spacing-md); /* 16px */
+  padding: 12px var(--spacing-md);
+  min-height: 44px; /* touch target accessibilite */
+  background: transparent;
+  border: 1px solid rgba(228, 148, 0, 0.2); /* primary 20% opacity per D-03 */
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: var(--font-size-sm); /* 14px */
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.cta:hover {
+  background-color: var(--color-primary); /* #E49400 per D-03 */
+  color: #FFFFFF;
+  border-color: var(--color-primary);
+}

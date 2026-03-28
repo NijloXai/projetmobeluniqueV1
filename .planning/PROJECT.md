@@ -28,6 +28,9 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 ### Active
 
 - [ ] **CAT-01**: Cards produits reliees a l'API GET /api/models
+- [ ] **CAT-02**: Barre de recherche catalogue (filtre par nom)
+- [ ] **CAT-03**: Tri catalogue (prix croissant/decroissant, nouveautes)
+- [ ] **CAT-04**: Modal large configurateur (placeholder v8.0, contenu v9.0)
 - [ ] **CONF-01**: Selection tissu avec swatches et zoom texture
 - [ ] **SIM-01**: Upload photo salon et simulation IA
 
@@ -71,12 +74,23 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 | Header transparent + fond subtil | Pas de glassmorphism lourd, seuil 60% viewport | ✓ Good |
 | Brand assets dans public/brand/ | Organisation propre, separee des assets Next.js | ✓ Good |
 | Favicon convention App Router | favicon.ico + icon.png + apple-icon.png dans src/app/ | ✓ Good |
+| Modal large configurateur | Pas de section separee, modal 90vw desktop / plein ecran mobile | -- Pending |
+| Catalogue scalable | Recherche + tri pour absorber 20+ produits au fil du temps | -- Pending |
 
-## Current Milestone: Planning next
+## Current Milestone: v8.0 Catalogue Produits
 
-**Shipped:** v7.0 — Header + Hero + Comment ca marche (2026-03-27)
+**Goal:** Afficher les canapes depuis l'API avec un catalogue scalable, recherche, tri et modal configurateur
 
-**Next:** Catalogue produits + Configurateur tissu (M008-M009)
+**Target features:**
+- Section Catalogue "Collection Signature" avec layout large et aere
+- Cards produits alimentees par GET /api/models (images, noms, prix)
+- Swatches miniatures en apercu sur chaque card
+- Barre de recherche dans le catalogue (filtre par nom)
+- Tri : prix croissant, prix decroissant, nouveautes
+- Grid responsive (1 col mobile / 2 col tablet / 3 col desktop)
+- Scalable : prevu pour absorber 20+ produits
+- CTA "Configurer ce modele" ouvre un modal large (90vw desktop, plein ecran mobile)
+- Modal placeholder "Configurateur a venir" (contenu reel en v9.0)
 
 ## Evolution
 
@@ -96,4 +110,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-27 after v7.0 milestone completion*
+*Last updated: 2026-03-28 after v8.0 milestone start*

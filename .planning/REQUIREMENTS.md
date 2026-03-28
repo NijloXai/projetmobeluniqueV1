@@ -103,22 +103,22 @@ Requirements pour le catalogue produits. Chaque requirement mappe a une phase du
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TECH-01 | Phase ? | Pending |
-| CAT-01 | Phase ? | Pending |
-| CAT-02 | Phase ? | Pending |
-| CAT-03 | Phase ? | Pending |
-| CAT-04 | Phase ? | Pending |
-| SRCH-01 | Phase ? | Pending |
-| SRCH-02 | Phase ? | Pending |
-| MODAL-01 | Phase ? | Pending |
-| MODAL-02 | Phase ? | Pending |
-| MODAL-03 | Phase ? | Pending |
+| TECH-01 | Phase 4 | Pending |
+| CAT-01 | Phase 4 | Pending |
+| CAT-02 | Phase 4 | Pending |
+| CAT-03 | Phase 4 | Pending |
+| CAT-04 | Phase 5 | Pending |
+| SRCH-01 | Phase 5 | Pending |
+| SRCH-02 | Phase 5 | Pending |
+| MODAL-01 | Phase 6 | Pending |
+| MODAL-02 | Phase 6 | Pending |
+| MODAL-03 | Phase 6 | Pending |
 
 **Coverage:**
 - v8.0 requirements: 10 total
-- Mapped to phases: 0
-- Unmapped: 10 (a mapper par le roadmapper)
+- Mapped to phases: 10
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-28*
-*Last updated: 2026-03-28 after initial definition*
+*Last updated: 2026-03-28 — traceability complete, all 10 requirements mapped*

@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v8.0
 milestone_name: Catalogue Produits
-status: defining_requirements
-stopped_at: Milestone v8.0 started
+status: ready_to_plan
+stopped_at: Roadmap v8.0 created — 3 phases derivees (4, 5, 6), 10 requirements mappes
 last_updated: "2026-03-28"
 last_activity: 2026-03-28
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** Le client peut visualiser un canape dans le tissu de son choix et le simuler dans son salon avant d'acheter.
-**Current focus:** Milestone v8.0 — Catalogue Produits
+**Current focus:** Phase 4 — Prerequis + Catalogue core
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 4 of 6 (Prerequis + Catalogue core)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-03-28 — Milestone v8.0 started
+Status: Ready to plan
+Last activity: 2026-03-28 — Roadmap v8.0 cree, 3 phases identifiees (4-6), 10 requirements mappes
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -36,18 +36,17 @@ Progress: [░░░░░░░░░░] 0%
 
 **Velocity:**
 
-- Total plans completed: 4 (from v7.0)
+- Total plans completed: 4 (depuis v7.0)
 - Average duration: ~1h/plan
-- Total execution time: ~4h
+- Total execution time: ~4h (v7.0)
 
 **By Phase (v7.0):**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| Phase 01 P01 | 3 | 3 tasks | 6 files |
-| Phase 02-hero-plein-cran P01 | 2 | 2 tasks | 5 files |
-| Phase 03-howitworks-assemblage P01 | 8 | 3 tasks | 6 files |
-| Phase 01-fondation-header P02 | 2 | 2 tasks | 10 files |
+| Phase 01 Fondation + Header | 1 | 3 tasks | 6 files |
+| Phase 02 Hero | 1 | 2 tasks | 5 files |
+| Phase 03 HowItWorks | 1 | 8 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -62,28 +61,30 @@ Decisions heritees de v7.0 :
 - title.template '%s | Mobel Unique' dans layout.tsx
 - scroll-padding-top: var(--header-height) dans globals.css — 64px reserve
 - motion@12 (motion/react) pour animations Framer Motion
-- Fond hero #2C2418 couleur unie CSS comme placeholder
 - lucide-react@1.7.0 pour icones
-- Logo-04 = logo-white.png, Logo-01 = logo-black.png — swap conditionnel next/image
-- manifest.ts avec MetadataRoute.Manifest — servi automatiquement a /manifest.webmanifest
+- Logo swap conditionnel blanc/noir via next/image
 
 Decisions v8.0 :
 
-- Modal large pour configurateur (pas de section separee) — 90vw desktop, plein ecran mobile
-- Catalogue scalable avec recherche + tri pour 20+ produits
-- Premier milestone front-back : relie v1.0 + v4.0
+- Modal large configurateur (pas de section separee) — 90vw desktop, plein ecran mobile
+- Server/Client boundary : CatalogueSection (Server) fetch Supabase, CatalogueClient (Client) gere etat local
+- Zustand reserve pour M009+ quand le configurateur reel devra consommer selectedProduct a distance
+- next.config.ts remotePatterns : blocker absolu a traiter en tout premier (Phase 4)
+- Pas de pagination — scalable pour 20-30 produits avec filtre memoire
 
 ### Pending Todos
 
-Aucun pour l'instant.
+Aucun.
 
 ### Blockers/Concerns
 
-- Verifier que GET /api/models retourne bien images + prix pour alimenter les cards
-- Swatches miniatures : verifier si l'API retourne les tissus lies a chaque modele
+- [Phase 4] Verifier le nom exact du champ prix dans src/types/database.ts (base_price vs price)
+- [Phase 4] Verifier que GET /api/models retourne bien model_images pour alimenter les cards
+- [Phase 5] Swatches miniatures : verifier si API retourne les tissus lies au modele (hors scope v8.0 MVP)
+- [Phase 6] iOS Safari body scroll lock : requiert test sur appareil physique (pas simulateur)
 
 ## Session Continuity
 
 Last session: 2026-03-28
-Stopped at: Milestone v8.0 started — defining requirements
+Stopped at: Roadmap v8.0 cree — pret a planifier Phase 4
 Resume file: None

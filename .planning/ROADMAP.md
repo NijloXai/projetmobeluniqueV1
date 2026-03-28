@@ -67,7 +67,10 @@ Plans:
   2. L'utilisateur voit les canapés disponibles sous forme de cards avec image, nom et prix formaté en euros
   3. Les cards s'affichent en 1 colonne sur mobile, 2 colonnes sur tablette, 3 colonnes sur desktop
   4. Un skeleton loading s'affiche pendant le chargement initial, puis laisse place aux vraies cards
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 04-01-PLAN.md — Config remotePatterns Supabase + composants ProductCard et ProductCardSkeleton
+- [ ] 04-02-PLAN.md — CatalogueSection (Server) + CatalogueClient + integration page.tsx avec Suspense
 **UI hint**: yes
 
 #### Phase 5: Recherche et états interactifs
@@ -104,7 +107,7 @@ Phases execute in numeric order: 4 → 5 → 6
 | 1. Fondation + Header | v7.0 | 1/1 | Complete | 2026-03-26 |
 | 2. Hero plein écran | v7.0 | 1/1 | Complete | 2026-03-26 |
 | 3. HowItWorks + assemblage | v7.0 | 1/1 | Complete | 2026-03-26 |
-| 4. Prerequis + Catalogue core | v8.0 | 0/? | Not started | - |
+| 4. Prerequis + Catalogue core | v8.0 | 0/2 | Planning | - |
 | 5. Recherche et états interactifs | v8.0 | 0/? | Not started | - |
 | 6. Modal configurateur placeholder | v8.0 | 0/? | Not started | - |
 

@@ -9,13 +9,13 @@ Requirements pour le catalogue produits. Chaque requirement mappe a une phase du
 
 ### Prerequis Techniques
 
-- [ ] **TECH-01**: Les images Supabase Storage s'affichent via next/image (remotePatterns configure)
+- [x] **TECH-01**: Les images Supabase Storage s'affichent via next/image (remotePatterns configure)
 
 ### Catalogue Core
 
-- [ ] **CAT-01**: L'utilisateur voit les canapes disponibles sous forme de cards avec image, nom et prix
+- [x] **CAT-01**: L'utilisateur voit les canapes disponibles sous forme de cards avec image, nom et prix
 - [ ] **CAT-02**: Les cards s'affichent en grille responsive (1 col mobile / 2 col tablet / 3 col desktop)
-- [ ] **CAT-03**: Un skeleton loading s'affiche pendant le chargement des produits
+- [x] **CAT-03**: Un skeleton loading s'affiche pendant le chargement des produits
 - [ ] **CAT-04**: Le nombre de produits affiches est visible (ex: "3 canapes")
 
 ### Recherche
@@ -103,10 +103,10 @@ Requirements pour le catalogue produits. Chaque requirement mappe a une phase du
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TECH-01 | Phase 4 | Pending |
-| CAT-01 | Phase 4 | Pending |
+| TECH-01 | Phase 4 | Complete |
+| CAT-01 | Phase 4 | Complete |
 | CAT-02 | Phase 4 | Pending |
-| CAT-03 | Phase 4 | Pending |
+| CAT-03 | Phase 4 | Complete |
 | CAT-04 | Phase 5 | Pending |
 | SRCH-01 | Phase 5 | Pending |
 | SRCH-02 | Phase 5 | Pending |

@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v8.0
 milestone_name: Catalogue Produits
-status: planning
-stopped_at: Phase 4 plans verified — ready to execute
-last_updated: "2026-03-28T06:10:29.468Z"
-last_activity: 2026-03-28 — Roadmap v8.0 cree, 3 phases identifiees (4-6), 10 requirements mappes
+status: executing
+stopped_at: Completed 04-01-PLAN.md — ProductCard + ProductCardSkeleton + next.config.ts
+last_updated: "2026-03-28T06:19:26.926Z"
+last_activity: 2026-03-28
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 2
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** Le client peut visualiser un canape dans le tissu de son choix et le simuler dans son salon avant d'acheter.
-**Current focus:** Phase 4 — Prerequis + Catalogue core
+**Current focus:** Phase 04 — prerequis-catalogue-core
 
 ## Current Position
 
-Phase: 4 of 6 (Prerequis + Catalogue core)
-Plan: —
-Status: Ready to plan
-Last activity: 2026-03-28 — Roadmap v8.0 cree, 3 phases identifiees (4-6), 10 requirements mappes
+Phase: 04 (prerequis-catalogue-core) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-03-28
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -47,6 +47,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 Fondation + Header | 1 | 3 tasks | 6 files |
 | Phase 02 Hero | 1 | 2 tasks | 5 files |
 | Phase 03 HowItWorks | 1 | 8 tasks | 6 files |
+| Phase 04-prerequis-catalogue-core P01 | 2 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,9 @@ Decisions v8.0 :
 - Zustand reserve pour M009+ quand le configurateur reel devra consommer selectedProduct a distance
 - next.config.ts remotePatterns : blocker absolu a traiter en tout premier (Phase 4)
 - Pas de pagination — scalable pour 20-30 produits avec filtre memoire
+- [Phase 04-01]: remotePatterns **.supabase.co double wildcard — evite hardcode project ref Supabase
+- [Phase 04-01]: getPrimaryImage prioritise view_type 3/4, fallback model_images[0] — robuste meme sans sort_order
+- [Phase 04-01]: Intl.NumberFormat('fr-FR') natif pour prix — zero librairie externe
 
 ### Pending Todos
 
@@ -85,6 +89,6 @@ Aucun.
 
 ## Session Continuity
 
-Last session: 2026-03-28T06:10:29.466Z
-Stopped at: Phase 4 plans verified — ready to execute
-Resume file: .planning/phases/04-prerequis-catalogue-core/04-01-PLAN.md
+Last session: 2026-03-28T06:19:26.924Z
+Stopped at: Completed 04-01-PLAN.md — ProductCard + ProductCardSkeleton + next.config.ts
+Resume file: None

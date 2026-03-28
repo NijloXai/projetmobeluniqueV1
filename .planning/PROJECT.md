@@ -24,12 +24,14 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 - [x] **FRONT-01**: Header minimal sticky avec transition transparent -> blanc au scroll -- Validated in Phase 01
 - [x] **FRONT-02**: Hero plein ecran avec badge IA, titre, sous-titre et CTA -- Validated in Phase 02
 - [x] **FRONT-03**: Section "Comment ca marche" en 3 etapes illustrees -- Validated in Phase 03
+- [x] **TECH-01**: Config next/image remotePatterns Supabase Storage -- Validated in Phase 04
+- [x] **CAT-01**: Cards produits presentationnelles (image, nom, prix, CTA) -- Validated in Phase 04
+- [x] **CAT-02**: Grille catalogue responsive 1/2/3 colonnes avec Suspense skeleton -- Validated in Phase 04
+- [x] **CAT-03**: Skeleton loading avec animation shimmer et aria-busy -- Validated in Phase 04
 
 ### Active
 
-- [ ] **CAT-01**: Cards produits reliees a l'API GET /api/models
-- [ ] **CAT-02**: Barre de recherche catalogue (filtre par nom)
-- [ ] **CAT-03**: Tri catalogue (prix croissant/decroissant, nouveautes)
+- [ ] **CAT-04**: Barre de recherche catalogue (filtre par nom)
 - [ ] **CAT-04**: Modal large configurateur (placeholder v8.0, contenu v9.0)
 - [ ] **CONF-01**: Selection tissu avec swatches et zoom texture
 - [ ] **SIM-01**: Upload photo salon et simulation IA
@@ -46,7 +48,7 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 ## Context
 
 - Backend complet (~5350 lignes, M001-M006)
-- Frontend v7.0 livre : Header brand (logo swap blanc/noir, favicon, manifest PWA) + Hero + HowItWorks
+- Frontend v8.0 en cours : Header + Hero + HowItWorks + Catalogue (Phase 04 complete — ProductCard, CatalogueSection, grille responsive)
 - Brand assets client integres depuis `fichier-mobelunique/` (logos, favicon, app icons)
 - URL Shopify reelle : https://www.mobelunique.fr/
 - Maquette Stitch "Mobel Unique -- SPA Desktop" (project ID: 16534774796210155266)
@@ -110,4 +112,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-28 after v8.0 milestone start*
+*Last updated: 2026-03-28 after Phase 04 completion*

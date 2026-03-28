@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v8.0
 milestone_name: Catalogue Produits
-status: executing
-stopped_at: Completed 04-01-PLAN.md — ProductCard + ProductCardSkeleton + next.config.ts
-last_updated: "2026-03-28T06:19:26.926Z"
+status: verifying
+stopped_at: Completed 04-02-PLAN.md — CatalogueSection + CatalogueClient + integration page.tsx
+last_updated: "2026-03-28T06:23:15.386Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 
 Phase: 04 (prerequis-catalogue-core) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-03-28
 
 Progress: [░░░░░░░░░░] 0%
@@ -48,6 +48,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02 Hero | 1 | 2 tasks | 5 files |
 | Phase 03 HowItWorks | 1 | 8 tasks | 6 files |
 | Phase 04-prerequis-catalogue-core P01 | 2 | 2 tasks | 8 files |
+| Phase 04 P02 | 2 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,8 @@ Decisions v8.0 :
 - [Phase 04-01]: remotePatterns **.supabase.co double wildcard — evite hardcode project ref Supabase
 - [Phase 04-01]: getPrimaryImage prioritise view_type 3/4, fallback model_images[0] — robuste meme sans sort_order
 - [Phase 04-01]: Intl.NumberFormat('fr-FR') natif pour prix — zero librairie externe
+- [Phase 04]: Fetch Supabase direct dans CatalogueSection (pas via /api/models) — meme processus Node, zero aller-retour HTTP
+- [Phase 04]: HomePage reste synchrone — seul CatalogueSection suspend, Header/Hero/HowItWorks s'affichent immediatement
 
 ### Pending Todos
 
@@ -89,6 +92,6 @@ Aucun.
 
 ## Session Continuity
 
-Last session: 2026-03-28T06:19:26.924Z
-Stopped at: Completed 04-01-PLAN.md — ProductCard + ProductCardSkeleton + next.config.ts
+Last session: 2026-03-28T06:23:15.384Z
+Stopped at: Completed 04-02-PLAN.md — CatalogueSection + CatalogueClient + integration page.tsx
 Resume file: None

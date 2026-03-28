@@ -1,7 +1,10 @@
+import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import { Header } from '@/components/public/Header/Header'
 import { Hero } from '@/components/public/Hero/Hero'
 import { HowItWorks } from '@/components/public/HowItWorks/HowItWorks'
+import { CatalogueSection } from '@/components/public/Catalogue/CatalogueSection'
+import { CatalogueSkeletonGrid } from '@/components/public/Catalogue/ProductCardSkeleton'
 import styles from './page.module.css'
 
 export const metadata: Metadata = {
@@ -16,6 +19,9 @@ export default function HomePage() {
       <main id="main-content" className={styles.main}>
         <Hero />
         <HowItWorks />
+        <Suspense fallback={<CatalogueSkeletonGrid />}>
+          <CatalogueSection />
+        </Suspense>
       </main>
     </div>
   )

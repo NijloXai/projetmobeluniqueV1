@@ -74,4 +74,14 @@ describe('CatalogueClient', () => {
     render(<CatalogueClient models={mockModels} />)
     expect(screen.getByText(/commencer la configuration/i)).toBeInTheDocument()
   })
+
+  it('a id catalogue sur la section en etat vide aussi', () => {
+    const { container } = render(<CatalogueClient models={[]} />)
+    expect(container.querySelector('#catalogue')).toBeInTheDocument()
+  })
+
+  it('rend exactement 1 article pour un seul modele', () => {
+    render(<CatalogueClient models={[mockModels[0]]} />)
+    expect(screen.getAllByRole('article')).toHaveLength(1)
+  })
 })

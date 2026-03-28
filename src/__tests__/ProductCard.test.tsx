@@ -40,6 +40,60 @@ const mockModelNoImage: ModelWithImages = {
   model_images: [],
 }
 
+const mockModelMultiImages: ModelWithImages = {
+  ...mockModel,
+  id: 'test-uuid-003',
+  name: 'Berlin',
+  slug: 'berlin',
+  model_images: [
+    {
+      id: 'img-010',
+      model_id: 'test-uuid-003',
+      image_url: 'https://test.supabase.co/storage/v1/object/public/model-photos/berlin-face.jpg',
+      view_type: 'face',
+      sort_order: 0,
+    },
+    {
+      id: 'img-011',
+      model_id: 'test-uuid-003',
+      image_url: 'https://test.supabase.co/storage/v1/object/public/model-photos/berlin-3-4.jpg',
+      view_type: '3/4',
+      sort_order: 1,
+    },
+  ],
+}
+
+const mockModelNoThreeQuarter: ModelWithImages = {
+  ...mockModel,
+  id: 'test-uuid-004',
+  name: 'Stockholm',
+  slug: 'stockholm',
+  model_images: [
+    {
+      id: 'img-020',
+      model_id: 'test-uuid-004',
+      image_url: 'https://test.supabase.co/storage/v1/object/public/model-photos/stockholm-face.jpg',
+      view_type: 'face',
+      sort_order: 0,
+    },
+    {
+      id: 'img-021',
+      model_id: 'test-uuid-004',
+      image_url: 'https://test.supabase.co/storage/v1/object/public/model-photos/stockholm-profil.jpg',
+      view_type: 'profil',
+      sort_order: 1,
+    },
+  ],
+}
+
+const mockModelNoDesc: ModelWithImages = {
+  ...mockModel,
+  id: 'test-uuid-005',
+  name: 'Lisbonne',
+  slug: 'lisbonne',
+  description: null,
+}
+
 describe('ProductCard', () => {
   it('affiche le nom du modele en uppercase', () => {
     render(<ProductCard model={mockModel} />)
@@ -72,5 +126,31 @@ describe('ProductCard', () => {
   it('affiche la description si presente', () => {
     render(<ProductCard model={mockModel} />)
     expect(screen.getByText('Canape 3 places design italien')).toBeInTheDocument()
+  })
+
+  it('selectionne l image 3/4 meme si pas en premiere position', () => {
+    render(<ProductCard model={mockModelMultiImages} />)
+    const img = screen.getByAltText('Canape Berlin')
+    expect(img).toHaveAttribute('src', mockModelMultiImages.model_images[1].image_url)
+  })
+
+  it('fallback sur la premiere image quand aucune 3/4', () => {
+    render(<ProductCard model={mockModelNoThreeQuarter} />)
+    const img = screen.getByAltText('Canape Stockholm')
+    expect(img).toHaveAttribute('src', mockModelNoThreeQuarter.model_images[0].image_url)
+  })
+
+  it('appelle onConfigure avec le modele au click CTA', () => {
+    const handleConfigure = vi.fn()
+    render(<ProductCard model={mockModel} onConfigure={handleConfigure} />)
+    screen.getByRole('button', { name: /configurer le modele milano/i }).click()
+    expect(handleConfigure).toHaveBeenCalledOnce()
+    expect(handleConfigure).toHaveBeenCalledWith(mockModel)
+  })
+
+  it('ne rend pas de description quand elle est null', () => {
+    render(<ProductCard model={mockModelNoDesc} />)
+    expect(screen.queryByText('Canape 3 places design italien')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 3 })).toHaveTextContent('Lisbonne')
   })
 })

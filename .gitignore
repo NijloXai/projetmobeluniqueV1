@@ -67,3 +67,8 @@ next-env.d.ts
 
 # ── Runtime artifacts ──
 .bg-shell/
+.artifacts/
+isolate-*-v8.log
+
+# ── Brand kit source (assets lourds, pas du code) ──
+fichier-mobelunique/

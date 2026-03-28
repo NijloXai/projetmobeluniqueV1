@@ -67,7 +67,7 @@ Details supplementaires :
 - Nom produit : `text-transform: uppercase`, `letter-spacing: -0.01em` (tracking-tight), Montserrat 700
 - Prix : --font-size-xl (20px), Montserrat 700, couleur var(--color-primary) — aligne a droite
 - Sous-titre section : --font-size-base (16px), poids 400, couleur var(--color-muted)
-- Label CTA : --font-size-xs (12px), poids 700, `text-transform: uppercase`, `letter-spacing: 0.15em`
+- Label CTA : --font-size-sm (14px), poids 700, `text-transform: uppercase`, `letter-spacing: 0.15em`
 - Skeleton : aucun texte — blocs opaques uniquement
 
 Source : CONTEXT.md D-02 + maquette Stitch (stitch-desktop-hero.html lignes 206-210).
@@ -179,7 +179,7 @@ CTA card :
 - Fond : transparent, bordure 1px solid rgba(228, 148, 0, 0.2) au repos
 - Hover : fond var(--color-primary), texte #FFFFFF, transition var(--transition-fast) 300ms
 - Hauteur minimum : 44px (touch target)
-- Typographie : Montserrat 700, 12px, uppercase, letter-spacing 0.15em
+- Typographie : Montserrat 700, 14px, uppercase, letter-spacing 0.15em
 - Clic : declenche ouverture modal Phase 6 (prop callback, non implémenté en Phase 4 — bouton presente mais no-op)
 
 Source : CONTEXT.md D-02, D-03, D-04, D-05, D-09, D-10 + maquette Stitch lignes 204-212.

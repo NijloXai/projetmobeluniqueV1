@@ -1,193 +1,271 @@
-# Feature Landscape — M007 Header + Hero + Comment ca marche
+# Feature Research — M008 Catalogue Produits
 
-**Domaine :** SPA luxe canapés personnalisables (Möbel Unique)
-**Milestone :** M007 — Frontend public, 3 premières sections
-**Date recherche :** 2026-03-26
-**Périmètre :** Header sticky, Hero plein écran, Section "Comment ca marche" 3 étapes
-
----
-
-## Context du projet
-
-Backend complet (M001–M006, ~5350 lignes). La page publique est encore le template Next.js par
-défaut. M007 remplace entièrement `src/app/page.tsx` et crée 3 composants visuels fondateurs.
-Aucune API n'est nécessaire pour M007 — toutes les sections sont statiques.
-
-Stack contrainte : CSS Modules uniquement (pas de Tailwind), Montserrat, tokens définis dans
-`globals.css`, breakpoints 640/1024/1280px.
+**Domain:** Catalogue e-commerce luxe canapés personnalisables — SPA Next.js
+**Milestone:** M008 — Section Catalogue avec cards, recherche, tri, swatches, modal configurateur
+**Researched:** 2026-03-28
+**Confidence:** HIGH (wireframe v4 + charte graphique + API schema déjà définis)
 
 ---
 
-## Table Stakes — Header Sticky
+## Context
 
-Fonctionnalités attendues par tout visiteur. Leur absence rend le produit incomplet ou peu
-professionnel.
+Backend complet (M001–M006). Frontend v7.0 livré : Header, Hero, HowItWorks opérationnels.
+L'API publique `GET /api/models` retourne les modèles actifs avec leurs images triés par
+`created_at DESC`. Le schéma de données est fixé : `models` (name, price, slug, dimensions,
+description, created_at) + `model_images` (image_url, view_type, sort_order).
+
+Les tissus (`fabrics`) sont séparés — ils ne font pas partie de la réponse de `/api/models`.
+L'API `GET /api/models` ne jointure pas les tissus disponibles.
+
+Stack contrainte : CSS Modules uniquement, Montserrat, tokens globals.css, breakpoints
+640/1024/1280px.
+
+---
+
+## Feature Landscape
+
+### Table Stakes (Users Expect These)
+
+Features attendues par tout visiteur d'un catalogue produits luxe. Leur absence rend le
+produit incomplet ou peu professionnel.
 
 | Feature | Pourquoi attendu | Complexité | Notes |
 |---------|-----------------|------------|-------|
-| Position `fixed` top 0, z-index 100 | Standard universel des SPAs | Faible | Spécifié dans CHARTE-GRAPHIQUE.md : h=64px, z=100 |
-| Transition transparent -> fond blanc au scroll | Signature visuelle des sites luxe (Roche Bobois, Ligne Roset) | Faible | Seuil 80px défini. `background`, `box-shadow`, `color` en 300ms |
-| Logo à gauche | Conventions de navigation universelles | Faible | Text ou SVG, taille adaptée 64px height |
-| CTA à droite ("Explorer" / lien catalogue) | Point d'entrée vers l'action principale | Faible | Un seul CTA — pas de nav complète en M007 |
-| `box-shadow` au scroll (`--shadow-header`) | Sépare visuellement le header du contenu sans bordure | Faible | `0 2px 12px rgba(0,0,0,0.08)` défini dans tokens |
-| Responsive mobile : padding réduit (24px) vs desktop (48px) | UX mobile standard | Faible | Tokens `--container-padding-mobile/desktop` déjà définis |
-| Semantic HTML `<header>` + `role="banner"` | Accessibilité WCAG 2.1 AA — navigation clavier et screen readers | Faible | Sans ça, skip links et AT échouent |
-| `scroll-padding-top: 64px` sur `:root` | Empêche le header de masquer les ancres au focus clavier | Faible | Pitfall fréquent — doit être dans globals.css |
+| Cards produit avec image, nom, prix | Base absolue de tout catalogue — sans ça, pas de catalogue | FAIBLE | Image via `model_images[0]` (sort_order 0), prix formaté "à partir de X EUR" |
+| Grid responsive 1/2/3 colonnes | Standard universel — mobile 1 col, tablet 2, desktop 3 | FAIBLE | CSS Grid, breakpoints déjà définis (640/1024px) |
+| Image placeholder si aucune photo | Un modèle sans image ne doit pas casser le layout | FAIBLE | Zone fond neutre 220px avec icône canapé SVG |
+| CTA "Configurer ce modèle" sur chaque card | Action principale du produit — raison d'être du catalogue | FAIBLE | Bouton primary pleine largeur, ouvre le modal |
+| État de chargement (skeleton / spinner) | L'API est async — afficher quelque chose pendant le fetch | MOYEN | Skeleton cards préférable au spinner — évite le layout shift |
+| État d'erreur si l'API échoue | Robustesse minimale — ne pas afficher une page blanche | FAIBLE | Message français, lien pour réessayer |
+| État vide si aucun produit actif | Cas réel possible — pas un 500, juste un catalogue vide | FAIBLE | Message "Aucun modèle disponible pour le moment" |
+| Titre de section H2 + sous-titre | Structure hiérarchique, scannabilité | FAIBLE | "Collection Signature", texte muted |
+| Fond alterné pour séparer du HowItWorks | Tonal layering — règle "No-Line" de la charte | FAIBLE | `--color-background` (#FFFFFF) après `--color-background-alt` du HowItWorks |
 
----
+### Differentiators (Competitive Advantage)
 
-## Table Stakes — Hero Plein Écran
-
-| Feature | Pourquoi attendu | Complexité | Notes |
-|---------|-----------------|------------|-------|
-| Hauteur `100vh` | Standard des heroes luxe full-screen | Faible | Défini CHARTE-GRAPHIQUE.md |
-| Image de fond dominante (canapé en situation) | Vente émotionnelle — le luxe se montre, ne se décrit pas | Faible | `object-fit: cover`, `position: center` |
-| Overlay sombre `rgba(0,0,0,0.55)` | Lisibilité du texte blanc sur image variable — WCAG impose 4.5:1 pour corps, 3:1 pour grands titres | Faible | Token `--color-overlay` déjà défini |
-| H1 bold centré ou flush-left | Hiérarchie visuelle immédiate — premier élément scanné | Faible | `3.5rem` desktop / `2.25rem` mobile, définis dans tokens |
-| Sous-titre descriptif (`1.125rem`) | Complète le H1, ancre la proposition de valeur | Faible | 1-2 lignes max, `--font-size-lg` |
-| CTA principal avec gradient ambre | Appel à l'action unique et reconnaissable | Faible | Style button primary déjà défini dans CHARTE-GRAPHIQUE.md |
-| Badge "IA" ou "Simulation IA" | Différenciateur clé du produit — doit apparaître dès l'entrée | Faible | `--color-secondary` (#EFC806), `--radius-full`, ALL-CAPS |
-| `padding-top: 64px` sur le hero | Compense la hauteur du header fixed | Faible | Sans ça, le H1 est partiellement masqué |
-| `alt=""` vide sur l'image décorative de fond | Image de fond = décorative, pas d'information. `role="img"` + `alt` si elle porte du sens | Faible | Si `background-image` CSS : pas de problème. Si `<img>` : `alt=""` |
-| Texte blanc sur overlay sombre | Respect WCAG 1.4.3 — blanc sur `rgba(0,0,0,0.55)` dépasse 4.5:1 | Faible | Vérifier le ratio final avec l'image réelle |
-
----
-
-## Table Stakes — Section "Comment ca marche"
-
-| Feature | Pourquoi attendu | Complexité | Notes |
-|---------|-----------------|------------|-------|
-| 3 étapes clairement numérotées ou iconisées | Pattern universel — réduction de l'anxiété d'achat avant conversion | Faible | Numérotation 01/02/03 ou icônes SVG simples |
-| Titre de section H2 centré | Structure et scannabilité | Faible | `2rem`, font-weight 700 — `--font-size-3xl` |
-| Layout 3 colonnes desktop / colonne mobile | Attend universellement sur ce pattern | Moyen | `display: grid`, `grid-template-columns: repeat(3, 1fr)` desktop, `1fr` mobile |
-| Titre + description par étape | Clarté du message — quel bénéfice à chaque étape | Faible | Titre ~3-5 mots, description ~15-25 mots |
-| Fond alterné (`--color-background-alt`, `#F8F4EE`) | Tonal layering — sépare visuellement du hero sans bordure | Faible | Règle "No-Line" de la charte |
-| Espacement généreux entre sections (`--spacing-section`, 7rem) | Signature visuelle luxe — "le luxe, c'est l'espace" | Faible | Token déjà défini |
-
----
-
-## Differentiators — Features à valeur ajoutée (à implémenter)
-
-Features qui élèvent l'expérience au-dessus du standard attendu.
+Features qui élèvent l'expérience au-dessus d'un catalogue standard.
 
 | Feature | Valeur ajoutée | Complexité | Notes |
 |---------|---------------|------------|-------|
-| Indicateur de scroll sur le hero (flèche animée) | Guide l'utilisateur vers le contenu suivant, signal de contenu disponible | Faible | `translateY` animation 1.5s ease-in-out infinite — défini dans CHARTE-GRAPHIQUE.md |
-| Fade-in au scroll sur les 3 étapes (IntersectionObserver) | Sentiment de qualité et d'attention au détail — luxe = deliberé | Moyen | `opacity: 0 -> 1` + `translateY(20px -> 0)`, 400ms, avec `prefers-reduced-motion` |
-| Header hide-on-scroll-down / show-on-scroll-up (mobile) | Récupère de l'espace écran sur mobile sans perdre la navigation | Moyen | Pattern "intelligent sticky" — peut être reporté à M011 polish |
-| Glassmorphism sur le header en état transparent (optionnel) | Raffinement visuel si contenu défile derrière | Moyen | `backdrop-filter: blur(20px)`, défini dans CHARTE-GRAPHIQUE.md — attention compat Safari |
-| Animation stagger des 3 étapes (délai 100ms entre chaque) | Sentiment de narration séquentielle, pas un affichage simultané | Faible | `animation-delay: 0, 100ms, 200ms` — si IntersectionObserver implémenté |
-| Icônes SVG inline pour les étapes | Plus léger que des images, colorisables avec `currentColor` | Faible | 3 icônes simples : canapé, palette tissu, visualisation |
+| Swatches miniatures en aperçu sur la card | Montre la variété tissu sans ouvrir le configurateur — décision d'achat plus rapide | MOYEN | Cercles 22px issus de `fabrics.swatch_url`. Nécessite un second fetch `/api/fabrics` (public) ou stocker les swatches côté client |
+| Badge "+N tissus" sur la card | Communique la personnalisation disponible en un chiffre | FAIBLE | Overflow après 4-5 swatches visibles, ex: "+3" |
+| Barre de recherche filtre par nom | Scalabilité — essentiel dès 20+ produits, inutile à 3 | FAIBLE | Filtrage client-side sur le tableau en mémoire — pas de requête API supplémentaire |
+| Tri prix croissant / décroissant / nouveautés | Contrôle utilisateur attendu en e-commerce, différenciateur vs catalogue statique | FAIBLE | Tri client-side sur le tableau. "Nouveautés" = tri par `created_at DESC` (déjà le défaut API) |
+| Compteur de résultats ("X modèles") | Feedback immédiat lors du filtrage/tri | FAIBLE | "3 modèles disponibles" ou "2 résultats pour 'Milano'" |
+| Hover state card avec élévation subtile | Feeling de qualité, réactivité de l'interface | FAIBLE | `box-shadow` ou `transform: translateY(-2px)` en 400ms — conforme à la charte |
+| Modal large configurateur (90vw desktop) | Expérience immersive sans navigation — garde le contexte de la page | MOYEN | `position: fixed`, overlay, trap focus, `Escape` pour fermer |
+| Animation d'entrée du modal | Sentiment de qualité — luxe = délibéré | FAIBLE | `opacity 0→1` + `translateY(20px→0)` en 400ms ease-in-out |
+| Scroll vers la section catalogue au clic CTA hero | Lien entre Hero CTA "Découvrir nos canapés" et la section | FAIBLE | `scrollIntoView` ou `href="#catalogue"` avec `scroll-behavior: smooth` |
+
+### Anti-Features (Commonly Requested, Often Problematic)
+
+| Feature | Pourquoi demandé | Pourquoi problématique | Alternative |
+|---------|-----------------|----------------------|-------------|
+| Pagination / infinite scroll | "Scalabilité pour 100+ produits" | Inutile pour 20-30 produits max. Complexité accidentelle, cassé par le filtrage client-side | Grid responsive + search bar — suffisant pour l'échelle prévue |
+| Filtres multi-critères (catégorie, places, style) | "Filtrage avancé" | Les données n'exposent pas ces attributs (pas de champ `category` sur `models`). Fausse promesse si données absentes | Recherche par nom + tri prix — couvre 90% des besoins réels |
+| Carousel horizontal de cards | "Mode galerie alternatif" | Accessibilité difficile (ARIA live regions, focus management), performances impactées, cache les produits, UX prouvément inférieure au grid | Grid vertical scrollable — plus de découverte |
+| Tri "Meilleures ventes" | "Pertinence commerciale" | Pas de données de ventes dans le schéma actuel (pas de champ `sales_count` ou équivalent) | Tri "Nouveautés" qui est sémantiquement honnête |
+| Wishlist / favoris | "Engagement utilisateur" | Nécessite auth utilisateur — hors scope total du projet (pas d'auth front prévue) | CTA Shopify direct — l'achat est l'engagement |
+| Comparateur produits | "Feature e-commerce avancée" | Complexité élevée, données insuffisantes pour comparer (pas de specs structurées), hors scope | Swatches préview sur card — suffisant pour la décision |
+| Lazy loading image avec effet blur-up | "Performance perçue" | Next.js `<Image>` gère déjà le lazy loading natif. Surengineering. | `next/image` avec `placeholder="blur"` si blur dataURL disponible, sinon `loading="lazy"` natif |
+| Filtrage côté serveur / API | "Scalabilité backend" | À 20-30 produits, un fetch unique + tri/filtre client-side est plus rapide (pas de round-trip). Complexité inutile. | Fetch unique au montage, filtre/tri en mémoire |
+| Swatches animés (rotation tissu, preview texture) | "Expérience premium" | Dépend de données visuelles non encore structurées (pas de génération IA tissu-sur-card prévue). Hors scope M008. | Swatches statiques 22px issus de `swatch_url` — honête et rapide |
 
 ---
 
-## Anti-Features — À ne pas construire en M007
-
-| Anti-Feature | Pourquoi éviter | Quoi faire à la place |
-|--------------|----------------|----------------------|
-| Navigation complète (menu avec plusieurs liens) | Pas de pages cibles en M007 — liens morts = mauvaise UX | Header minimal : logo + 1 CTA uniquement |
-| Carousel / slider hero | Complexité accidentelle, performance impactée, accessibilité difficile (ARIA live regions), pattern prouvément moins efficace pour luxe | Image fixe unique de haute qualité |
-| Video background | Coût réseau énorme (autoplay interdit sur mobile iOS sans `muted`), gestion complexe des fallbacks, hors périmètre M007 | Image haute résolution avec overlay |
-| Parallax scroll sur le hero | Vestibular disorders — provoque des nausées. WCAG 2.3.3 recommande d'éviter. Complexité JS vs bénéfice faible | Hero statique ou fade-in simple |
-| Animations CSS keyframes complexes sur le H1 | Luxe = délibéré, pas spectaculaire. Animations "snappy" contredisent la charte | Transition opacity simple si nécessaire |
-| Lazy loading sur l'image hero | L'image hero est above-the-fold — elle DOIT être `priority` (Next.js `<Image priority>`) | `priority` prop sur `<Image>` |
-| Compteurs JS, confettis, popups d'entrée | Bruit visuel incompatible avec la philosophie "Curated Atelier" | Silence visuel, copie persuasive |
-| Hamburger menu complexe avec drawer animé | M007 n'a pas assez de liens pour justifier un menu complet | 1 bouton CTA texte ou icon simple |
-
----
-
-## Dépendances entre features
+## Feature Dependencies
 
 ```
-globals.css tokens (existant)
-  -> Header (transparent state, couleurs, z-index, shadow-header)
-  -> Hero (overlay, typographie display, CTA gradient)
-  -> Comment ca marche (surface-container, spacing-section)
+GET /api/models (existant, opérationnel)
+  └──fournit──> Cards produit (name, price, model_images)
+      └──requiert──> Image placeholder si model_images vide
+      └──requiert──> Formatage prix français ("à partir de X EUR")
 
-Header (height: 64px)
-  -> Hero (padding-top: 64px requis)
-  -> scroll-padding-top: 64px sur :root (accessibilité ancres)
+Cards produit
+  └──requiert──> État chargement (skeleton)
+  └──requiert──> État erreur API
+  └──requiert──> État vide (0 résultats)
 
-layout.tsx (Montserrat déjà configuré, existant)
-  -> Tous les composants héritent la font
+Recherche par nom
+  └──requiert──> Données chargées en mémoire (après fetch API)
+  └──dépend de──> useState filtre texte
 
-IntersectionObserver (optionnel)
-  -> Fade-in "Comment ca marche"
-  -> Stagger animation étapes (dépend de l'IO)
+Tri (prix asc/desc, nouveautés)
+  └──requiert──> Données chargées en mémoire
+  └──dépend de──> useState option tri
+  └──conflit avec──> Filtrage serveur (les deux s'excluent — choisir l'un ou l'autre)
+
+Swatches miniatures sur card
+  └──requiert──> GET /api/fabrics (API publique — À CRÉER ou vérifier existence)
+  └──OU requiert──> Stocker swatches dans données statiques (alternative sans API)
+  └──dépend de──> fabric.swatch_url (bucket fabric-swatches)
+
+Compteur résultats
+  └──requiert──> Recherche OU Tri (n'a de sens qu'avec un état filtré)
+
+Modal configurateur
+  └──requiert──> Cards produit (le CTA déclenche l'ouverture)
+  └──requiert──> Focus trap (accessibilité — Escape, Tab cycle)
+  └──requiert──> Overlay sombre (position fixed, z-index > header 100)
+  └──enhances──> Swatches (le configurateur est la destination des swatches)
+
+CTA Hero "Découvrir nos canapés"
+  └──enhances──> Section catalogue (scroll anchor #catalogue)
+  └──requiert──> id="catalogue" sur la section (ou ref pour scrollIntoView)
 ```
 
----
+### Dependency Notes
 
-## Recommandation MVP pour M007
-
-### Priorité 1 — Fondation non-négociable
-
-1. Header sticky : transparent -> blanc (80px), logo + 1 CTA, 64px, `scroll-padding-top`
-2. Hero : `100vh`, image fond + overlay, badge IA, H1 + sous-titre, CTA primary
-3. Comment ca marche : 3 étapes, grid 3 colonnes desktop, fond `--color-background-alt`
-4. Responsive complet : 4 breakpoints (< 640, >= 640, >= 1024, >= 1280)
-5. `prefers-reduced-motion` respecté sur toute animation
-
-### Priorité 2 — Différenciateurs simples (effort faible, gain élevé)
-
-6. Indicateur de scroll hero (flèche, animation CSS pure)
-7. Fade-in IntersectionObserver sur les étapes (avec stagger)
-
-### Reporter à M011 (polish)
-
-- Hide/show header au scroll sur mobile
-- Glassmorphism header (compatibilité Safari à vérifier)
-- Optimisation fine des animations
+- **Swatches miniatures requiert GET /api/fabrics :** Vérifier si cette route publique existe déjà. Les routes admin (`/api/admin/fabrics`) existent, mais une route publique `GET /api/fabrics` n'est pas confirmée dans le PROJECT.md. Si absente, deux options : créer la route publique (scope M008), ou afficher les swatches en v9.0 uniquement.
+- **Modal requiert focus trap :** Sans piège de focus, le modal est inaccessible au clavier — WCAG 2.1 AA l'exige. Utiliser une implémentation manuelle légère (pas de librairie externe).
+- **Tri "Nouveautés" est le comportement par défaut de l'API :** `created_at DESC` est déjà le tri natif. L'option "Nouveautés" dans le select est donc un no-op réinitialisant le filtre.
 
 ---
 
-## Complexité et effort estimés
+## MVP Definition
 
-| Section | Composants | Effort estimé | Notes |
-|---------|------------|---------------|-------|
-| Header | `Header.tsx` + `Header.module.css` | ~2h | useScrollY hook simple, 2 états visuels |
-| Hero | `Hero.tsx` + `Hero.module.css` | ~2h | Image statique, overlay CSS, badge, CTA |
-| Comment ca marche | `HowItWorks.tsx` + `HowItWorks.module.css` | ~2h | Grid 3 cols + IntersectionObserver optionnel |
-| `page.tsx` refacto | Assemblage des 3 sections | ~30min | Remplacement du template par défaut |
-| **Total** | | **~7h** | |
+### Launch With — M008
+
+Minimum viable pour valider le catalogue et déclencher le workflow configurateur.
+
+- [x] **Cards produit** reliées à `GET /api/models` — images, noms, prix, CTA "Configurer"
+- [x] **Grid responsive** 1 col mobile / 2 col tablet / 3 col desktop
+- [x] **États** : chargement skeleton, erreur API, catalogue vide
+- [x] **Barre de recherche** filtrage client-side par nom (useState)
+- [x] **Tri** prix croissant, prix décroissant, nouveautés (useState)
+- [x] **Modal configurateur** placeholder "Configurateur à venir — v9.0" (90vw desktop, plein écran mobile)
+- [x] **Focus trap** dans le modal + fermeture Escape + clic overlay
+
+### Add After Validation — v8.x
+
+Features à ajouter une fois le catalogue core validé.
+
+- [ ] **Swatches miniatures** sur cards — attend confirmation de l'existence ou création de `GET /api/fabrics`
+- [ ] **Compteur résultats** — "X modèles" / "X résultats pour 'Milano'"
+- [ ] **Scroll anchor** du CTA hero vers #catalogue (si pas déjà dans Hero.tsx)
+
+### Future Consideration — v9.0+
+
+Features à différer — dépendent de milestones ultérieurs.
+
+- [ ] **Contenu réel du modal** (sélection tissu, swatches 52px, zoom texture) — M009
+- [ ] **Swatches dans le modal** reliées à l'API fabrics — M009
+- [ ] **Animation entrée/sortie modal** raffinée — M011 polish
+- [ ] **Bandeau sticky mobile** (swatch + prix + CTA) — M009/M010
 
 ---
 
-## Considérations accessibilité par section
+## Feature Prioritization Matrix
 
-### Header
-- `<header role="banner">` obligatoire
-- `<nav aria-label="Navigation principale">` si liens présents
-- Contraste du logo et du CTA sur fond transparent AND sur fond blanc (2 états)
-- Skip link `#main-content` au-dessus du header (invisible sauf focus clavier)
-- `scroll-padding-top: 64px` sur `:root`
+| Feature | Valeur Utilisateur | Coût Implémentation | Priorité |
+|---------|-------------------|---------------------|----------|
+| Cards produit + API | HAUTE | FAIBLE | P1 |
+| Grid responsive | HAUTE | FAIBLE | P1 |
+| États chargement/erreur/vide | HAUTE | FAIBLE | P1 |
+| CTA → modal placeholder | HAUTE | MOYEN | P1 |
+| Recherche par nom | MOYENNE | FAIBLE | P1 |
+| Tri prix/nouveautés | MOYENNE | FAIBLE | P1 |
+| Focus trap modal | HAUTE | FAIBLE | P1 |
+| Swatches miniatures card | MOYENNE | MOYEN | P2 |
+| Compteur résultats | FAIBLE | FAIBLE | P2 |
+| Scroll anchor hero CTA | FAIBLE | FAIBLE | P2 |
+| Hover state card élévation | FAIBLE | FAIBLE | P2 |
+| Animations modal entrée | FAIBLE | FAIBLE | P3 |
 
-### Hero
-- `<main id="main-content">` pour recevoir le skip link
-- H1 unique sur la page (le hero en est le propriétaire naturel)
-- Image de fond via `background-image` CSS = décorative, aucun `alt` requis
-- Si `<Image>` Next.js utilisé pour le fond : `alt=""` (décoratif) + `aria-hidden="true"`
-- Ratio de contraste : blanc pur (#FFFFFF) sur `rgba(0,0,0,0.55)` = ~8.5:1 — conforme WCAG AAA
-- CTA : texte descriptif, pas "Cliquez ici"
-- Badge : `aria-label` si icône seule
+**Clé priorités :**
+- P1 : Indispensable pour livrer M008
+- P2 : Souhaitable, ajouter quand P1 validé
+- P3 : Nice-to-have, M011 polish
 
-### Comment ca marche
-- Section avec `<section aria-labelledby="how-title">` + H2 `id="how-title"`
-- Étapes : `<ol>` ou `<ul>` sémantique, ou articles dans une liste
-- Icônes décoratives : `aria-hidden="true"`
-- `@media (prefers-reduced-motion: reduce)` désactive toutes les animations
+---
+
+## Competitor Feature Analysis
+
+| Feature | Roche Bobois | Ligne Roset | Notre Approche |
+|---------|--------------|-------------|----------------|
+| Grid produits | 3 colonnes desktop, grille uniforme | 3 colonnes, cards avec hover zoom | 3 colonnes desktop, tonal layering, hover élévation (pas zoom) |
+| Filtrage | Filtres par type/style/couleur sidebar | Filtres par collection | Search bar simple + tri — adapté à ~20 produits |
+| Prix affiché | "À partir de X EUR" | Prix fixe ou "À partir de" | "À partir de X EUR" (prix de base, sans premium tissu) |
+| Images cards | Photo lifestyle 3/4 | Photo produit fond blanc | Photo `model_images[0]` — depends du contenu admin |
+| CTA card | "Découvrir" → page produit | "Configurer" → configurateur inline | "Configurer ce modèle" → modal 90vw |
+| Swatches preview | Non (navigation vers page tissu) | Oui, miniatures sur hover | Oui, swatches statiques 22px visibles directement |
+| Recherche | Oui (search global) | Non | Oui, limitée au nom de modèle |
+
+---
+
+## Considérations Techniques Clés
+
+### API: Swatches sur les cards
+
+L'API `GET /api/models` ne retourne pas les tissus disponibles. Deux approches :
+
+**Option A — Fetch GET /api/fabrics (recommandé)** : Créer ou vérifier l'existence d'une route
+publique `/api/fabrics` retournant les tissus actifs (`is_active = true`). Fetch parallèle avec
+`/api/models` au montage. Afficher les N premiers swatches (max 4) + badge "+X".
+
+**Option B — Swatches statiques** : Si la route n'existe pas et que la créer dépasse le scope
+M008, afficher un placeholder "voir les tissus" sans swatches concrets. Peu satisfaisant pour l'UX.
+
+Recommandation : Vérifier d'abord si `/api/fabrics` existe. Si non, la créer en début de M008
+(~30min, pattern identique à `/api/models`).
+
+### Modal: z-index et overlay
+
+Le header est à `z-index: 100`. Le modal doit être à `z-index: 200+` pour passer par-dessus.
+L'overlay doit couvrir le header également — `position: fixed`, `inset: 0`.
+
+### Skeleton Cards
+
+Utiliser des divs CSS avec animation `@keyframes shimmer` (background gradient animé) plutôt qu'un
+spinner global. Évite le layout shift — la grille garde ses dimensions pendant le chargement.
+
+### Prix formaté
+
+Afficher `"À partir de {price} €"` formaté avec `Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' })`.
+Le prix de base n'inclut pas le surcoût tissu premium (+80€ fixe) — correct pour l'affichage catalogue.
+
+### Filtre + Tri : composition
+
+```typescript
+// Ordre d'application : filtre d'abord, tri ensuite
+const filtered = models.filter(m => m.name.toLowerCase().includes(query.toLowerCase()))
+const sorted = [...filtered].sort(sortFn)
+```
+
+Le tri "Nouveautés" = `created_at DESC` (ordre naturel de l'API). Réinitialiser le tri vers
+"Nouveautés" revient à ne pas trier (conserver l'ordre du fetch).
+
+---
+
+## Accessibilité Catalogue
+
+| Élément | Exigence | Mise en œuvre |
+|---------|----------|---------------|
+| Section | `<section aria-labelledby="catalogue-title">` | H2 `id="catalogue-title"` |
+| Cards | `role="article"` ou `<article>` sémantique | Chaque card est une unité de contenu |
+| Bouton CTA card | Texte descriptif : "Configurer le modèle Milano" (pas "Configurer") | `aria-label` dynamique avec le nom du modèle |
+| Image produit | `alt="Canapé Milano — vue de face"` | Formaté depuis `view_type` et `name` |
+| Image placeholder | `alt=""` + `aria-hidden="true"` (décoratif) | Pas de sens pour les AT |
+| Barre recherche | `<label>` explicite ou `aria-label` | "Rechercher un modèle" |
+| Tri select | `<label for="sort-select">Trier par</label>` | Label visible, pas placeholder |
+| Modal | `role="dialog"`, `aria-modal="true"`, `aria-labelledby` | Trap focus, Escape ferme |
+| Overlay modal | `aria-hidden="true"` (l'overlay lui-même) | Pas de contenu pour AT |
+| Skeleton | `aria-busy="true"` sur le container | Indique le chargement aux AT |
 
 ---
 
 ## Sources
 
-- [LogRocket: 10 Best Hero Section Examples and Best Practices](https://blog.logrocket.com/ux-design/hero-section-examples-best-practices/) — MEDIUM confidence
-- [Smashing Magazine: Designing Sticky Menus UX Guidelines](https://www.smashingmagazine.com/2023/05/sticky-menus-ux-guidelines/) — HIGH confidence
-- [Smashing Magazine: Designing Accessible Text Over Images Part 1](https://www.smashingmagazine.com/2023/08/designing-accessible-text-over-images-part1/) — HIGH confidence
-- [Parallel HQ: What is a Sticky Header — UX Best Practices 2026](https://www.parallelhq.com/blog/what-sticky-header) — MEDIUM confidence
-- [NN/g: Sticky Headers 5 Ways to Make Them Better](https://www.nngroup.com/articles/sticky-headers/) — HIGH confidence
-- [W3C WCAG 2.3.3: Animation from Interactions](https://www.w3.org/WAI/WCAG21/Understanding/animation-from-interactions.html) — HIGH confidence
-- [MDN: prefers-reduced-motion](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@media/prefers-reduced-motion) — HIGH confidence
-- [TPGI: Prevent focused elements obscured by sticky headers](https://www.tpgi.com/prevent-focused-elements-from-being-obscured-by-sticky-headers/) — HIGH confidence
-- [WebAIM: Contrast and Color Accessibility](https://webaim.org/articles/contrast/) — HIGH confidence
-- CHARTE-GRAPHIQUE.md (source primaire, autorité absolue pour ce projet) — HIGH confidence
+- Wireframe v4 `.planning/maquette/wireframe-page-unique.md` — autorité absolue (HIGH confidence)
+- `CHARTE-GRAPHIQUE.md` — autorité absolue pour le design (HIGH confidence)
+- Schema database `src/types/database.ts` — source de vérité pour les données disponibles (HIGH confidence)
+- API publique `src/app/api/models/route.ts` — contrat API confirmé (HIGH confidence)
+- PROJECT.md — requirements M008 validés (HIGH confidence)
+- NN/g: E-Commerce UX patterns — product listing pages (MEDIUM confidence)
+- Roche Bobois / Ligne Roset — analyse concurrentielle directe (MEDIUM confidence)
+- WCAG 2.1 AA — dialog pattern, focus management (HIGH confidence)
+
+---
+
+*Feature research pour : Catalogue produits Möbel Unique — M008*
+*Researched: 2026-03-28*

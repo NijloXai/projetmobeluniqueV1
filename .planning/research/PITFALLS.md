@@ -1,202 +1,67 @@
-# Domain Pitfalls — M007 Header + Hero + Comment ca marche
+# Pitfalls Research — v8.0 Catalogue Produits
 
-**Domain:** Next.js 16 App Router — Frontend public statique (header sticky, hero plein ecran, section 3 etapes)
-**Researched:** 2026-03-26
-**Overall confidence:** HIGH (verifie via docs officielles Next.js + sources multiples)
-
----
-
-## Pitfalls Critiques
-
-Ces erreurs provoquent des rerewrites, des bugs invisibles en dev qui apparaissent en prod, ou bloquent le build TypeScript.
+**Domain:** Next.js 16 App Router — Catalogue dynamique (search, sort, product grid, modal configurateur)
+**Researched:** 2026-03-28
+**Confidence:** HIGH (sources officielles Next.js + MDN + documentation Supabase verifiees)
 
 ---
 
-### Pitfall 1 : `window is not defined` au SSR — Header scroll state
+## Critical Pitfalls
 
-**Phase concernee :** Header sticky (FRONT-01)
+### Pitfall 1 : `useSearchParams` sans Suspense boundary — build cassé en production
 
-**Ce qui se passe :**
-Le Header utilise `useEffect` + `addEventListener('scroll')` pour basculer transparent → blanc.
-Meme avec `'use client'`, Next.js execute une passe SSR initiale. Si le code accede a `window` ou `document` *en dehors* d'un `useEffect` (par exemple en initialisant l'etat avec `window.scrollY`), le build crashe avec `ReferenceError: window is not defined`.
+**What goes wrong:**
+Le hook `useSearchParams()` utilise pour lire ou mettre a jour les parametres de recherche/tri dans l'URL necessite une `<Suspense>` boundary en Next.js App Router. Sans elle, le build de production echoue avec l'erreur `Missing Suspense boundary with useSearchParams` — ou pire, l'ensemble de la page bascule en rendu client pur (CSR bailout), supprimant tout benefice SSR.
 
-**Exemple dangereux :**
-```typescript
-// INTERDIT — window n'existe pas cote serveur
-const [scrolled, setScrolled] = useState(window.scrollY > 80)
-```
+**Why it happens:**
+En phase de build statique, l'URL n'existe pas encore — les search params sont des donnees dynamiques du client. Next.js ne peut pas prerendre un composant qui depend de valeurs inconnues a la compilation sans un mecanisme d'isolation. La Suspense boundary est ce mecanisme : elle permet de prerendre le shell statique et de charger les donnees dynamiques apres hydratation.
 
-**Exemple correct :**
+Pour ce projet, le filtre de recherche par nom et le tri seront probablement geres en memoire cote client (sans URL params) — mais si on choisit la route URL params pour la persistance, le pieges 'useSearchParams sans Suspense' est garantie de casser le build.
+
+**How to avoid:**
+Deux approches valides selon le besoin :
+
+Option A — State client pur (recommandee pour ce projet) : Gerer la recherche et le tri avec `useState` dans un Client Component. Pas d'URL params, pas de Suspense requis. Adapte car le catalogue est une section d'une SPA sans navigation independante.
+
 ```typescript
 'use client'
-const [scrolled, setScrolled] = useState(false) // false = valeur safe SSR
-
-useEffect(() => {
-  const handler = () => setScrolled(window.scrollY > 80)
-  window.addEventListener('scroll', handler, { passive: true })
-  return () => window.removeEventListener('scroll', handler)
-}, [])
+// CatalogueSection.tsx — Client Component
+const [search, setSearch] = useState('')
+const [sort, setSort] = useState<'price_asc' | 'price_desc' | 'newest'>('newest')
 ```
 
-**Prevention :**
-- Toujours initialiser les states lies a `window` a une valeur neutre (`false`, `0`, `null`).
-- Acceder a `window` uniquement a l'interieur de `useEffect`.
-- Ne jamais utiliser `typeof window !== 'undefined'` comme garde au niveau du state initial — ca cause une erreur d'hydratation.
+Option B — URL params avec Suspense obligatoire :
 
-**Detection :** Build error `ReferenceError: window is not defined` ou hydration warning `Prop mismatch` en console.
+```typescript
+// page.tsx (Server Component)
+<Suspense fallback={<CatalogueSkeleton />}>
+  <CatalogueClient />  {/* Client Component avec useSearchParams */}
+</Suspense>
+```
+
+**Warning signs:**
+Erreur de build `useSearchParams() should be wrapped in a suspense boundary` ou page blanche en production uniquement.
+
+**Phase to address:**
+Phase catalogue (CAT-01 a CAT-03) — decision architecturale a prendre avant d'ecrire le premier composant.
 
 ---
 
-### Pitfall 2 : Hydration mismatch — etat scroll different SSR vs client
+### Pitfall 2 : `next/image` avec URLs Supabase — `next.config.ts` vide bloque toutes les images
 
-**Phase concernee :** Header sticky (FRONT-01)
+**What goes wrong:**
+Le fichier `next.config.ts` est actuellement vide (`const nextConfig: NextConfig = {}`). Les images des produits (`model_images`) et des swatches tissu (`fabrics.swatch_url`) sont stockees dans Supabase Storage — leurs URLs ressemblent a `https://<ref>.supabase.co/storage/v1/object/public/model-photos/...`. Si on utilise `<Image>` de `next/image` avec ces URLs sans configurer `remotePatterns`, Next.js renvoie une erreur `Un-configured Host` et refuse d'optimiser l'image.
 
-**Ce qui se passe :**
-Le serveur rend le header en etat "transparent" (scrolled = false). Si le navigateur a un scroll > 80px au moment de l'hydratation (ex : rechargement en milieu de page), React detecte une discordance entre le HTML serveur et le rendu client. Ca produit un warning ou un flash visible.
+**Why it happens:**
+Par securite, Next.js bloque toutes les sources d'images externes non declarees explicitement. Cette protection evite que des acteurs malveillants forcent le serveur d'optimisation d'images a traiter des URLs arbitraires.
 
-**Prevention :**
-- Utiliser `suppressHydrationWarning` sur l'element `<header>` si la classe CSS change selon le scroll.
-- Ou mieux : appliquer la classe scroll via `useEffect` *apres* l'hydratation, jamais pendant le premier rendu.
-- Pattern recommande :
-
-```typescript
-const [mounted, setMounted] = useState(false)
-
-useEffect(() => { setMounted(true) }, [])
-
-// Classes appliquees uniquement apres hydratation
-const headerClass = mounted && scrolled ? styles.scrolled : styles.header
-```
-
-**Detection :** Warning React `Hydration failed because the initial UI does not match` dans la console navigateur.
-
----
-
-### Pitfall 3 : `'use client'` boundary trop haute — bundle inutilement grossi
-
-**Phase concernee :** Architecture composants (FRONT-01, FRONT-02, FRONT-03)
-
-**Ce qui se passe :**
-Si `page.tsx` (page publique) recoit `'use client'` pour supporter le scroll du Header, **toute** la page bascule en client component. Les sections Hero et "Comment ca marche" — qui sont purement statiques — perdent leurs benefices SSR et gonflent le bundle JS.
-
-**Mauvaise approche :**
-```typescript
-// page.tsx
-'use client' // <- pour gerer le scroll du header
-export default function Home() {
-  return <><Header /><Hero /><HowItWorks /></>
-}
-```
-
-**Bonne approche :**
-```
-src/app/page.tsx          → Server Component (pas de 'use client')
-src/components/public/
-  Header.tsx              → 'use client' (scroll listener)
-  Hero.tsx                → Server Component (statique)
-  HowItWorks.tsx          → Server Component (statique)
-```
-
-`page.tsx` importe `Header`, `Hero`, `HowItWorks` sans `'use client'`. Seul `Header.tsx` a la directive.
-
-**Detection :** Verifier avec Next.js DevTools que `Hero` et `HowItWorks` sont bien Server Components dans le bundle.
-
----
-
-### Pitfall 4 : `100vh` incorrectement rendu sur mobile (barre d'adresse)
-
-**Phase concernee :** Hero plein ecran (FRONT-02)
-
-**Ce qui se passe :**
-Sur iOS Safari et Chrome Android, `100vh` est calcule avec la barre d'adresse *cachee*. Au chargement, la barre d'adresse est visible, ce qui fait deborder le hero de l'ecran et cache le CTA en bas.
-
-**Ne pas utiliser :**
-```css
-.hero {
-  height: 100vh; /* incorrecte sur mobile */
-}
-```
-
-**Solution recommandee (2025) :**
-```css
-.hero {
-  height: 100svh; /* svh = Small Viewport Height, barre visible incluse */
-}
-
-/* Fallback pour navigateurs < 2022 */
-@supports not (height: 100svh) {
-  .hero {
-    height: 100vh;
-    min-height: -webkit-fill-available;
-  }
-}
-```
-
-`100svh` est supporte par tous les navigateurs modernes (Chrome 108+, Safari 15.4+, Firefox 101+). C'est la solution la plus propre en 2025.
-
-**Detection :** Tester sur un vrai iPhone via Safari. Le CTA du hero ne doit pas etre coupe.
-
----
-
-### Pitfall 5 : `next/image` avec `fill` — container parent sans `position: relative`
-
-**Phase concernee :** Hero plein ecran avec image de fond (FRONT-02)
-
-**Ce qui se passe :**
-`<Image fill />` positionne l'image en `position: absolute`. Si le parent n'a pas `position: relative` (ou `absolute`/`fixed`), l'image s'echappe du container et couvre la page entiere.
-
-**Erreur classique :**
-```typescript
-<section className={styles.hero}>
-  {/* parent sans position: relative */}
-  <Image src="/hero.jpg" fill alt="" />
-</section>
-```
-
-**Prevention :**
-```css
-/* hero.module.css */
-.hero {
-  position: relative;   /* OBLIGATOIRE pour fill */
-  height: 100svh;
-  overflow: hidden;     /* coupe l'image si elle deborde */
-}
-```
+**How to avoid:**
+Configurer `remotePatterns` dans `next.config.ts` AVANT de creer le premier composant qui affiche une image Supabase :
 
 ```typescript
-<Image
-  src="/images/hero.jpg"
-  fill
-  priority               /* LCP — image above the fold */
-  sizes="100vw"          /* evite le telechargement d'images trop grandes */
-  style={{ objectFit: 'cover' }}
-  alt=""                 /* alt vide car image decorative */
-/>
-```
+// next.config.ts
+import type { NextConfig } from 'next'
 
-**Ne pas oublier :**
-- `priority` est obligatoire sur le hero — c'est le LCP de la page. Sans lui, Next.js lazy-loade l'image et le score Lighthouse chute.
-- `sizes="100vw"` evite que le navigateur telecharge une image 3200px sur un ecran 375px.
-- `alt=""` est correct pour une image purement decorative (fond).
-
-**Detection :** Image qui couvre toute la page, ou Lighthouse LCP > 4s.
-
----
-
-### Pitfall 6 : Image hero absente du dossier `public/` au build
-
-**Phase concernee :** Hero plein ecran (FRONT-02)
-
-**Ce qui se passe :**
-Le dossier `public/` actuel ne contient que les SVGs du template Next.js (`next.svg`, `vercel.svg`, etc.). Il n'y a pas d'image hero. Si le composant Hero reference `/images/hero.jpg` sans que le fichier existe, Next.js build sans erreur mais affiche un 404 en runtime (l'image est manquante silencieusement).
-
-**Prevention :**
-- Creer `public/images/` et y placer l'image hero AVANT d'implanter le composant.
-- Dimensionnement recommande : 1920x1080px, format WebP, < 300 Ko (Next.js optimise automatiquement, mais partir d'un fichier leurd ralentit le serveur de dev).
-- Si l'image vient de Supabase Storage, configurer `remotePatterns` dans `next.config.ts` :
-
-```typescript
-// next.config.ts — actuellement vide, a configurer si image externe
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -208,311 +73,357 @@ const nextConfig: NextConfig = {
     ],
   },
 }
+
+export default nextConfig
 ```
 
-**Detection :** 404 en console navigateur sur l'URL `/images/hero.jpg` ou erreur `Un-configured Host` si image externe.
+La valeur `*.supabase.co` couvre tous les projets Supabase (wildcard sur le sous-domaine). Le pathname `/storage/v1/object/public/**` restreint aux buckets publics uniquement — ne pas utiliser `/**` sans restriction de path.
+
+Ajouter aussi `unoptimized: false` (default) est inutile, mais si les URLs Supabase retournent des erreurs 400 lors de l'optimisation (probleme connu dans certaines regions), le fallback est `unoptimized: true` sur les images concernees ou un custom loader.
+
+**Warning signs:**
+Erreur console `Error: Invalid src prop (...) hostname "*.supabase.co" is not configured` ou images grises/manquantes sur les product cards.
+
+**Phase to address:**
+Prerequis absolu de la Phase 1 (CAT-01 — product cards). Configurer avant tout code de composant.
 
 ---
 
-## Pitfalls Moderes
+### Pitfall 3 : Hydration mismatch avec l'etat de recherche/tri initialise cote client
 
-Ces erreurs degradent la qualite visuelle, les performances ou l'accessibilite, mais ne bloquent pas le build.
+**What goes wrong:**
+Si la valeur initiale de l'etat `search` ou `sort` depend de quelque chose de specifique au client (valeur sauvegardee en `localStorage`, ou lue depuis l'URL via `window.location`), le rendu SSR et le rendu client seront differents. React detecte la discordance et produit un warning d'hydratation, parfois accompagne d'un flash visuel ou d'une reinitialisation des filtres.
 
----
+**Why it happens:**
+Next.js App Router fait une passe SSR meme pour les composants `'use client'`. Les valeurs comme `localStorage`, `sessionStorage`, ou `window.location.search` n'existent pas cote serveur — utiliser ces valeurs comme valeurs initiales de `useState` produit des contenus differents entre le premier rendu serveur et le rendu client.
 
-### Pitfall 7 : Event listener scroll sans `{ passive: true }` — performance mobile
+**How to avoid:**
+Toujours initialiser les etats de recherche/tri avec des valeurs deterministes et identiques cote serveur et client :
 
-**Phase concernee :** Header sticky (FRONT-01)
-
-**Ce qui se passe :**
-Sans `{ passive: true }`, le navigateur attend que le handler JS se termine avant de laisser l'utilisateur scroller. Sur mobile, ca cree un lag perceptible sur le scroll.
-
-**Prevention :**
 ```typescript
-window.addEventListener('scroll', handler, { passive: true })
+'use client'
+// BON : valeur initiale fixe, identique SSR et client
+const [search, setSearch] = useState('')
+const [sort, setSort] = useState<SortOption>('newest')
+
+// MAUVAIS : lecture localStorage -> hydration mismatch
+const [sort, setSort] = useState(() => {
+  return (localStorage.getItem('catalogue-sort') as SortOption) ?? 'newest'
+})
 ```
 
-**Detection :** Chrome DevTools > Performance > "Forced reflow" ou warning "Added non-passive event listener to a scroll-blocking event".
+Si la persistance de tri entre sessions est requise (feature optionnelle), lire `localStorage` uniquement dans un `useEffect` APRES le premier rendu :
 
----
-
-### Pitfall 8 : Fuite memoire — listener scroll sans cleanup dans `useEffect`
-
-**Phase concernee :** Header sticky (FRONT-01)
-
-**Ce qui se passe :**
-Si le composant Header est demonte (navigation SPA) sans supprimer le listener, le handler continue de tourner en fond et peut provoquer des setState sur un composant demonte.
-
-**Prevention — pattern obligatoire :**
 ```typescript
+const [sort, setSort] = useState<SortOption>('newest')
+
 useEffect(() => {
-  const handler = () => setScrolled(window.scrollY > 80)
-  window.addEventListener('scroll', handler, { passive: true })
-
-  // Cleanup obligatoire
-  return () => window.removeEventListener('scroll', handler)
-}, []) // tableau vide = une seule inscription
+  const saved = localStorage.getItem('catalogue-sort') as SortOption
+  if (saved) setSort(saved)
+}, [])
 ```
 
-**Attention :** Passer exactement la meme reference de fonction a `addEventListener` et `removeEventListener`. Une fonction inline dans le cleanup ne retirera pas le bon listener.
+**Warning signs:**
+Warning React `Hydration failed because the initial UI does not match what was rendered on the server` en console. Aussi : les filtres "sautent" apres le chargement de la page.
 
-**Detection :** Warning React `Warning: Can't perform a React state update on an unmounted component`.
+**Phase to address:**
+Phase catalogue (CAT-02, CAT-03) — a l'implementation de la barre de recherche et du tri.
 
 ---
 
-### Pitfall 9 : `page.module.css` du template — conflit dark mode et tokens
+### Pitfall 4 : Recherche sans debounce — appels API excessifs ou filtrage saccade
 
-**Phase concernee :** Remplacement du template (FRONT-01 / FRONT-02)
+**What goes wrong:**
+Sans debounce sur le champ de recherche, chaque frappe du clavier declenche un re-render du catalogue (si le filtrage est en memoire) ou un appel API (si le filtrage est serveur-side). Sur un filtre en memoire, le probleme est mineur mais le rendu est saccade. Sur un filtre serveur, 10 frappes = 10 requetes HTTP, dont la plupart seront abandonnees.
 
-**Ce qui se passe :**
-Le fichier `page.module.css` existant contient :
-- Des variables locales `--background`, `--foreground` qui shadent les tokens globaux.
-- Un bloc `@media (prefers-color-scheme: dark)` qui inverse les couleurs en mode sombre.
-- Une reference a `--font-geist-sans` qui n'est pas chargee dans ce projet.
+**Why it happens:**
+Le pattern `onChange={e => setSearch(e.target.value)}` met a jour l'etat a chaque caractere saisi. Sans limitation de cadence, React rerender le composant et recalcule les resultats filtres a chaque keystroke.
 
-Remplacer `page.tsx` sans supprimer `page.module.css` (ou en important encore l'ancien fichier) peut provoquer des conflits CSS inattendus.
+**How to avoid:**
+Pour ce projet (filtrage en memoire, pas serveur-side), un debounce de 300ms sur le terme de recherche est suffisant :
 
-**Prevention :**
-- Supprimer entierement `page.module.css` lors de la réécriture de `page.tsx`.
-- Creer un nouveau `page.module.css` vide ou specifique a la page publique.
-- Ne jamais dupliquer les tokens — utiliser exclusivement les variables de `globals.css`.
-- Ne pas ajouter de `@media (prefers-color-scheme: dark)` — le projet n'a pas de dark mode prevu.
+```typescript
+'use client'
+import { useState, useMemo, useTransition } from 'react'
 
-**Detection :** Fond noir en mode sombre systeme, ou texte blanc invisible sur fond blanc.
+const [inputValue, setInputValue] = useState('') // mis a jour immediatement
+const [debouncedSearch, setDebouncedSearch] = useState('') // utilise pour filtrer
 
----
+useEffect(() => {
+  const timer = setTimeout(() => setDebouncedSearch(inputValue), 300)
+  return () => clearTimeout(timer)
+}, [inputValue])
 
-### Pitfall 10 : `backdrop-filter: blur()` — prefixe `-webkit-` manquant
-
-**Phase concernee :** Glassmorphism header au scroll (FRONT-01)
-
-**Ce qui se passe :**
-La charte graphique definit un effet glassmorphism pour le header scrolle :
-```css
-background: rgba(252, 249, 245, 0.8);
-backdrop-filter: blur(20px);
+// Filtrage avec la valeur debouncee
+const filteredModels = useMemo(() => {
+  return models.filter(m =>
+    m.name.toLowerCase().includes(debouncedSearch.toLowerCase())
+  )
+}, [models, debouncedSearch])
 ```
-Sans `-webkit-backdrop-filter`, l'effet ne s'affiche pas sur Safari (iOS et macOS) pour les versions < Safari 17.
 
-**Prevention — toujours les deux proprietes :**
-```css
-.headerScrolled {
-  background: rgba(252, 249, 245, 0.8);
-  -webkit-backdrop-filter: blur(20px); /* Safari < 17 */
-  backdrop-filter: blur(20px);
+Alternative plus simple — `useTransition` de React 19 pour marquer le filtrage comme transition non-urgente :
+
+```typescript
+const [isPending, startTransition] = useTransition()
+
+const handleSearch = (value: string) => {
+  setInputValue(value) // mise a jour immediate de l'input
+  startTransition(() => setDebouncedSearch(value)) // filtre en arriere-plan
 }
 ```
 
-**Valeur de blur recommandee :** 12-16px. Au-dela de 20px, l'effet devient GPU-intensif sur mobile. Rester proche des 12px pour le header.
+**Warning signs:**
+Input qui "lag" pendant la frappe, ou liste qui scintille a chaque caractere.
 
-**Detection :** Tester sur Safari iOS — le header doit etre translucide, pas opaque.
-
----
-
-### Pitfall 11 : CSS Modules — conflit de specifite avec `globals.css`
-
-**Phase concernee :** Tous les composants (FRONT-01 a FRONT-05)
-
-**Ce qui se passe :**
-`globals.css` definit des regles globales sur `img { max-width: 100%; height: auto; }` et sur `button { cursor: pointer; }`. Ces regles ont une specifite de 0-0-1 (element selector). Un CSS Module qui stylise `.icon` sans specifier les dimensions peut entrer en conflit si la regle globale sur `img` s'applique a une image imbriquee.
-
-De plus, Next.js ne garantit pas l'ordre de chargement des CSS Modules quand plusieurs sont charges dans la meme page (issue connue #10148). La specifite determinera quelle regle gagne — ce qui peut varier selon l'ordre de navigation.
-
-**Prevention :**
-- Toujours specifier explicitement `width` et `height` dans les CSS Modules pour les images et icons.
-- Ne pas faire de `composes` depuis `globals.css` (non supporte en Next.js App Router).
-- Utiliser les tokens CSS (`var(--color-primary)`) dans les modules au lieu de valeurs codees en dur.
-- Pour les styles d'etats (`:hover`, `:focus`), toujours les ecrire dans le module du composant, pas dans globals.
-
-**Detection :** Styles qui "sautent" apres navigation, ou styles differents entre premier chargement et navigation SPA.
+**Phase to address:**
+Phase catalogue (CAT-02) — implementation de la barre de recherche.
 
 ---
 
-### Pitfall 12 : Metadata titre — layout.tsx indique "Back-office"
+### Pitfall 5 : Modal sans focus trap — ecran bloquant au clavier et lecteurs d'ecran
 
-**Phase concernee :** Initialisation page publique (FRONT-01)
+**What goes wrong:**
+Un modal qui n'emprisonne pas le focus clavier permet aux utilisateurs de "Tab" derriere le modal et d'interagir avec le contenu de la page sous-jacente. Pour les lecteurs d'ecran, le contenu derriere le modal reste visible et lisible, rendant l'experience confuse et non-conforme WCAG.
 
-**Ce qui se passe :**
-Le `layout.tsx` racine contient :
-```typescript
-export const metadata: Metadata = {
-  title: "Möbel Unique — Back-office",
-  description: "Administration Möbel Unique — Visualisation IA...",
-}
-```
+**Why it happens:**
+La construction d'un modal avec un simple `display: flex` et une gestion de `z-index` ne suffit pas. Le DOM reste entierement accessible au clavier — le navigateur ne sait pas que le contenu derriere est "bloque".
 
-La page publique herite de ce titre "Back-office" si elle ne definit pas sa propre metadata. C'est incorrect et mauvais pour le SEO.
-
-**Prevention :**
-- Utiliser le pattern `title.template` dans `layout.tsx` :
+**How to avoid:**
+Pour le modal configurateur (90vw desktop, plein ecran mobile), implanter les attributs ARIA minimum et un focus trap manuel :
 
 ```typescript
-export const metadata: Metadata = {
-  title: {
-    template: '%s | Möbel Unique',
-    default: 'Möbel Unique — Canapés personnalisables Paris',
-  },
-  description: 'Visualisez votre canapé dans le tissu de votre choix...',
-}
-```
+// Modal.tsx — 'use client'
+// 1. Attributs ARIA obligatoires
+<div
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="modal-title"
+>
+  <h2 id="modal-title">Configurateur</h2>
+  ...
+  <button onClick={onClose} aria-label="Fermer le configurateur">✕</button>
+</div>
 
-- Exporter une `metadata` depuis `page.tsx` (page publique) et depuis `admin/login/page.tsx`.
-
-**Detection :** Titre de l'onglet navigateur affiche "Back-office" sur la page publique.
-
----
-
-## Pitfalls Mineurs
-
-Ces problemes sont faciles a corriger mais courants lors d'une premiere implementation.
-
----
-
-### Pitfall 13 : `scroll-padding-top` manquant — ancres cachees par le header fixe
-
-**Phase concernee :** Navigation (FRONT-01 + sections suivantes)
-
-**Ce qui se passe :**
-Le header est `position: fixed` a `height: 64px`. Quand le CTA du hero "decouvrir" fait defiler vers la section suivante via une ancre (`#comment-ca-marche`), le titre de la section se retrouve cache derriere le header.
-
-**Prevention :**
-```css
-/* globals.css */
-html {
-  scroll-behavior: smooth;
-  scroll-padding-top: var(--header-height); /* 64px */
-}
-```
-
-**Detection :** Cliquer sur le CTA hero — le H2 de la section suivante doit etre entierement visible, pas coupe par le header.
-
----
-
-### Pitfall 14 : Accessibilite — header sans `<nav>` et sans skip link
-
-**Phase concernee :** Header (FRONT-01)
-
-**Ce qui se passe :**
-Un header qui ne contient qu'un logo et un bouton CTA sans structure semantique (`<nav>`, `role="banner"`) prive les utilisateurs de lecteurs d'ecran des points de repere de navigation. WCAG 2.4.1 requiert un mecanisme pour bypasser les blocs repetitifs.
-
-**Prevention :**
-```typescript
-<header role="banner" className={styles.header}>
-  {/* ... logo ... */}
-  <nav aria-label="Navigation principale">
-    {/* liens si presentes */}
-  </nav>
-</header>
-```
-
-- Ajouter un skip link visible au focus :
-```typescript
-<a href="#contenu-principal" className={styles.skipLink}>
-  Aller au contenu
-</a>
-```
-
-- La section `<main>` de `page.tsx` doit avoir `id="contenu-principal"`.
-
-**Detection :** Naviguer au clavier (Tab) — le focus doit sauter directement au contenu principal.
-
----
-
-### Pitfall 15 : Image hero — `alt` incorrect pour image decorative
-
-**Phase concernee :** Hero (FRONT-02)
-
-**Ce qui se passe :**
-Une image de fond purement decorative avec un `alt` descriptif sera annoncee par les lecteurs d'ecran, ce qui alourdit la navigation vocale inutilement. Inversement, une image qui *porte du sens* (ex : photo d'un canape precis) avec `alt=""` prive l'utilisateur d'informations.
-
-**Prevention :**
-- Image de fond ambiance → `alt=""` (vide, pas absent)
-- Image d'un produit specifique → `alt="Canape [nom], vue de face"` descriptif
-
-**Detection :** Tester avec VoiceOver (Mac) ou NVDA (Windows).
-
----
-
-### Pitfall 16 : `public/` — fichiers template non supprimes
-
-**Phase concernee :** Initialisation (prerequis M007)
-
-**Ce qui se passe :**
-Le dossier `public/` contient `next.svg`, `vercel.svg`, `window.svg`, `globe.svg`, `file.svg` du template Next.js. Ces fichiers sont servis publiquement, gonflent le build, et signalent que le projet est base sur un template non nettoye.
-
-**Prevention :**
-- Supprimer tous les SVGs du template au debut de M007.
-- Creer `public/images/` pour les assets du projet.
-
----
-
-### Pitfall 17 : Throttle du handler scroll absent — rerenders excessifs
-
-**Phase concernee :** Header sticky (FRONT-01)
-
-**Ce qui se passe :**
-L'evenement `scroll` se declenche plusieurs dizaines de fois par seconde. Sans optimisation, `setScrolled` est appele a chaque frame, causant des rerenders inutiles du Header.
-
-**Prevention — deux approches :**
-
-Option A : Comparer avant de set (recommande pour ce cas simple) :
-```typescript
-const handler = () => {
-  const isScrolled = window.scrollY > 80
-  setScrolled(prev => prev !== isScrolled ? isScrolled : prev)
-}
-```
-
-Option B : `requestAnimationFrame` pour limiter a 60fps :
-```typescript
-let ticking = false
-const handler = () => {
-  if (!ticking) {
-    requestAnimationFrame(() => {
-      setScrolled(window.scrollY > 80)
-      ticking = false
-    })
-    ticking = true
+// 2. Focus automatique a l'ouverture
+useEffect(() => {
+  if (isOpen) {
+    closeButtonRef.current?.focus()
   }
-}
+}, [isOpen])
+
+// 3. Retour du focus a l'element declencheur a la fermeture
+// (conserver la ref du bouton "Configurer ce modele" qui a ouvert le modal)
+useEffect(() => {
+  return () => {
+    triggerRef.current?.focus()
+  }
+}, [])
+
+// 4. Fermeture avec Escape
+useEffect(() => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') onClose()
+  }
+  document.addEventListener('keydown', handleKeyDown)
+  return () => document.removeEventListener('keydown', handleKeyDown)
+}, [onClose])
 ```
 
-La comparaison avant set (option A) est suffisante ici car le state est binaire (true/false). Le seuil de scroll ne change qu'a deux moments : passage au-dessus de 80px, et retour en dessous.
+Pour le focus trap complet (cycle Tab/Shift+Tab), utiliser la librairie `focus-trap-react` (3KB gzip) — approuvee car ce projet n'a pas Radix UI disponible comme composant inline pour la SPA publique.
+
+**Warning signs:**
+Naviguer au clavier (Tab) fait sortir le focus du modal. VoiceOver/NVDA lit le contenu de la page sous le modal.
+
+**Phase to address:**
+Phase modal configurateur (CAT-04) — des la creation du composant Modal.
 
 ---
 
-## Tableau de synthese par phase
+### Pitfall 6 : Body scroll non bloque sur iOS Safari quand le modal est ouvert
 
-| Phase / Sujet | Pitfall prioritaire | Mitigation |
-|---------------|---------------------|------------|
-| Header sticky (FRONT-01) | `window is not defined` au SSR | Initialiser state a `false`, acceder `window` dans `useEffect` uniquement |
-| Header sticky (FRONT-01) | Hydration mismatch scroll state | Pattern `mounted` + appliquer classe apres hydratation |
-| Header sticky (FRONT-01) | Listener sans `passive` + sans cleanup | `{ passive: true }`, return cleanup dans `useEffect` |
-| Architecture composants | `'use client'` trop haut dans l'arbre | Header seul en Client Component, Hero et HowItWorks restent Server Components |
-| Hero plein ecran (FRONT-02) | `100vh` barre adresse mobile | Utiliser `100svh` avec fallback `-webkit-fill-available` |
-| Hero plein ecran (FRONT-02) | `next/image fill` sans `position: relative` | Container parent obligatoirement `position: relative; overflow: hidden` |
-| Hero plein ecran (FRONT-02) | Image hero absente de `public/` | Creer `public/images/hero.jpg` avant le composant |
-| Glassmorphism header | `backdrop-filter` sans prefixe `-webkit-` | Toujours doubler avec `-webkit-backdrop-filter` |
-| CSS Modules | Conflit dark mode depuis template | Supprimer `page.module.css` template, recree propre |
-| CSS Modules | Specifite conflictuelle avec globals | Proprietes explicites, pas de composes depuis globals |
-| Metadata | Titre "Back-office" sur page publique | Pattern `title.template` dans layout.tsx |
-| Accessibilite | Header sans semantique, sans skip link | `role="banner"`, `<nav aria-label>`, skip link + `id` sur `<main>` |
-| Ancres | Contenu cache par header fixe | `scroll-padding-top: var(--header-height)` sur `html` |
+**What goes wrong:**
+Sur iOS Safari, `overflow: hidden` sur le `<body>` ne bloque pas le scroll de la page derriere un modal. L'utilisateur peut scroller la page de fond pendant que le modal est ouvert — le contenu glisse sous le modal, creant un effet desorienant.
+
+**Why it happens:**
+C'est un bug historique d'iOS Safari qui ignore `overflow: hidden` sur `body` pour les evenements touch. Le body continue de recevoir les evenements `touchmove`.
+
+**How to avoid:**
+Pattern CSS moderne (2025) sans JavaScript :
+
+```css
+/* globals.css ou Modal.module.css */
+body.modal-open {
+  position: fixed;
+  width: 100%;
+  /* Stocker la position de scroll via JS avant de fixer */
+  top: var(--scroll-position, 0);
+  overflow-y: scroll; /* evite le saut de layout quand la scrollbar disparait */
+}
+```
+
+```typescript
+// Dans le composant Modal
+useEffect(() => {
+  if (isOpen) {
+    const scrollY = window.scrollY
+    document.documentElement.style.setProperty('--scroll-position', `-${scrollY}px`)
+    document.body.classList.add('modal-open')
+    return () => {
+      document.body.classList.remove('modal-open')
+      window.scrollTo(0, scrollY) // restaurer position scroll
+    }
+  }
+}, [isOpen])
+```
+
+**Warning signs:**
+Sur un iPhone, le contenu de la page derriere le modal scroll quand on fait glisser le doigt dans le modal.
+
+**Phase to address:**
+Phase modal configurateur (CAT-04) — tester imperativement sur Safari iOS physique.
+
+---
+
+## Technical Debt Patterns
+
+Raccourcis qui semblent raisonnables mais creent des problemes a moyen terme.
+
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| Filtrer les modeles directement dans le composant sans `useMemo` | Moins de code | Re-calcul du filtre a chaque re-render, meme si les donnees n'ont pas change | Jamais — `useMemo` sur le filtre est gratuit |
+| `unoptimized={true}` sur toutes les images Supabase | Evite la config `remotePatterns` | Supabase renvoie des images non-optimisees (pas de WebP, pas de resize) → page lente | Jamais en production |
+| Un seul composant `CatalogueSection.tsx` de 300+ lignes | Rapide a ecrire | Impossible a maintenir, search/sort/cards/modal entangled | MVP uniquement si composant < 150 lignes |
+| Recherche qui compare en cassant les accents (`indexOf` sans normalize) | Trivial a implanter | "Canape" ne trouve pas "Canapé" — mauvaise UX | Jamais — normaliser les diacritiques |
+| Sort state en `localStorage` immediatement (sans `useEffect`) | Persistance entre sessions | Hydration mismatch garanti | Jamais sans useEffect |
+| Cards sans dimensions fixes sur l'image | Pas de CSS a calculer | CLS (Cumulative Layout Shift) — les cards "sautent" au chargement | Jamais en production |
+
+---
+
+## Integration Gotchas
+
+Erreurs courantes lors de la connexion aux services existants.
+
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| `GET /api/models` | Appeler l'API dans un composant avec `fetch` cote client sans gerer l'etat loading/error | Utiliser `useState` + `useEffect` avec 3 etats (loading, data, error) ou React Suspense avec Server Component |
+| Supabase Storage URLs | Utiliser `model_images[0].image_url` directement dans `<img>` natif (bypass next/image) | Toujours `<Image>` next/image avec `remotePatterns` configure — permet l'optimisation WebP automatique |
+| `fabrics.swatch_url` pour les swatches | Utiliser `<Image fill>` pour des cercles de 22px | Utiliser `<Image width={22} height={22}>` — `fill` est pour les images sans dimensions connues |
+| Types TypeScript | Utiliser `any[]` pour les donnees de l'API | Importer et utiliser les types de `src/types/database.ts` — `Database['public']['Tables']['models']['Row']` |
+| Sort par prix | Trier directement `model.base_price` | Verification : le champ s'appelle `base_price` dans la table `models` — verifier les types avant de trier |
+| Swatches sur les cards | Appeler `/api/fabrics` depuis chaque card separement | Inclure les tissus dans l'appel initial ou passer les swatches comme props depuis le parent |
+
+---
+
+## Performance Traps
+
+Patterns qui fonctionnent en dev mais posent probleme a la croissance.
+
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Charger TOUTES les images de tous les angles de chaque modele au load initial | Chargement long, bandwidth inutile | Charger uniquement `model_images[0]` (front) pour la card. Les autres angles se chargent dans le modal | Des 3+ modeles avec 5 angles chacun |
+| `<Image>` sans prop `sizes` sur les product cards | Next.js telecharge une image 1920px pour une card de 400px | `sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"` — correspond au grid 1/2/3 colonnes | Immediate — impact LCP |
+| Re-fetch `GET /api/models` a chaque ouverture/fermeture du modal | API appelee plusieurs fois inutilement | Stocker les donnees dans le state parent du catalogue, passer le modele selectionne comme prop au modal | Immediate — visible dans Network tab |
+| Filtre en memoire sur 100+ modeles sans `useMemo` | Lag visible dans l'input de recherche | `useMemo` sur le calcul de filtrage, dependances `[models, debouncedSearch, sort]` | Catalogue > 50 produits |
+| Swatches: charger les tissu-swatches de TOUS les modeles au load | N requetes images supplementaires | Charger max 3-4 swatches par card, afficher "+N" pour le reste | Des 5+ tissus par modele |
+
+---
+
+## Security Mistakes
+
+Problemes de securite specifiques a ce domaine.
+
+| Mistake | Risk | Prevention |
+|---------|------|------------|
+| Appeler `/api/admin/models` (route protegee) depuis le front public | Expose les donnees admin non-filtrées | Utiliser uniquement `GET /api/models` — route publique qui filtre sur `is_active = true` |
+| Afficher `is_active`, `model_id` ou d'autres champs internes dans le HTML rendu | Fuite d'informations sur la structure backend | Ne passer aux composants cards que les champs utiles : `id`, `name`, `base_price`, `slug`, images front |
+| Search input XSS | Injection de contenu si la valeur est rendue sans echappement | React echappe automatiquement les valeurs dans JSX — ne pas utiliser `dangerouslySetInnerHTML` avec la valeur de recherche |
+
+---
+
+## UX Pitfalls
+
+Erreurs d'experience utilisateur courantes sur les catalogues produits.
+
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| Aucun etat vide quand la recherche ne retourne rien | L'utilisateur pense que l'app est cassee | Afficher un message "Aucun canapé ne correspond a votre recherche" avec un bouton "Effacer la recherche" |
+| Aucun skeleton/placeholder pendant le chargement initial de l'API | Ecran vide puis apparition brutale de toutes les cards | Afficher 3 skeleton cards pendant le fetch — meme structure visuelle que les vraies cards |
+| Search qui efface le tri quand on tape | L'utilisateur perd le contexte | Les etats `search` et `sort` sont independants — ne jamais resetter le tri quand la recherche change |
+| CTA "Configurer ce modele" ne retourne pas le focus apres fermeture du modal | Navigation clavier cassee — l'utilisateur est "perdu" dans la page | `triggerRef.current?.focus()` dans le cleanup de l'useEffect du modal |
+| Cards sans dimension image fixe | Les cards changent de taille selon le ratio de l'image — layout instable | `aspect-ratio: 4/3` sur le container image de chaque card, indépendamment des dimensions de l'image |
+| Swatches sans tooltip/title | L'utilisateur ne sait pas a quel tissu correspond le cercle de couleur | `title={fabric.name}` sur chaque swatch — tooltip natif HTML accessible |
+| Sort qui "saute" la vue scroll apres changement | L'utilisateur perd sa position dans le catalogue | Ne pas scroller vers le haut automatiquement apres un changement de tri — laisser l'utilisateur la ou il est |
+
+---
+
+## "Looks Done But Isn't" Checklist
+
+Elements qui semblent complets en dev mais manquent en production.
+
+- [ ] **Product cards :** Images visibles en dev (URLs hardcodees) mais cassees en production — verifier que `remotePatterns` est configure avec la vraie URL Supabase, pas une URL exemple.
+- [ ] **Recherche :** Fonctionne avec accents en francais — "Canapé", "Möbel", "Firenzé" — tester `normalize('NFD').replace(/\p{Mn}/gu, '')` ou `.localeCompare` avec `sensitivity: 'base'`.
+- [ ] **Modal :** Escape key ferme le modal — tester au clavier, pas seulement en cliquant le bouton fermer.
+- [ ] **Modal :** Body scroll bloque sur iOS Safari — tester sur un vrai iPhone (pas simulateur).
+- [ ] **Loading state :** API peut etre lente (cold start Supabase) — le skeleton doit s'afficher > 200ms.
+- [ ] **Empty state :** Recherche "zzzzz" affiche un message explicatif, pas une grille vide silencieuse.
+- [ ] **Grid responsive :** 1 colonne mobile / 2 colonnes tablette / 3 colonnes desktop — verifier les 3 breakpoints.
+- [ ] **next/image sizes :** Prop `sizes` correcte sur chaque image de card — inspecter le srcset genere dans les DevTools Network.
+- [ ] **TypeScript strict :** `npx tsc --noEmit` passe sans erreur apres integration des types Supabase sur les props de cards.
+- [ ] **'use client' boundary :** Le composant Server Component `page.tsx` ne recoit pas la directive `'use client'` a cause du catalogue dynamique.
+
+---
+
+## Recovery Strategies
+
+Si les pieges se produisent malgre la prevention.
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| `remotePatterns` manquant | LOW | Ajouter la config dans `next.config.ts`, redemarrer le serveur de dev. 5 minutes. |
+| Hydration mismatch sur search state | LOW | Identifier la valeur initiale non-deterministe, la remplacer par une valeur fixe ou la deplacer dans `useEffect`. 15 minutes. |
+| `useSearchParams` sans Suspense (si adopte) | MEDIUM | Extraire le composant appelant dans un enfant enveloppe de `<Suspense>`. 30 minutes. |
+| Modal sans focus trap — reconcevoir | MEDIUM | Ajouter `focus-trap-react` (npm install), envelopper le contenu du modal. Tester clavier/VoiceOver. 1 heure. |
+| Body scroll iOS non bloque | MEDIUM | Ajouter le pattern `position: fixed + top: var(--scroll-position)`. Tester sur iPhone physique. 1 heure. |
+| Images Supabase non optimisees (400 errors) | HIGH | Investiguer si Supabase Storage transformations sont activees, ou configurer un custom loader. 2-4 heures. |
+| Architecture composants trop monolithique | HIGH | Refactorer CatalogueSection en sous-composants separes (SearchBar, SortSelector, ProductGrid, ProductCard, Modal). Risque de regression. |
+
+---
+
+## Pitfall-to-Phase Mapping
+
+Comment les phases de la roadmap adressent ces pitfalls.
+
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| `remotePatterns` Supabase manquant | Phase 1 — prerequis avant product cards | `next.config.ts` contient `remotePatterns` avec `*.supabase.co` |
+| Hydration mismatch search/sort state | Phase 1 — architecture composants | `useState` initialise avec valeurs fixes, pas de `localStorage` en valeur initiale |
+| `useSearchParams` sans Suspense | Phase 1 — decision search state | Decision documentee : state client pur (`useState`) vs URL params |
+| Debounce recherche manquant | Phase 2 — implementation SearchBar | Input avec 300ms debounce, `useMemo` sur le filtre |
+| Cards sans `sizes` next/image | Phase 2 — product cards | DevTools Network : srcset genere par Next.js present sur les images |
+| Modal sans focus trap + ARIA | Phase 3 — composant Modal | Test clavier (Tab cycle) + VoiceOver (dialog announce) |
+| Body scroll iOS non bloque | Phase 3 — composant Modal | Test manuel sur Safari iOS — body immobile pendant modal ouvert |
+| Empty state manquant | Phase 2 — product grid | Recherche "test-inexistant" affiche message + bouton reset |
+| Loading state absent | Phase 1 ou 2 | Skeleton visible pendant > 200ms (throttle Network en DevTools) |
+| TypeScript non-strict sur les types API | Toutes les phases | `npx tsc --noEmit` passe a 0 erreur apres chaque phase |
 
 ---
 
 ## Sources
 
-- [Next.js — Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components) — HIGH confidence (doc officielle)
-- [Next.js — use client directive](https://nextjs.org/docs/app/api-reference/directives/use-client) — HIGH confidence (doc officielle)
-- [Next.js — Image Component](https://nextjs.org/docs/app/api-reference/components/image) — HIGH confidence (doc officielle)
-- [Next.js — generateMetadata](https://nextjs.org/docs/app/api-reference/functions/generate-metadata) — HIGH confidence (doc officielle)
-- [App Router Pitfalls — imidef.com (fev 2026)](https://imidef.com/en/2026-02-11-app-router-pitfalls) — MEDIUM confidence
-- [Next.js 16 Production Patterns — ecosire.com](https://ecosire.com/blog/nextjs-16-app-router-production) — MEDIUM confidence
-- [Stop "window is not defined" in Next.js (2025) — DEV Community](https://dev.to/devin-rosario/stop-window-is-not-defined-in-nextjs-2025-394j) — MEDIUM confidence
-- [Fix mobile 100vh CSS — dvh/svh units](https://medium.com/@alekswebnet/fix-mobile-100vh-bug-in-one-line-of-css-dynamic-viewport-units-in-action-102231e2ed56) — MEDIUM confidence
-- [CSS Backdrop Filter support — caniuse.com](https://caniuse.com/css-backdrop-filter) — HIGH confidence
-- [CSS Modules order conflict Next.js — issue #10148](https://github.com/vercel/next.js/issues/10148) — HIGH confidence (issue officielle)
-- [WCAG Skip Navigation — testparty.ai](https://testparty.ai/blog/skip-navigation-links) — MEDIUM confidence
-- [React useEffect cleanup for scroll listeners — pluralsight](https://www.pluralsight.com/guides/how-to-cleanup-event-listeners-react) — HIGH confidence
-- [Hero Image in Next.js — perssondennis.com](https://www.perssondennis.com/articles/how-to-make-a-hero-image-in-nextjs) — MEDIUM confidence
+- [Next.js — Missing Suspense with useSearchParams (docs officielles)](https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout) — HIGH confidence
+- [Next.js — useSearchParams API reference](https://nextjs.org/docs/app/api-reference/functions/use-search-params) — HIGH confidence
+- [Next.js — Image remotePatterns configuration](https://nextjs.org/docs/app/api-reference/config/next-config-js/images) — HIGH confidence
+- [Supabase Storage Image Transformations](https://supabase.com/docs/guides/storage/serving/image-transformations) — HIGH confidence
+- [Vercel Community — Supabase Storage INVALID_IMAGE_OPTIMIZE_REQUEST](https://community.vercel.com/t/images-from-supabase-storage-result-in-invalid-image-optimize-request/6009) — MEDIUM confidence
+- [oneuptime.com — How to Fix useSearchParams SSR Issues (2026-01-24)](https://oneuptime.com/blog/post/2026-01-24-nextjs-usesearchparams-ssr-issues/view) — MEDIUM confidence
+- [Aurora Scharff — Managing Advanced Search Param Filtering in Next.js App Router](https://aurorascharff.no/posts/managing-advanced-search-param-filtering-next-app-router/) — MEDIUM confidence
+- [LogRocket — Build an accessible modal with focus-trap-react](https://blog.logrocket.com/build-accessible-modal-focus-trap-react/) — MEDIUM confidence
+- [CSS-Tricks — Prevent Page Scrolling When a Modal is Open](https://css-tricks.com/prevent-page-scrolling-when-a-modal-is-open/) — HIGH confidence
+- [DEV Community — iOS Safari scroll lock bug CSS fix (2025)](https://dev.to/stripearmy/i-fixed-ios-safaris-scroll-lock-bug-with-just-css-and-made-a-react-package-for-it-2o41) — MEDIUM confidence
+- [Next.js — Adding Search and Pagination (official tutorial)](https://nextjs.org/learn/dashboard-app/adding-search-and-pagination) — HIGH confidence
+- [GitHub Issue #61654 — useSearchParams Suspense requirement discussion](https://github.com/vercel/next.js/discussions/61654) — HIGH confidence
+
+---
+*Pitfalls research for: Catalogue produits Next.js App Router + Supabase (search, sort, grid, modal)*
+*Researched: 2026-03-28*

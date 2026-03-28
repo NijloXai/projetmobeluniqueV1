@@ -1,0 +1,90 @@
+/* === Section Catalogue — CatalogueSection.module.css === */
+/* Phase 04 — prerequis-catalogue-core */
+
+/* Section fond blanc per D-07 — alternance avec HowItWorks beige */
+.section {
+  background-color: var(--color-background); /* #FFFFFF */
+  padding: var(--spacing-section) var(--container-padding-mobile); /* 112px 24px mobile */
+}
+
+/* Conteneur centre per pattern HowItWorks */
+.container {
+  max-width: var(--container-max); /* 1280px */
+  margin: 0 auto;
+}
+
+/* En-tete section centre per D-06 */
+.sectionHeader {
+  text-align: center;
+  margin-bottom: var(--spacing-2xl); /* 48px avant la grille */
+}
+
+/* Titre H2 per D-06 */
+.sectionTitle {
+  font-size: var(--font-size-3xl); /* 32px */
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-text); /* #1D1D1B */
+}
+
+/* Sous-titre muted */
+.sectionSubtitle {
+  font-size: var(--font-size-base); /* 16px */
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--color-muted); /* #888888 */
+  margin-top: var(--spacing-md); /* 16px sous le H2 */
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Grille responsive per CAT-02 — mobile first 1 col */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr; /* 1 colonne mobile */
+  gap: var(--spacing-xl); /* 32px entre cards */
+}
+
+/* Etat vide per D-11 */
+.emptyMessage {
+  text-align: center;
+  color: var(--color-muted); /* #888888 */
+  font-size: var(--font-size-base);
+  padding: var(--spacing-section) 0;
+}
+
+/* Erreur fetch */
+.errorMessage {
+  text-align: center;
+  color: var(--color-muted);
+  font-size: var(--font-size-base);
+  padding: var(--spacing-section) 0;
+}
+
+/* === Responsive per CAT-02 === */
+
+/* Tablet >= 640px : 2 colonnes */
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop >= 1024px : 3 colonnes, gap 32px */
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .section {
+    padding: var(--spacing-section) var(--container-padding-desktop); /* 112px 48px */
+  }
+}
+
+/* Large >= 1280px : padding lateral plus genereux */
+@media (min-width: 1280px) {
+  .section {
+    padding: var(--spacing-section) var(--container-padding-large); /* 112px 64px */
+  }
+}

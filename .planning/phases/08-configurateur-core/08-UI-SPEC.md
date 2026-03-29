@@ -125,7 +125,7 @@ Toutes les copies sont en français (convention projet CLAUDE.md).
 | Swatch non sélectionné | 56×56px, `--radius-md` (8px), image `swatch_url` couvre tout le carré (object-fit cover), bordure transparente 3px |
 | Swatch sélectionné | Bordure 3px solid `--color-primary`, ring `outline: 2px solid var(--color-primary)`, `outline-offset: 2px` |
 | Swatch au hover | `box-shadow: var(--shadow-md)`, transition `--transition-fast` (300ms) |
-| Badge Premium | Positionnement absolu en bas à droite du swatch, hauteur 20px, fond `rgba(228, 148, 0, 0.15)`, texte `--color-primary-dark`, `--font-size-xs` (12px), weight 600, `--radius-sm` (4px), padding 2px 4px |
+| Badge Premium | Positionnement absolu en bas à droite du swatch, hauteur 20px, fond `rgba(228, 148, 0, 0.15)`, texte `--color-primary-dark`, `--font-size-xs` (12px), weight 600, `--radius-sm` (4px), padding 4px 8px |
 | Accessibilité clavier | `role="radio"` sur chaque swatch, `role="radiogroup"` sur le conteneur, `aria-checked`, navigation Tab entre groupes + flèches entre swatches |
 | `aria-label` swatch | `"{fabric.name}{isPremium ? ' — Premium' : ''}"` |
 | Tissus sans `swatch_url` | Exclus de la grille (CONTEXT.md D-03) — invisibles |

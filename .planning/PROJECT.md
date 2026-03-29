@@ -34,7 +34,9 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 
 ### Active
 
-- [ ] **CAT-04**: Modal large configurateur (placeholder v8.0, contenu v9.0)
+- [x] **MODAL-01**: CTA "Configurer ce modele" ouvre modal large 90vw/plein ecran mobile -- Validated in Phase 06
+- [x] **MODAL-02**: Modal accessible (focus trap, fermeture Escape/X/backdrop, retour focus) -- Validated in Phase 06
+- [x] **MODAL-03**: Modal affiche placeholder "Configurateur a venir" avec nom/prix/image du canape -- Validated in Phase 06
 - [ ] **CONF-01**: Selection tissu avec swatches et zoom texture
 - [ ] **SIM-01**: Upload photo salon et simulation IA
 
@@ -50,7 +52,7 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 ## Context
 
 - Backend complet (~5350 lignes, M001-M006)
-- Frontend v8.0 en cours : Header + Hero + HowItWorks + Catalogue avec recherche (Phase 05 complete — barre de recherche, filtrage nom, compteur, etat vide)
+- Frontend v8.0 complet : Header + Hero + HowItWorks + Catalogue avec recherche + Modal configurateur placeholder (Phase 06 complete — toutes 6 phases livrées)
 - Brand assets client integres depuis `fichier-mobelunique/` (logos, favicon, app icons)
 - URL Shopify reelle : https://www.mobelunique.fr/
 - Maquette Stitch "Mobel Unique -- SPA Desktop" (project ID: 16534774796210155266)
@@ -78,8 +80,8 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 | Header transparent + fond subtil | Pas de glassmorphism lourd, seuil 60% viewport | ✓ Good |
 | Brand assets dans public/brand/ | Organisation propre, separee des assets Next.js | ✓ Good |
 | Favicon convention App Router | favicon.ico + icon.png + apple-icon.png dans src/app/ | ✓ Good |
-| Modal large configurateur | Pas de section separee, modal 90vw desktop / plein ecran mobile | -- Pending |
-| Catalogue scalable | Recherche + tri pour absorber 20+ produits au fil du temps | -- Pending |
+| Modal large configurateur | Pas de section separee, modal 90vw desktop / plein ecran mobile | ✓ Good |
+| Catalogue scalable | Recherche + tri pour absorber 20+ produits au fil du temps | ✓ Good |
 
 ## Current Milestone: v8.0 Catalogue Produits
 
@@ -114,4 +116,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-29 after Phase 05 completion*
+*Last updated: 2026-03-29 after Phase 06 completion — milestone v8.0 complete*

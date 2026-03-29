@@ -99,7 +99,7 @@ Plans:
   4. Le focus est piégé dans le modal tant qu'il est ouvert et revient sur le CTA déclencheur à la fermeture
 **Plans**: 1 plan
 Plans:
-- [ ] 06-01-PLAN.md — ConfiguratorModal (dialog natif, teaser produit, placeholder) + cablage CatalogueClient
+- [x] 06-01-PLAN.md — ConfiguratorModal (dialog natif, teaser produit, placeholder) + cablage CatalogueClient
 **UI hint**: yes
 
 ## Progress
@@ -114,7 +114,7 @@ Phases execute in numeric order: 4 → 5 → 6
 | 3. HowItWorks + assemblage | v7.0 | 1/1 | Complete | 2026-03-26 |
 | 4. Prerequis + Catalogue core | v8.0 | 2/2 | Complete   | 2026-03-28 |
 | 5. Recherche et états interactifs | v8.0 | 2/2 | Complete   | 2026-03-29 |
-| 6. Modal configurateur placeholder | v8.0 | 0/1 | Not started | - |
+| 6. Modal configurateur placeholder | v8.0 | 1/1 | Complete   | 2026-03-29 |
 
 ---
 *Roadmap created: 2026-03-26*

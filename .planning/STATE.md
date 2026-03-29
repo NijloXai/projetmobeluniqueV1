@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v8.0
 milestone_name: Catalogue Produits
 status: verifying
-stopped_at: Phase 6 UI-SPEC approved
-last_updated: "2026-03-29T10:04:09.286Z"
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-03-29T10:38:34.337Z"
 last_activity: 2026-03-29
 progress:
   total_phases: 3
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  completed_phases: 3
+  total_plans: 5
+  completed_plans: 5
   percent: 0
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** Le client peut visualiser un canape dans le tissu de son choix et le simuler dans son salon avant d'acheter.
-**Current focus:** Phase 05 — recherche-et-tats-interactifs
+**Current focus:** Phase 06 — modal-configurateur-placeholder
 
 ## Current Position
 
-Phase: 6
-Plan: Not started
+Phase: 06 (modal-configurateur-placeholder) — EXECUTING
+Plan: 1 of 1
 Status: Phase complete — ready for verification
 Last activity: 2026-03-29
 
@@ -51,6 +51,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04 P02 | 2 | 2 tasks | 5 files |
 | Phase 05 P01 | 1 | 1 tasks | 3 files |
 | Phase 05 P02 | 10 | 2 tasks | 2 files |
+| Phase 06 P01 | 150 | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,9 @@ Decisions v8.0 :
 - [Phase 04]: HomePage reste synchrone — seul CatalogueSection suspend, Header/Hero/HowItWorks s'affichent immediatement
 - [Phase 05]: TDD RED phase: @testing-library/user-event installe, 6 tests RED etablissent le contrat comportemental SRCH-01/SRCH-02/CAT-04 avant implementation
 - [Phase 05]: aria-label du bouton clear X distinct du bouton reset pour conformité accessibilité et tests getByRole
+- [Phase 06]: Dialog natif (pas Radix Dialog) — zero dépendance externe, focus trap natif via showModal + inert
+- [Phase 06]: Scroll lock iOS-safe via position:fixed + scrollY restore (pas overflow:hidden seul)
+- [Phase 06]: triggerRef.current?.focus() dans setTimeout(0) pour restauration focus async correcte
 
 ### Pending Todos
 
@@ -96,6 +100,6 @@ Aucun.
 
 ## Session Continuity
 
-Last session: 2026-03-29T10:04:09.280Z
-Stopped at: Phase 6 UI-SPEC approved
-Resume file: .planning/phases/06-modal-configurateur-placeholder/06-UI-SPEC.md
+Last session: 2026-03-29T10:38:34.335Z
+Stopped at: Completed 06-01-PLAN.md
+Resume file: None

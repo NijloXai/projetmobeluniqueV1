@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { ConfiguratorModal } from '@/components/public/Catalogue/ConfiguratorModal'
+import { ConfiguratorModal, getPrimaryImage, formatPrice } from '@/components/public/Catalogue/ConfiguratorModal'
 import type { ModelWithImages, Fabric, VisualWithFabricAndImage } from '@/types/database'
 
 // Mock next/image avec le meme pattern que CatalogueClient.test.tsx
@@ -227,5 +227,59 @@ describe('ConfiguratorModal — props fabrics et visuals', () => {
     )
     // Le modal rend sans crash avec un tissu premium — la donnee is_premium est disponible pour Phase 8
     expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+})
+
+describe('getPrimaryImage — selection image principale', () => {
+  it('retourne lURL de limage 3/4 quand presente', () => {
+    const images = [
+      { id: 'i1', model_id: 'm1', image_url: 'https://test.co/front.jpg', view_type: 'front', sort_order: 0 },
+      { id: 'i2', model_id: 'm1', image_url: 'https://test.co/34.jpg', view_type: '3/4', sort_order: 1 },
+    ]
+    expect(getPrimaryImage(images)).toBe('https://test.co/34.jpg')
+  })
+
+  it('retourne la premiere image quand pas de 3/4', () => {
+    const images = [
+      { id: 'i1', model_id: 'm1', image_url: 'https://test.co/front.jpg', view_type: 'front', sort_order: 0 },
+      { id: 'i2', model_id: 'm1', image_url: 'https://test.co/side.jpg', view_type: 'side', sort_order: 1 },
+    ]
+    expect(getPrimaryImage(images)).toBe('https://test.co/front.jpg')
+  })
+
+  it('retourne null quand tableau vide', () => {
+    expect(getPrimaryImage([])).toBeNull()
+  })
+
+  it('retourne 3/4 meme si pas en premier dans le tableau', () => {
+    const images = [
+      { id: 'i1', model_id: 'm1', image_url: 'https://test.co/back.jpg', view_type: 'back', sort_order: 0 },
+      { id: 'i2', model_id: 'm1', image_url: 'https://test.co/side.jpg', view_type: 'side', sort_order: 1 },
+      { id: 'i3', model_id: 'm1', image_url: 'https://test.co/34.jpg', view_type: '3/4', sort_order: 2 },
+    ]
+    expect(getPrimaryImage(images)).toBe('https://test.co/34.jpg')
+  })
+
+  it('retourne la premiere image quand plusieurs images sans 3/4', () => {
+    const images = [
+      { id: 'i1', model_id: 'm1', image_url: 'https://test.co/a.jpg', view_type: 'front', sort_order: 0 },
+      { id: 'i2', model_id: 'm1', image_url: 'https://test.co/b.jpg', view_type: 'back', sort_order: 1 },
+      { id: 'i3', model_id: 'm1', image_url: 'https://test.co/c.jpg', view_type: 'side', sort_order: 2 },
+    ]
+    expect(getPrimaryImage(images)).toBe('https://test.co/a.jpg')
+  })
+})
+
+describe('formatPrice — formatage prix FR', () => {
+  it('formate 1290 en "a partir de 1 290 \u20ac"', () => {
+    expect(formatPrice(1290)).toBe('a partir de 1\u202f290 \u20ac')
+  })
+
+  it('formate 0 en "a partir de 0 \u20ac"', () => {
+    expect(formatPrice(0)).toBe('a partir de 0 \u20ac')
+  })
+
+  it('formate 15000 en "a partir de 15 000 \u20ac"', () => {
+    expect(formatPrice(15000)).toBe('a partir de 15\u202f000 \u20ac')
   })
 })

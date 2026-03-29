@@ -6,14 +6,14 @@ import { X } from 'lucide-react'
 import type { ModelWithImages, ModelImage, Fabric, VisualWithFabricAndImage } from '@/types/database'
 import styles from './ConfiguratorModal.module.css'
 
-function getPrimaryImage(model_images: ModelImage[]): string | null {
+export function getPrimaryImage(model_images: ModelImage[]): string | null {
   if (model_images.length === 0) return null
   const image34 = model_images.find((img) => img.view_type === '3/4')
   if (image34) return image34.image_url
   return model_images[0].image_url
 }
 
-function formatPrice(price: number): string {
+export function formatPrice(price: number): string {
   return 'a partir de ' + new Intl.NumberFormat('fr-FR').format(price) + ' \u20ac'
 }
 

@@ -82,7 +82,10 @@ Plans:
   2. La recherche fonctionne avec ou sans accents (ex: "canapé" et "canape" donnent le même résultat)
   3. Un message "Aucun résultat pour..." s'affiche quand la recherche ne correspond à aucun produit
   4. Le nombre de canapés affichés est visible (ex: "3 canapés") et se met à jour avec le filtre actif
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 05-01-PLAN.md — Tests RED (SRCH-01, SRCH-02, CAT-04) : 6 nouveaux cas dans CatalogueClient.test.tsx
+- [ ] 05-02-PLAN.md — Implementation barre de recherche (CatalogueClient.tsx + CatalogueSection.module.css)
 **UI hint**: yes
 
 #### Phase 6: Modal configurateur placeholder
@@ -108,7 +111,7 @@ Phases execute in numeric order: 4 → 5 → 6
 | 2. Hero plein écran | v7.0 | 1/1 | Complete | 2026-03-26 |
 | 3. HowItWorks + assemblage | v7.0 | 1/1 | Complete | 2026-03-26 |
 | 4. Prerequis + Catalogue core | v8.0 | 2/2 | Complete   | 2026-03-28 |
-| 5. Recherche et états interactifs | v8.0 | 0/? | Not started | - |
+| 5. Recherche et états interactifs | v8.0 | 0/2 | Not started | - |
 | 6. Modal configurateur placeholder | v8.0 | 0/? | Not started | - |
 
 ---

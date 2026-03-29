@@ -211,11 +211,11 @@ describe('CatalogueClient — integration modal configurateur', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('le modal affiche le placeholder "Configurateur a venir"', async () => {
+  it('le modal affiche le configurateur avec le nom du modele', async () => {
     const user = userEvent.setup()
     render(<CatalogueClient models={mockModels} fabrics={mockFabrics} visuals={mockVisuals} />)
     await user.click(screen.getByRole('button', { name: /configurer le modele milano/i }))
-    expect(screen.getByText(/configurateur a venir/i)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: /milano/i })).toBeInTheDocument()
   })
 })
 

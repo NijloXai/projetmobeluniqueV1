@@ -1,9 +1,10 @@
 'use client'
 
-import { useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import { X } from 'lucide-react'
 import type { ModelWithImages, ModelImage, Fabric, VisualWithFabricAndImage } from '@/types/database'
+import { calculatePrice, formatPrice as formatPriceUtil } from '@/lib/utils'
 import styles from './ConfiguratorModal.module.css'
 
 export function getPrimaryImage(model_images: ModelImage[]): string | null {
@@ -24,8 +25,7 @@ interface ConfiguratorModalProps {
   visuals: VisualWithFabricAndImage[]
 }
 
-export function ConfiguratorModal({ model, onClose, fabrics: _fabrics, visuals: _visuals }: ConfiguratorModalProps) {
-  // _fabrics et _visuals : Props utilisees en Phase 8 (swatches, rendu IA, prix)
+export function ConfiguratorModal({ model, onClose, fabrics, visuals }: ConfiguratorModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const open = model !== null
 
@@ -66,10 +66,45 @@ export function ConfiguratorModal({ model, onClose, fabrics: _fabrics, visuals: 
     [onClose]
   )
 
+  // State selection tissu — null = aucun tissu selectionne (etat initial)
+  const [selectedFabricId, setSelectedFabricId] = useState<string | null>(null)
+
+  // Reset selection quand le modele change (RESEARCH.md Pattern 2)
+  useEffect(() => {
+    setSelectedFabricId(null)
+  }, [model?.id])
+
   // IMPORTANT : return null APRES tous les hooks (React rules of hooks)
   if (!model) return null
 
-  const imageUrl = getPrimaryImage(model.model_images)
+  // D-01: Filtrage tissus eligibles (ayant au moins un rendu publie pour ce modele)
+  const eligibleFabricIds = new Set(
+    visuals
+      .filter(v => v.model_id === model.id && v.is_published)
+      .map(v => v.fabric_id)
+  )
+
+  const eligibleFabrics = fabrics.filter(
+    f => eligibleFabricIds.has(f.id) && f.swatch_url !== null
+  )
+
+  // Lookup du tissu et visual selectionnes
+  const selectedFabric = selectedFabricId
+    ? eligibleFabrics.find(f => f.id === selectedFabricId) ?? null
+    : null
+
+  const currentVisual = selectedFabricId
+    ? visuals.find(
+        v => v.model_id === model.id &&
+             v.fabric_id === selectedFabricId &&
+             v.is_published
+      ) ?? null
+    : null
+
+  // Image a afficher : rendu IA si disponible, sinon photo originale
+  const originalImageUrl = getPrimaryImage(model.model_images)
+  const displayImageUrl = currentVisual?.generated_image_url ?? originalImageUrl
+  const isOriginalFallback = selectedFabricId !== null && currentVisual === null
 
   return (
     <dialog
@@ -93,31 +128,97 @@ export function ConfiguratorModal({ model, onClose, fabrics: _fabrics, visuals: 
         </button>
 
         <div className={styles.inner}>
-          {imageUrl && (
+          {displayImageUrl && (
             <div className={styles.imageWrapper}>
               <Image
-                src={imageUrl}
-                alt={`Canape ${model.name}`}
+                src={displayImageUrl}
+                alt={
+                  currentVisual && selectedFabric
+                    ? `Canape ${model.name} en tissu ${selectedFabric.name}`
+                    : `Canape ${model.name}`
+                }
                 fill
                 style={{ objectFit: 'cover' }}
                 sizes="(max-width: 640px) 100vw, 50vw"
               />
+              {isOriginalFallback && (
+                <span className={styles.badgeOriginalPhoto}>Photo originale</span>
+              )}
             </div>
           )}
 
           <div className={styles.body}>
             <h2 id="modal-title" className={styles.modelName}>{model.name}</h2>
-            <p className={styles.price}>{formatPrice(model.price)}</p>
+
+            {/* Prix dynamique — per D-10, D-11, D-12 */}
+            {selectedFabric ? (
+              <div className={styles.priceBlock}>
+                <p className={styles.price}>
+                  {formatPriceUtil(calculatePrice(model.price, selectedFabric.is_premium))}
+                </p>
+                {selectedFabric.is_premium && (
+                  <p className={styles.priceSupplement}>+ 80&nbsp;EUR &middot; tissu premium</p>
+                )}
+              </div>
+            ) : (
+              <p className={styles.price}>{formatPrice(model.price)}</p>
+            )}
+
             {model.description && (
               <p className={styles.description}>{model.description}</p>
             )}
+
             <hr className={styles.separator} />
-            <div className={styles.placeholder}>
-              <p className={styles.placeholderTitle}>Configurateur a venir</p>
-              <p className={styles.placeholderText}>
-                Bientot, personnalisez tissu et couleur depuis cette page.
-              </p>
+
+            {/* Grille swatches — per D-04, D-05, D-06, CONF-01 */}
+            <div className={styles.configurator}>
+              <p className={styles.swatchLabel}>Choisissez votre tissu</p>
+
+              {eligibleFabrics.length > 0 ? (
+                <div
+                  role="radiogroup"
+                  aria-label="Choisissez votre tissu"
+                  className={styles.swatchGrid}
+                >
+                  {eligibleFabrics.map(fabric => (
+                    <button
+                      key={fabric.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={selectedFabricId === fabric.id}
+                      aria-label={`${fabric.name}${fabric.is_premium ? ' \u2014 Premium' : ''}`}
+                      className={`${styles.swatch} ${selectedFabricId === fabric.id ? styles.swatchSelected : ''}`}
+                      onClick={() => setSelectedFabricId(fabric.id)}
+                    >
+                      <Image
+                        src={fabric.swatch_url!}
+                        alt=""
+                        fill
+                        style={{ objectFit: 'cover' }}
+                        sizes="56px"
+                      />
+                      {fabric.is_premium && (
+                        <span className={styles.badgePremium} aria-hidden="true">Premium</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className={styles.emptySwatches}>Aucun tissu disponible pour ce modele.</p>
+              )}
             </div>
+
+            {/* CTA Shopify — per D-14, D-15, CONF-09, CONF-10 */}
+            {model.shopify_url && (
+              <a
+                href={model.shopify_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.ctaShopify}
+              >
+                Acheter sur Shopify
+              </a>
+            )}
           </div>
         </div>
       </div>

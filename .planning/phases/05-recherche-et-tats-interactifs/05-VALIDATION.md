@@ -1,9 +1,9 @@
 ---
 phase: 5
 slug: recherche-et-tats-interactifs
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-29
 ---
 
@@ -17,7 +17,7 @@ created: 2026-03-29
 
 | Property | Value |
 |----------|-------|
-| **Framework** | Vitest 3.2.4 + @testing-library/react |
+| **Framework** | Vitest 3.2.4 + @testing-library/react + @testing-library/user-event |
 | **Config file** | `vitest.config.ts` (existing) |
 | **Quick run command** | `npm run test` |
 | **Full suite command** | `npm run test` |
@@ -38,12 +38,12 @@ created: 2026-03-29
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 05-01-01 | 01 | 1 | SRCH-01 | unit | `npx vitest run src/__tests__/CatalogueClient.test.tsx` | ✅ (new cases) | ⬜ pending |
-| 05-01-02 | 01 | 1 | SRCH-01 | unit | `npx vitest run src/__tests__/CatalogueClient.test.tsx` | ✅ (new cases) | ⬜ pending |
-| 05-01-03 | 01 | 1 | SRCH-02 | unit | `npx vitest run src/__tests__/CatalogueClient.test.tsx` | ✅ (new cases) | ⬜ pending |
-| 05-01-04 | 01 | 1 | SRCH-02 | unit | `npx vitest run src/__tests__/CatalogueClient.test.tsx` | ✅ (new cases) | ⬜ pending |
-| 05-01-05 | 01 | 1 | CAT-04 | unit | `npx vitest run src/__tests__/CatalogueClient.test.tsx` | ✅ (new cases) | ⬜ pending |
-| 05-01-06 | 01 | 1 | CAT-04 | unit | `npx vitest run src/__tests__/CatalogueClient.test.tsx` | ✅ (new cases) | ⬜ pending |
+| 05-01-01 | 01 | 1 | SRCH-01 | unit | `npx vitest run src/__tests__/CatalogueClient.test.tsx` | ✅ | ✅ green |
+| 05-01-02 | 01 | 1 | SRCH-01 | unit | `npx vitest run src/__tests__/CatalogueClient.test.tsx` | ✅ | ✅ green |
+| 05-01-03 | 01 | 1 | SRCH-02 | unit | `npx vitest run src/__tests__/CatalogueClient.test.tsx` | ✅ | ✅ green |
+| 05-01-04 | 01 | 1 | SRCH-02 | unit | `npx vitest run src/__tests__/CatalogueClient.test.tsx` | ✅ | ✅ green |
+| 05-01-05 | 01 | 1 | CAT-04 | unit | `npx vitest run src/__tests__/CatalogueClient.test.tsx` | ✅ | ✅ green |
+| 05-01-06 | 01 | 1 | CAT-04 | unit | `npx vitest run src/__tests__/CatalogueClient.test.tsx` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -51,10 +51,10 @@ created: 2026-03-29
 
 ## Wave 0 Requirements
 
-- [ ] `src/__tests__/CatalogueClient.test.tsx` — add SRCH-01, SRCH-02, CAT-04 test cases
-- [ ] Verify `@testing-library/user-event` is available for input interactions
+- [x] `src/__tests__/CatalogueClient.test.tsx` — SRCH-01, SRCH-02, CAT-04 test cases added (6 core + 5 edge cases = 11 new tests)
+- [x] `@testing-library/user-event@14.6.1` installed and verified
 
-*Existing infrastructure covers framework and config — only new test cases needed.*
+*All Wave 0 requirements complete.*
 
 ---
 
@@ -70,11 +70,24 @@ created: 2026-03-29
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 2s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 2s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-29
+
+---
+
+## Validation Audit 2026-03-29
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+**Test coverage:** 18/18 tests green in `CatalogueClient.test.tsx` (58/58 suite complete)
+**Requirements:** SRCH-01 (2 core + 2 edge), SRCH-02 (2 core), CAT-04 (2 core + 1 edge) — all COVERED

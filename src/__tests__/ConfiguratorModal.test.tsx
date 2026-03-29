@@ -469,6 +469,158 @@ describe('Phase 8 — configurateur', () => {
     // mockModel a shopify_url: null — le CTA ne doit PAS apparaitre
     expect(screen.queryByText(/Acheter sur Shopify/i)).toBeNull()
   })
+
+  it('[EDGE] etat vide — message affiche quand aucun tissu eligible', () => {
+    render(
+      <ConfiguratorModal
+        model={mockModel}
+        onClose={onCloseMock}
+        fabrics={[]}
+        visuals={[]}
+      />
+    )
+
+    expect(screen.getByText(/Aucun tissu disponible/i)).toBeInTheDocument()
+    expect(screen.queryByRole('radiogroup')).toBeNull()
+  })
+
+  it('[EDGE] tissu sans swatch_url est exclu de la grille', () => {
+    const fabricNoSwatch: Fabric = {
+      id: 'fabric-no-swatch',
+      name: 'Tissu Invisible',
+      slug: 'tissu-invisible',
+      category: 'test',
+      is_active: true,
+      is_premium: false,
+      swatch_url: null,
+      reference_image_url: null,
+      created_at: '2026-01-01T00:00:00Z',
+    }
+
+    const visualForNoSwatch: VisualWithFabricAndImage = {
+      id: 'visual-no-swatch',
+      model_id: 'test-uuid-modal',
+      model_image_id: 'img-modal-001',
+      fabric_id: 'fabric-no-swatch',
+      generated_image_url: 'https://test.supabase.co/storage/v1/object/public/generated-visuals/noswatch.jpg',
+      is_validated: true,
+      is_published: true,
+      created_at: '2026-01-03T00:00:00Z',
+      fabric: fabricNoSwatch,
+      model_image: mockModel.model_images[0],
+    }
+
+    render(
+      <ConfiguratorModal
+        model={mockModel}
+        onClose={onCloseMock}
+        fabrics={[...allFabrics, fabricNoSwatch]}
+        visuals={[...allVisuals, visualForNoSwatch]}
+      />
+    )
+
+    // Doit avoir 2 swatches (les 2 avec swatch_url), pas 3
+    const swatches = screen.getAllByRole('radio')
+    expect(swatches).toHaveLength(2)
+    expect(screen.queryByLabelText(/Tissu Invisible/)).toBeNull()
+  })
+
+  it('[EDGE] switch de modele reset la selection tissu', async () => {
+    const user = userEvent.setup()
+
+    const { rerender } = render(
+      <ConfiguratorModal
+        model={mockModel}
+        onClose={onCloseMock}
+        fabrics={allFabrics}
+        visuals={allVisuals}
+      />
+    )
+
+    // Selectionner un swatch
+    const swatches = screen.getAllByRole('radio')
+    await user.click(swatches[0] as HTMLElement)
+    expect(swatches[0].getAttribute('aria-checked')).toBe('true')
+
+    // Simuler changement de modele via rerender
+    const otherModel: ModelWithImages = {
+      ...mockModel,
+      id: 'other-model-id',
+      name: 'Canape Moderne',
+    }
+
+    rerender(
+      <ConfiguratorModal
+        model={otherModel}
+        onClose={onCloseMock}
+        fabrics={allFabrics}
+        visuals={allVisuals}
+      />
+    )
+
+    // Apres changement de modele, aucun swatch ne doit etre selectionne
+    // (pas de radiogroup car le nouveau modele n'a pas de visuals)
+    // et le prix doit revenir a "a partir de"
+    expect(screen.getByText(/a partir de/i)).toBeInTheDocument()
+  })
+
+  it('[EDGE] prix initial affiche "a partir de" sans selection', () => {
+    render(
+      <ConfiguratorModal
+        model={mockModel}
+        onClose={onCloseMock}
+        fabrics={allFabrics}
+        visuals={allVisuals}
+      />
+    )
+
+    // Sans selection, le prix doit etre au format "a partir de X EUR"
+    expect(screen.getByText(/a partir de/i)).toBeInTheDocument()
+  })
+
+  it('[EDGE] accessibilite — radiogroup a un aria-label', () => {
+    render(
+      <ConfiguratorModal
+        model={mockModel}
+        onClose={onCloseMock}
+        fabrics={allFabrics}
+        visuals={allVisuals}
+      />
+    )
+
+    const radiogroup = screen.getByRole('radiogroup')
+    expect(radiogroup.getAttribute('aria-label')).toBe('Choisissez votre tissu')
+  })
+
+  it('[EDGE] swatches d un autre modele ne sont pas affiches', () => {
+    // Visual pour un AUTRE modele — ne doit pas generer de swatch pour mockModel
+    const otherModelVisual: VisualWithFabricAndImage = {
+      id: 'visual-other-model',
+      model_id: 'other-model-uuid',
+      model_image_id: 'img-other',
+      fabric_id: 'fabric-modal-001',
+      generated_image_url: 'https://test.supabase.co/storage/v1/object/public/generated-visuals/other.jpg',
+      is_validated: true,
+      is_published: true,
+      created_at: '2026-01-03T00:00:00Z',
+      fabric: mockFabrics[0],
+      model_image: mockModel.model_images[0],
+    }
+
+    // On passe UNIQUEMENT le visual de l'autre modele — notre modele ne devrait avoir aucun swatch
+    render(
+      <ConfiguratorModal
+        model={mockModel}
+        onClose={onCloseMock}
+        fabrics={allFabrics}
+        visuals={[otherModelVisual]}
+      />
+    )
+
+    // Aucun swatch ne doit apparaitre car les visuals sont pour un autre modele
+    expect(screen.queryByRole('radiogroup')).toBeNull()
+    expect(screen.getByText(/Aucun tissu disponible/i)).toBeInTheDocument()
+  })
 })
 
 describe('getPrimaryImage — selection image principale', () => {

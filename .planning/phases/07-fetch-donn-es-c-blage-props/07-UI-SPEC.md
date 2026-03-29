@@ -50,7 +50,6 @@ Déclaré dans `src/app/globals.css` — **aucun token ne doit être redéclaré
 | `--spacing-lg` | 24px | Padding body modal, séparateur vertical |
 | `--spacing-xl` | 32px | Padding body desktop |
 | `--spacing-2xl` | 48px | Réservé Phase 8 |
-| `--spacing-3xl` | 56px | Non utilisé Phase 7 |
 
 Exceptions : aucune — le contenu CSS de Phase 7 est identique à Phase 6 (placeholder inchangé).
 

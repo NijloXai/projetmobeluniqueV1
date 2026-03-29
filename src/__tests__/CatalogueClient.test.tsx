@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { CatalogueClient } from '@/components/public/Catalogue/CatalogueClient'
 import type { ModelWithImages } from '@/types/database'
 
@@ -83,5 +84,56 @@ describe('CatalogueClient', () => {
   it('rend exactement 1 article pour un seul modele', () => {
     render(<CatalogueClient models={[mockModels[0]]} />)
     expect(screen.getAllByRole('article')).toHaveLength(1)
+  })
+})
+
+describe('CatalogueClient — recherche et filtrage', () => {
+  it('[SRCH-01] saisir "mil" filtre et affiche seulement Milano', async () => {
+    const user = userEvent.setup()
+    render(<CatalogueClient models={mockModels} />)
+    const input = screen.getByLabelText(/rechercher un canapé par nom/i)
+    await user.type(input, 'mil')
+    expect(screen.getByText(/milano/i)).toBeInTheDocument()
+    expect(screen.queryByText(/oslo/i)).not.toBeInTheDocument()
+  })
+
+  it('[SRCH-01] saisir "canape" sans accent trouve Canapé Milano (normalisation)', async () => {
+    const user = userEvent.setup()
+    const modelsWithAccent: ModelWithImages[] = [
+      { ...mockModels[0], name: 'Canapé Milano' },
+    ]
+    render(<CatalogueClient models={modelsWithAccent} />)
+    const input = screen.getByLabelText(/rechercher un canapé par nom/i)
+    await user.type(input, 'canape')
+    expect(screen.getByText(/canapé milano/i)).toBeInTheDocument()
+  })
+
+  it('[SRCH-02] saisir "zzz" affiche letat vide avec le terme', async () => {
+    const user = userEvent.setup()
+    render(<CatalogueClient models={mockModels} />)
+    const input = screen.getByLabelText(/rechercher un canapé par nom/i)
+    await user.type(input, 'zzz')
+    expect(screen.getByText(/aucun canapé ne correspond/i)).toBeInTheDocument()
+    expect(screen.getByText(/zzz/i)).toBeInTheDocument()
+  })
+
+  it('[SRCH-02] cliquer Effacer la recherche remet toutes les cards', async () => {
+    const user = userEvent.setup()
+    render(<CatalogueClient models={mockModels} />)
+    const input = screen.getByLabelText(/rechercher un canapé par nom/i)
+    await user.type(input, 'zzz')
+    const resetBtn = screen.getByRole('button', { name: /effacer la recherche/i })
+    await user.click(resetBtn)
+    expect(screen.getAllByRole('article')).toHaveLength(2)
+  })
+
+  it('[CAT-04] compteur affiche "2 canapés" avec 2 modeles', () => {
+    render(<CatalogueClient models={mockModels} />)
+    expect(screen.getByText('2 canapés')).toBeInTheDocument()
+  })
+
+  it('[CAT-04] compteur affiche "1 canapé" (singulier) avec 1 modele', () => {
+    render(<CatalogueClient models={[mockModels[0]]} />)
+    expect(screen.getByText('1 canapé')).toBeInTheDocument()
   })
 })

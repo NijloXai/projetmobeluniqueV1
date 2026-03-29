@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v9.0
 milestone_name: Configurateur Tissu
 status: planning
-stopped_at: Phase 7 context gathered
-last_updated: "2026-03-29T14:22:31.521Z"
+stopped_at: Phase 7 UI-SPEC approved
+last_updated: "2026-03-29T14:37:03.425Z"
 last_activity: 2026-03-29 — Roadmap v9.0 créé, 3 phases, 10/10 requirements mappés
 progress:
   total_phases: 3
@@ -67,6 +67,6 @@ Décisions clés v9.0 :
 
 ## Session Continuity
 
-Last session: 2026-03-29T14:22:31.519Z
-Stopped at: Phase 7 context gathered
-Resume file: .planning/phases/07-fetch-donn-es-c-blage-props/07-CONTEXT.md
+Last session: 2026-03-29T14:37:03.423Z
+Stopped at: Phase 7 UI-SPEC approved
+Resume file: .planning/phases/07-fetch-donn-es-c-blage-props/07-UI-SPEC.md

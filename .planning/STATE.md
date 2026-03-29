@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v9.0
 milestone_name: Configurateur Tissu
-status: ready_to_plan
-stopped_at: Roadmap v9.0 created — Phase 7 ready to plan
-last_updated: "2026-03-29T13:30:00.000Z"
-last_activity: 2026-03-29
+status: planning
+stopped_at: Phase 7 context gathered
+last_updated: "2026-03-29T14:22:31.521Z"
+last_activity: 2026-03-29 — Roadmap v9.0 créé, 3 phases, 10/10 requirements mappés
 progress:
   total_phases: 3
   completed_phases: 0
@@ -50,6 +50,7 @@ Progress: [░░░░░░░░░░] 0% (v9.0)
 Decisions consolidées dans PROJECT.md Key Decisions table.
 
 Décisions clés v9.0 :
+
 - Co-fetch server-side dans CatalogueSection (Promise.all) — pas de fetch client au chargement modal
 - useState local dans ConfiguratorModal — Zustand réservé pour v10.0 (simulation)
 - Dialog natif conservé (Phase 6) — zero regression scroll iOS
@@ -66,6 +67,6 @@ Décisions clés v9.0 :
 
 ## Session Continuity
 
-Last session: 2026-03-29T13:30:00.000Z
-Stopped at: Roadmap v9.0 créé — prêt pour /gsd:plan-phase 7
-Resume file: None
+Last session: 2026-03-29T14:22:31.519Z
+Stopped at: Phase 7 context gathered
+Resume file: .planning/phases/07-fetch-donn-es-c-blage-props/07-CONTEXT.md

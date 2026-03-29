@@ -137,3 +137,46 @@ describe('CatalogueClient — recherche et filtrage', () => {
     expect(screen.getByText('1 canapé')).toBeInTheDocument()
   })
 })
+
+describe('CatalogueClient — edge cases recherche', () => {
+  it('bouton clear X visible quand query non vide', async () => {
+    const user = userEvent.setup()
+    render(<CatalogueClient models={mockModels} />)
+    const input = screen.getByLabelText(/rechercher un canapé par nom/i)
+    await user.type(input, 'mil')
+    expect(screen.getByRole('button', { name: /vider le champ/i })).toBeInTheDocument()
+  })
+
+  it('bouton clear X absent quand query vide', () => {
+    render(<CatalogueClient models={mockModels} />)
+    expect(screen.queryByRole('button', { name: /vider le champ/i })).not.toBeInTheDocument()
+  })
+
+  it('cliquer le bouton clear X vide le champ et reaffiche toutes les cards', async () => {
+    const user = userEvent.setup()
+    render(<CatalogueClient models={mockModels} />)
+    const input = screen.getByLabelText(/rechercher un canapé par nom/i)
+    await user.type(input, 'mil')
+    expect(screen.getAllByRole('article')).toHaveLength(1)
+    const clearBtn = screen.getByRole('button', { name: /vider le champ/i })
+    await user.click(clearBtn)
+    expect(screen.getAllByRole('article')).toHaveLength(2)
+  })
+
+  it('compteur affiche "0 canapés" quand recherche ne matche rien', async () => {
+    const user = userEvent.setup()
+    render(<CatalogueClient models={mockModels} />)
+    const input = screen.getByLabelText(/rechercher un canapé par nom/i)
+    await user.type(input, 'zzz')
+    expect(screen.getByText('0 canapés')).toBeInTheDocument()
+  })
+
+  it('recherche insensible a la casse (OSLO en majuscules)', async () => {
+    const user = userEvent.setup()
+    render(<CatalogueClient models={mockModels} />)
+    const input = screen.getByLabelText(/rechercher un canapé par nom/i)
+    await user.type(input, 'OSLO')
+    expect(screen.getByText(/oslo/i)).toBeInTheDocument()
+    expect(screen.getAllByRole('article')).toHaveLength(1)
+  })
+})

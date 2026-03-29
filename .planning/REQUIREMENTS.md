@@ -65,22 +65,22 @@ Requirements pour le configurateur tissu. Chaque requirement mappe a une phase d
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONF-01 | - | Pending |
-| CONF-02 | - | Pending |
-| CONF-03 | - | Pending |
-| CONF-04 | - | Pending |
-| CONF-05 | - | Pending |
-| CONF-06 | - | Pending |
-| CONF-07 | - | Pending |
-| CONF-08 | - | Pending |
-| CONF-09 | - | Pending |
-| CONF-10 | - | Pending |
+| CONF-01 | Phase 7 + Phase 8 | Pending |
+| CONF-02 | Phase 8 | Pending |
+| CONF-03 | Phase 8 | Pending |
+| CONF-04 | Phase 9 | Pending |
+| CONF-05 | Phase 8 | Pending |
+| CONF-06 | Phase 9 | Pending |
+| CONF-07 | Phase 8 | Pending |
+| CONF-08 | Phase 8 | Pending |
+| CONF-09 | Phase 8 | Pending |
+| CONF-10 | Phase 8 | Pending |
 
 **Coverage:**
 - v9.0 requirements: 10 total
-- Mapped to phases: 0
-- Unmapped: 10
+- Mapped to phases: 10
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-29*
-*Last updated: 2026-03-29 after initial definition*
+*Last updated: 2026-03-29 after roadmap creation*

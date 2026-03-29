@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v9.0
 milestone_name: Configurateur Tissu
-status: defining_requirements
-stopped_at: Milestone v9.0 started
-last_updated: "2026-03-29T13:15:00.000Z"
+status: ready_to_plan
+stopped_at: Roadmap v9.0 created — Phase 7 ready to plan
+last_updated: "2026-03-29T13:30:00.000Z"
 last_activity: 2026-03-29
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,15 +20,17 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-03-29)
 
-**Core value:** Le client peut visualiser un canape dans le tissu de son choix et le simuler dans son salon avant d'acheter.
-**Current focus:** Defining requirements for v9.0 Configurateur Tissu
+**Core value:** Le client peut visualiser un canapé dans le tissu de son choix et le simuler dans son salon avant d'acheter.
+**Current focus:** Phase 7 — Fetch données + câblage props
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-29 — Milestone v9.0 started
+Phase: 7 of 9 (Fetch données + câblage props)
+Plan: — (not yet planned)
+Status: Ready to plan
+Last activity: 2026-03-29 — Roadmap v9.0 créé, 3 phases, 10/10 requirements mappés
+
+Progress: [░░░░░░░░░░] 0% (v9.0)
 
 ## Performance Metrics
 
@@ -39,23 +41,31 @@ Last activity: 2026-03-29 — Milestone v9.0 started
 - Tests: 74 verts
 - Timeline: 4 jours (26 mars → 29 mars)
 
+*Updated after each plan completion*
+
 ## Accumulated Context
 
 ### Decisions
 
-Decisions consolidees dans PROJECT.md Key Decisions table.
+Decisions consolidées dans PROJECT.md Key Decisions table.
+
+Décisions clés v9.0 :
+- Co-fetch server-side dans CatalogueSection (Promise.all) — pas de fetch client au chargement modal
+- useState local dans ConfiguratorModal — Zustand réservé pour v10.0 (simulation)
+- Dialog natif conservé (Phase 6) — zero regression scroll iOS
+- Filtre fabric.is_active obligatoire côté JS (PostgREST ne filtre pas sur jointures imbriquées)
 
 ### Pending Todos
 
-Aucun.
+- getPrimaryImage/formatPrice dupliqués entre ProductCard et ConfiguratorModal — à extraire (v9.0 ou v10.0)
 
 ### Blockers/Concerns
 
-- iOS Safari body scroll lock : requiert test sur appareil physique (pas simulateur)
-- getPrimaryImage/formatPrice dupliques entre ProductCard et ConfiguratorModal — a extraire
+- iOS Safari scroll lock : requiert test sur appareil physique après enrichissement contenu modal (Phase 8)
+- Hooks React avant `return null` guard — les nouveaux useState doivent être déclarés avant le guard hérité de Phase 6
 
 ## Session Continuity
 
-Last session: 2026-03-29T13:15:00.000Z
-Stopped at: Milestone v9.0 started — defining requirements
+Last session: 2026-03-29T13:30:00.000Z
+Stopped at: Roadmap v9.0 créé — prêt pour /gsd:plan-phase 7
 Resume file: None

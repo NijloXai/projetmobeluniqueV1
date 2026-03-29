@@ -62,7 +62,7 @@ Plans:
   5. Le CTA "Acheter sur Shopify" est présent et redirige vers le produit en nouvel onglet ; il est masqué si le modèle n'a pas de shopify_url
 **Plans**: 1 plan
 Plans:
-- [ ] 07-01-PLAN.md — Type VisualWithFabricAndImage + Promise.all fetch + props drilling + tests
+- [ ] 08-01-PLAN.md — Swatches cliquables + rendu IA avec fallback + prix dynamique + CTA Shopify
 **UI hint**: yes
 
 ### Phase 9: Navigation angles
@@ -75,7 +75,7 @@ Plans:
   3. L'angle actif est visuellement distinct parmi les thumbnails
 **Plans**: 1 plan
 Plans:
-- [ ] 07-01-PLAN.md — Type VisualWithFabricAndImage + Promise.all fetch + props drilling + tests
+- [ ] 09-01-PLAN.md — Thumbnails angles + selection angle actif
 **UI hint**: yes
 
 ## Progress
@@ -89,7 +89,7 @@ Plans:
 | 5. Recherche et états interactifs | v8.0 | 2/2 | Complete | 2026-03-29 |
 | 6. Modal configurateur placeholder | v8.0 | 1/1 | Complete | 2026-03-29 |
 | 7. Fetch données + câblage props | v9.0 | 1/1 | Complete   | 2026-03-29 |
-| 8. Configurateur core | v9.0 | 0/? | Not started | - |
+| 8. Configurateur core | v9.0 | 0/1 | Planning | - |
 | 9. Navigation angles | v9.0 | 0/? | Not started | - |
 
 ---

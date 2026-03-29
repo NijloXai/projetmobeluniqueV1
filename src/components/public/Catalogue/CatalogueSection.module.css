@@ -88,3 +88,117 @@
     padding: var(--spacing-section) var(--container-padding-large); /* 112px 64px */
   }
 }
+
+/* === Phase 05 — Recherche et etats interactifs === */
+
+/* Barre de recherche — D-01, D-04 : centree, max-width 480px */
+.searchWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: 480px;
+  margin: var(--spacing-xl) auto 0; /* 32px sous le sectionHeader */
+}
+
+/* Icone loupe — D-02 : positionnee a gauche, decorative */
+.searchIcon {
+  position: absolute;
+  left: var(--spacing-md); /* 16px du bord gauche */
+  color: var(--color-muted); /* #888888 */
+  pointer-events: none; /* decoratif */
+}
+
+/* Champ de recherche — D-02 : fond teinte sans bordure, coins arrondis */
+.searchInput {
+  width: 100%;
+  padding: var(--spacing-md); /* 16px tous cotes */
+  padding-left: 2.5rem; /* 40px — espace pour l'icone loupe */
+  background-color: var(--surface-container-low); /* #F6F3EF */
+  border: none;
+  border-radius: var(--radius-lg); /* 12px — coherence avec les cards */
+  font-size: var(--font-size-base); /* 16px */
+  font-family: inherit; /* Montserrat via root */
+  color: var(--color-text); /* #1D1D1B */
+  outline: none;
+}
+
+.searchInput:focus {
+  box-shadow: 0 0 0 2px var(--color-primary); /* #E49400 — focus ring ambre */
+}
+
+/* Masquer le bouton clear natif webkit — evite doublon avec .clearButton */
+.searchInput[type='search']::-webkit-search-cancel-button {
+  display: none;
+}
+
+/* Bouton clear (X) dans le champ — Claude's Discretion */
+.clearButton {
+  position: absolute;
+  right: var(--spacing-md); /* 16px du bord droit */
+  background: none;
+  border: none;
+  color: var(--color-muted); /* #888888 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px; /* touch target accessibilite mobile */
+  min-height: 32px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.clearButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
+}
+
+/* Compteur de resultats — CAT-04, D-08, D-09 : toujours visible */
+.resultCount {
+  text-align: center;
+  font-size: var(--font-size-sm); /* 14px */
+  color: var(--color-muted); /* #888888 */
+  margin-top: var(--spacing-md); /* 16px sous la barre */
+  margin-bottom: var(--spacing-xl); /* 32px avant la grille */
+}
+
+/* Conteneur etat vide recherche — SRCH-02, D-13 */
+.emptySearch {
+  text-align: center;
+  padding: var(--spacing-section) 0; /* 112px — coherence avec .emptyMessage */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md); /* 16px entre message et bouton */
+}
+
+/* Bouton reset dans l'etat vide — D-12 : outline secondaire */
+.resetButton {
+  background: none;
+  border: 1px solid var(--color-border); /* #E5E5E5 repos */
+  border-radius: var(--radius-md); /* 8px */
+  padding: var(--spacing-sm) var(--spacing-lg); /* 8px 24px */
+  font-size: var(--font-size-sm); /* 14px */
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--color-muted); /* #888888 repos */
+  cursor: pointer;
+  transition: border-color 150ms ease, color 150ms ease;
+}
+
+.resetButton:hover {
+  border-color: var(--color-primary); /* #E49400 hover */
+  color: var(--color-primary);
+}
+
+.resetButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Responsive barre de recherche — mobile full-width */
+@media (max-width: 639px) {
+  .searchWrapper {
+    max-width: 100%; /* full-width mobile dans les marges du container */
+  }
+}

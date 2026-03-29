@@ -16,12 +16,12 @@ Requirements pour le catalogue produits. Chaque requirement mappe a une phase du
 - [x] **CAT-01**: L'utilisateur voit les canapes disponibles sous forme de cards avec image, nom et prix
 - [x] **CAT-02**: Les cards s'affichent en grille responsive (1 col mobile / 2 col tablet / 3 col desktop)
 - [x] **CAT-03**: Un skeleton loading s'affiche pendant le chargement des produits
-- [ ] **CAT-04**: Le nombre de produits affiches est visible (ex: "3 canapes")
+- [x] **CAT-04**: Le nombre de produits affiches est visible (ex: "3 canapes")
 
 ### Recherche
 
-- [ ] **SRCH-01**: L'utilisateur peut rechercher un canape par nom via une barre de recherche
-- [ ] **SRCH-02**: Un message s'affiche quand aucun produit ne correspond a la recherche
+- [x] **SRCH-01**: L'utilisateur peut rechercher un canape par nom via une barre de recherche
+- [x] **SRCH-02**: Un message s'affiche quand aucun produit ne correspond a la recherche
 
 ### Modal Configurateur
 
@@ -107,9 +107,9 @@ Requirements pour le catalogue produits. Chaque requirement mappe a une phase du
 | CAT-01 | Phase 4 | Complete |
 | CAT-02 | Phase 4 | Complete |
 | CAT-03 | Phase 4 | Complete |
-| CAT-04 | Phase 5 | Pending |
-| SRCH-01 | Phase 5 | Pending |
-| SRCH-02 | Phase 5 | Pending |
+| CAT-04 | Phase 5 | Complete |
+| SRCH-01 | Phase 5 | Complete |
+| SRCH-02 | Phase 5 | Complete |
 | MODAL-01 | Phase 6 | Pending |
 | MODAL-02 | Phase 6 | Pending |
 | MODAL-03 | Phase 6 | Pending |

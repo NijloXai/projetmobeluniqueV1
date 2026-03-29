@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v8.0
 milestone_name: Catalogue Produits
-status: verifying
-stopped_at: Phase 5 plans verified
-last_updated: "2026-03-29T08:47:17.808Z"
-last_activity: 2026-03-28
+status: executing
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-03-29T08:53:11.643Z"
+last_activity: 2026-03-29
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** Le client peut visualiser un canape dans le tissu de son choix et le simuler dans son salon avant d'acheter.
-**Current focus:** Phase 04 — prerequis-catalogue-core
+**Current focus:** Phase 05 — recherche-et-tats-interactifs
 
 ## Current Position
 
-Phase: 5
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-03-28
+Phase: 05 (recherche-et-tats-interactifs) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-03-29
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -49,6 +49,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03 HowItWorks | 1 | 8 tasks | 6 files |
 | Phase 04-prerequis-catalogue-core P01 | 2 | 2 tasks | 8 files |
 | Phase 04 P02 | 2 | 2 tasks | 5 files |
+| Phase 05 P01 | 1 | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,7 @@ Decisions v8.0 :
 - [Phase 04-01]: Intl.NumberFormat('fr-FR') natif pour prix — zero librairie externe
 - [Phase 04]: Fetch Supabase direct dans CatalogueSection (pas via /api/models) — meme processus Node, zero aller-retour HTTP
 - [Phase 04]: HomePage reste synchrone — seul CatalogueSection suspend, Header/Hero/HowItWorks s'affichent immediatement
+- [Phase 05]: TDD RED phase: @testing-library/user-event installe, 6 tests RED etablissent le contrat comportemental SRCH-01/SRCH-02/CAT-04 avant implementation
 
 ### Pending Todos
 
@@ -92,6 +94,6 @@ Aucun.
 
 ## Session Continuity
 
-Last session: 2026-03-29T08:47:17.805Z
-Stopped at: Phase 5 plans verified
-Resume file: .planning/phases/05-recherche-et-tats-interactifs/05-01-PLAN.md
+Last session: 2026-03-29T08:53:11.641Z
+Stopped at: Completed 05-01-PLAN.md
+Resume file: None

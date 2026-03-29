@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v8.0
 milestone_name: Catalogue Produits
-status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-03-29T08:53:11.643Z"
+status: verifying
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-03-29T08:56:39.350Z"
 last_activity: 2026-03-29
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 
 Phase: 05 (recherche-et-tats-interactifs) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-03-29
 
 Progress: [░░░░░░░░░░] 0%
@@ -50,6 +50,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04-prerequis-catalogue-core P01 | 2 | 2 tasks | 8 files |
 | Phase 04 P02 | 2 | 2 tasks | 5 files |
 | Phase 05 P01 | 1 | 1 tasks | 3 files |
+| Phase 05 P02 | 10 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,7 @@ Decisions v8.0 :
 - [Phase 04]: Fetch Supabase direct dans CatalogueSection (pas via /api/models) — meme processus Node, zero aller-retour HTTP
 - [Phase 04]: HomePage reste synchrone — seul CatalogueSection suspend, Header/Hero/HowItWorks s'affichent immediatement
 - [Phase 05]: TDD RED phase: @testing-library/user-event installe, 6 tests RED etablissent le contrat comportemental SRCH-01/SRCH-02/CAT-04 avant implementation
+- [Phase 05]: aria-label du bouton clear X distinct du bouton reset pour conformité accessibilité et tests getByRole
 
 ### Pending Todos
 
@@ -94,6 +96,6 @@ Aucun.
 
 ## Session Continuity
 
-Last session: 2026-03-29T08:53:11.641Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-03-29T08:56:39.348Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None

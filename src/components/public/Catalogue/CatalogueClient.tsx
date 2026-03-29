@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { Search, X } from 'lucide-react'
 import type { ModelWithImages } from '@/types/database'
 import { ProductCard } from './ProductCard'
+import { ConfiguratorModal } from './ConfiguratorModal'
 import styles from './CatalogueSection.module.css'
 
 // Fonction pure : normalise une chaine pour comparaison insensible aux accents et a la casse
@@ -23,6 +24,8 @@ interface CatalogueClientProps {
 export function CatalogueClient({ models }: CatalogueClientProps) {
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
+  const [selectedModel, setSelectedModel] = useState<ModelWithImages | null>(null)
+  const triggerRef = useRef<HTMLButtonElement | null>(null)
 
   // Valeur derivee — pas de useState supplementaire ni de useEffect
   const filteredModels = query
@@ -38,6 +41,21 @@ export function CatalogueClient({ models }: CatalogueClientProps) {
   function handleReset() {
     setQuery('')
     inputRef.current?.focus()
+  }
+
+  function handleConfigure(model: ModelWithImages) {
+    // Stocker l'element declencheur pour restauration focus a la fermeture (per D-06)
+    const activeEl = document.activeElement
+    if (activeEl instanceof HTMLButtonElement) {
+      triggerRef.current = activeEl
+    }
+    setSelectedModel(model)
+  }
+
+  function handleModalClose() {
+    setSelectedModel(null)
+    // Restitution focus au CTA declencheur (per D-06, RESEARCH.md Pattern 2)
+    setTimeout(() => triggerRef.current?.focus(), 0)
   }
 
   // Etat vide catalogue (models vide depuis Supabase)
@@ -117,12 +135,14 @@ export function CatalogueClient({ models }: CatalogueClientProps) {
               <ProductCard
                 key={model.id}
                 model={model}
-                onConfigure={undefined}
+                onConfigure={handleConfigure}
               />
             ))}
           </div>
         )}
       </div>
+
+      <ConfiguratorModal model={selectedModel} onClose={handleModalClose} />
     </section>
   )
 }

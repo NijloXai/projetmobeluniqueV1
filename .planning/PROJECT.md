@@ -28,10 +28,12 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 - [x] **CAT-01**: Cards produits presentationnelles (image, nom, prix, CTA) -- Validated in Phase 04
 - [x] **CAT-02**: Grille catalogue responsive 1/2/3 colonnes avec Suspense skeleton -- Validated in Phase 04
 - [x] **CAT-03**: Skeleton loading avec animation shimmer et aria-busy -- Validated in Phase 04
+- [x] **CAT-04**: Barre de recherche catalogue (filtre par nom, normalisation accents) -- Validated in Phase 05
+- [x] **SRCH-01**: Recherche canape par nom via barre de recherche -- Validated in Phase 05
+- [x] **SRCH-02**: Message etat vide quand aucun resultat de recherche -- Validated in Phase 05
 
 ### Active
 
-- [ ] **CAT-04**: Barre de recherche catalogue (filtre par nom)
 - [ ] **CAT-04**: Modal large configurateur (placeholder v8.0, contenu v9.0)
 - [ ] **CONF-01**: Selection tissu avec swatches et zoom texture
 - [ ] **SIM-01**: Upload photo salon et simulation IA
@@ -48,7 +50,7 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 ## Context
 
 - Backend complet (~5350 lignes, M001-M006)
-- Frontend v8.0 en cours : Header + Hero + HowItWorks + Catalogue (Phase 04 complete — ProductCard, CatalogueSection, grille responsive)
+- Frontend v8.0 en cours : Header + Hero + HowItWorks + Catalogue avec recherche (Phase 05 complete — barre de recherche, filtrage nom, compteur, etat vide)
 - Brand assets client integres depuis `fichier-mobelunique/` (logos, favicon, app icons)
 - URL Shopify reelle : https://www.mobelunique.fr/
 - Maquette Stitch "Mobel Unique -- SPA Desktop" (project ID: 16534774796210155266)
@@ -112,4 +114,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-28 after Phase 04 completion*
+*Last updated: 2026-03-29 after Phase 05 completion*

@@ -30,7 +30,7 @@
 
 **Milestone Goal:** Le client peut choisir un tissu et voir le rendu IA du canapé dans ce tissu, avec prix mis à jour et lien achat Shopify.
 
-- [ ] **Phase 7: Fetch données + câblage props** - Co-fetch server-side fabrics/visuals et forwarding props jusqu'à ConfiguratorModal
+- [x] **Phase 7: Fetch données + câblage props** - Co-fetch server-side fabrics/visuals et forwarding props jusqu'à ConfiguratorModal (completed 2026-03-29)
 - [ ] **Phase 8: Configurateur core** - Swatches tissu, rendu IA avec fallback, prix dynamique, CTA Shopify
 - [ ] **Phase 9: Navigation angles** - Thumbnails angles disponibles et sélection angle actif
 
@@ -47,7 +47,7 @@
   4. Les tissus désactivés (is_active = false) sont filtrés côté JS avant forwarding — aucun tissu inactif n'atteint le modal
 **Plans**: 1 plan
 Plans:
-- [ ] 07-01-PLAN.md — Type VisualWithFabricAndImage + Promise.all fetch + props drilling + tests
+- [x] 07-01-PLAN.md — Type VisualWithFabricAndImage + Promise.all fetch + props drilling + tests
 **UI hint**: yes
 
 ### Phase 8: Configurateur core
@@ -88,7 +88,7 @@ Plans:
 | 4. Prerequis + Catalogue core | v8.0 | 2/2 | Complete | 2026-03-28 |
 | 5. Recherche et états interactifs | v8.0 | 2/2 | Complete | 2026-03-29 |
 | 6. Modal configurateur placeholder | v8.0 | 1/1 | Complete | 2026-03-29 |
-| 7. Fetch données + câblage props | v9.0 | 0/1 | Planning | - |
+| 7. Fetch données + câblage props | v9.0 | 1/1 | Complete   | 2026-03-29 |
 | 8. Configurateur core | v9.0 | 0/? | Not started | - |
 | 9. Navigation angles | v9.0 | 0/? | Not started | - |
 

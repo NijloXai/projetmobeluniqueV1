@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v9.0
 milestone_name: Configurateur Tissu
-status: planning
-stopped_at: Phase 7 planned and verified
-last_updated: "2026-03-29T14:45:47.833Z"
-last_activity: 2026-03-29 — Roadmap v9.0 créé, 3 phases, 10/10 requirements mappés
+status: verifying
+stopped_at: Completed 07-fetch-donn-es-c-blage-props/07-01-PLAN.md
+last_updated: "2026-03-29T14:53:34.718Z"
+last_activity: 2026-03-29
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 1
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-29)
 
 **Core value:** Le client peut visualiser un canapé dans le tissu de son choix et le simuler dans son salon avant d'acheter.
-**Current focus:** Phase 7 — Fetch données + câblage props
+**Current focus:** Phase 07 — fetch-donn-es-c-blage-props
 
 ## Current Position
 
-Phase: 7 of 9 (Fetch données + câblage props)
-Plan: — (not yet planned)
-Status: Ready to plan
-Last activity: 2026-03-29 — Roadmap v9.0 créé, 3 phases, 10/10 requirements mappés
+Phase: 07 (fetch-donn-es-c-blage-props) — EXECUTING
+Plan: 1 of 1
+Status: Phase complete — ready for verification
+Last activity: 2026-03-29
 
 Progress: [░░░░░░░░░░] 0% (v9.0)
 
@@ -55,6 +55,9 @@ Décisions clés v9.0 :
 - useState local dans ConfiguratorModal — Zustand réservé pour v10.0 (simulation)
 - Dialog natif conservé (Phase 6) — zero regression scroll iOS
 - Filtre fabric.is_active obligatoire côté JS (PostgREST ne filtre pas sur jointures imbriquées)
+- [Phase 07-fetch-donn-es-c-blage-props]: Promise.all dans CatalogueSection — 3 fetches paralleles, zero waterfall reseau
+- [Phase 07-fetch-donn-es-c-blage-props]: Filtrage JS is_active obligatoire — PostgREST ne filtre pas les jointures imbriquees
+- [Phase 07-fetch-donn-es-c-blage-props]: Props fabrics/visuals obligatoires (sans ?) dans ConfiguratorModal — garantit donnees disponibles Phase 8
 
 ### Pending Todos
 
@@ -67,6 +70,6 @@ Décisions clés v9.0 :
 
 ## Session Continuity
 
-Last session: 2026-03-29T14:45:47.830Z
-Stopped at: Phase 7 planned and verified
-Resume file: .planning/phases/07-fetch-donn-es-c-blage-props/07-01-PLAN.md
+Last session: 2026-03-29T14:53:34.716Z
+Stopped at: Completed 07-fetch-donn-es-c-blage-props/07-01-PLAN.md
+Resume file: None

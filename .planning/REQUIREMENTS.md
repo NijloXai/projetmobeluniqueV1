@@ -9,25 +9,25 @@ Requirements pour le configurateur tissu. Chaque requirement mappe a une phase d
 
 ### Selection Tissu
 
-- [ ] **CONF-01**: Le client voit les swatches des tissus disponibles (ayant au moins un rendu publie pour ce modele)
-- [ ] **CONF-02**: Le client peut cliquer un swatch pour selectionner un tissu — le swatch actif est visuellement distinct
+- [x] **CONF-01**: Le client voit les swatches des tissus disponibles (ayant au moins un rendu publie pour ce modele)
+- [x] **CONF-02**: Le client peut cliquer un swatch pour selectionner un tissu — le swatch actif est visuellement distinct
 - [ ] **CONF-03**: Les tissus premium affichent un badge "Premium" sur leur swatch
 
 ### Rendu IA
 
-- [ ] **CONF-04**: Le modal affiche le rendu IA publie du canape dans le tissu selectionne
-- [ ] **CONF-05**: Si aucun rendu n'existe pour le tissu/angle, la photo originale du modele s'affiche en fallback
+- [x] **CONF-04**: Le modal affiche le rendu IA publie du canape dans le tissu selectionne
+- [x] **CONF-05**: Si aucun rendu n'existe pour le tissu/angle, la photo originale du modele s'affiche en fallback
 - [ ] **CONF-06**: Le client peut naviguer entre les angles disponibles via des thumbnails
 
 ### Prix
 
-- [ ] **CONF-07**: Le prix affiche se met a jour dynamiquement (base + 80 EUR si tissu premium)
-- [ ] **CONF-08**: Le detail du prix indique le surcout tissu quand applicable
+- [x] **CONF-07**: Le prix affiche se met a jour dynamiquement (base + 80 EUR si tissu premium)
+- [x] **CONF-08**: Le detail du prix indique le surcout tissu quand applicable
 
 ### Achat
 
-- [ ] **CONF-09**: Un CTA "Acheter sur Shopify" redirige vers le produit (nouvel onglet)
-- [ ] **CONF-10**: Le CTA est masque si le produit n'a pas de shopify_url
+- [x] **CONF-09**: Un CTA "Acheter sur Shopify" redirige vers le produit (nouvel onglet)
+- [x] **CONF-10**: Le CTA est masque si le produit n'a pas de shopify_url
 
 ## Future Requirements
 
@@ -65,16 +65,16 @@ Requirements pour le configurateur tissu. Chaque requirement mappe a une phase d
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONF-01 | Phase 7 + Phase 8 | Pending |
-| CONF-02 | Phase 8 | Pending |
+| CONF-01 | Phase 7 + Phase 8 | Complete |
+| CONF-02 | Phase 8 | Complete |
 | CONF-03 | Phase 8 | Pending |
-| CONF-04 | Phase 9 | Pending |
-| CONF-05 | Phase 8 | Pending |
+| CONF-04 | Phase 9 | Complete |
+| CONF-05 | Phase 8 | Complete |
 | CONF-06 | Phase 9 | Pending |
-| CONF-07 | Phase 8 | Pending |
-| CONF-08 | Phase 8 | Pending |
-| CONF-09 | Phase 8 | Pending |
-| CONF-10 | Phase 8 | Pending |
+| CONF-07 | Phase 8 | Complete |
+| CONF-08 | Phase 8 | Complete |
+| CONF-09 | Phase 8 | Complete |
+| CONF-10 | Phase 8 | Complete |
 
 **Coverage:**
 - v9.0 requirements: 10 total

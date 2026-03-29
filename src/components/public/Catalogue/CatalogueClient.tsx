@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { Search, X } from 'lucide-react'
-import type { ModelWithImages } from '@/types/database'
+import type { ModelWithImages, Fabric, VisualWithFabricAndImage } from '@/types/database'
 import { ProductCard } from './ProductCard'
 import { ConfiguratorModal } from './ConfiguratorModal'
 import styles from './CatalogueSection.module.css'
@@ -19,9 +19,11 @@ function normalize(str: string): string {
 
 interface CatalogueClientProps {
   models: ModelWithImages[]
+  fabrics: Fabric[]
+  visuals: VisualWithFabricAndImage[]
 }
 
-export function CatalogueClient({ models }: CatalogueClientProps) {
+export function CatalogueClient({ models, fabrics, visuals }: CatalogueClientProps) {
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
   const [selectedModel, setSelectedModel] = useState<ModelWithImages | null>(null)
@@ -142,7 +144,7 @@ export function CatalogueClient({ models }: CatalogueClientProps) {
         )}
       </div>
 
-      <ConfiguratorModal model={selectedModel} onClose={handleModalClose} />
+      <ConfiguratorModal model={selectedModel} onClose={handleModalClose} fabrics={fabrics} visuals={visuals} />
     </section>
   )
 }

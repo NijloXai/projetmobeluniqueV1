@@ -212,3 +212,8 @@ export type ModelWithImagesAndVisuals = Model & {
     fabric: Fabric
   })[]
 }
+
+export type VisualWithFabricAndImage = GeneratedVisual & {
+  fabric: Fabric
+  model_image: ModelImage
+}

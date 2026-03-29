@@ -3,7 +3,7 @@
 import { useRef, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import { X } from 'lucide-react'
-import type { ModelWithImages, ModelImage } from '@/types/database'
+import type { ModelWithImages, ModelImage, Fabric, VisualWithFabricAndImage } from '@/types/database'
 import styles from './ConfiguratorModal.module.css'
 
 function getPrimaryImage(model_images: ModelImage[]): string | null {
@@ -20,9 +20,12 @@ function formatPrice(price: number): string {
 interface ConfiguratorModalProps {
   model: ModelWithImages | null
   onClose: () => void
+  fabrics: Fabric[]
+  visuals: VisualWithFabricAndImage[]
 }
 
-export function ConfiguratorModal({ model, onClose }: ConfiguratorModalProps) {
+export function ConfiguratorModal({ model, onClose, fabrics: _fabrics, visuals: _visuals }: ConfiguratorModalProps) {
+  // _fabrics et _visuals : Props utilisees en Phase 8 (swatches, rendu IA, prix)
   const dialogRef = useRef<HTMLDialogElement>(null)
   const open = model !== null
 

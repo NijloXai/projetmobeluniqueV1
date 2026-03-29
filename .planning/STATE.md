@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v8.0
 milestone_name: Catalogue Produits
 status: verifying
-stopped_at: Phase 5 UI-SPEC approved
-last_updated: "2026-03-29T08:37:14.908Z"
+stopped_at: Phase 5 plans verified
+last_updated: "2026-03-29T08:47:17.808Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 2
+  total_plans: 4
   completed_plans: 2
   percent: 0
 ---
@@ -92,6 +92,6 @@ Aucun.
 
 ## Session Continuity
 
-Last session: 2026-03-29T08:37:14.906Z
-Stopped at: Phase 5 UI-SPEC approved
-Resume file: .planning/phases/05-recherche-et-tats-interactifs/05-UI-SPEC.md
+Last session: 2026-03-29T08:47:17.805Z
+Stopped at: Phase 5 plans verified
+Resume file: .planning/phases/05-recherche-et-tats-interactifs/05-01-PLAN.md

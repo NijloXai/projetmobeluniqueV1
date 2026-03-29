@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v9.0
 milestone_name: Configurateur Tissu
 status: verifying
-stopped_at: Phase 8 context gathered (assumptions mode)
-last_updated: "2026-03-29T20:47:55.672Z"
+stopped_at: Phase 8 UI-SPEC approved
+last_updated: "2026-03-29T20:56:41.780Z"
 last_activity: 2026-03-29
 progress:
   total_phases: 3
@@ -70,6 +70,6 @@ Décisions clés v9.0 :
 
 ## Session Continuity
 
-Last session: 2026-03-29T20:47:55.666Z
-Stopped at: Phase 8 context gathered (assumptions mode)
-Resume file: .planning/phases/08-configurateur-core/08-CONTEXT.md
+Last session: 2026-03-29T20:56:41.777Z
+Stopped at: Phase 8 UI-SPEC approved
+Resume file: .planning/phases/08-configurateur-core/08-UI-SPEC.md

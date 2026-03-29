@@ -1,10 +1,11 @@
 ---
 phase: 7
 slug: fetch-donn-es-c-blage-props
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-29
+audited: 2026-03-29
 ---
 
 # Phase 7 — Validation Strategy
@@ -38,15 +39,15 @@ created: 2026-03-29
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 07-01-01 | 01 | 0 | D-09 | unit | `npx vitest run src/__tests__/CatalogueClient.test.tsx` | ❌ W0 | ⬜ pending |
-| 07-01-02 | 01 | 1 | CONF-01 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ✅ (extend) | ⬜ pending |
-| 07-01-03 | 01 | 1 | CONF-02 | unit | `npx vitest run src/__tests__/CatalogueClient.test.tsx` | ✅ (extend) | ⬜ pending |
-| 07-01-04 | 01 | 1 | CONF-04 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ✅ (extend) | ⬜ pending |
-| 07-01-05 | 01 | 1 | CONF-05 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ✅ (extend) | ⬜ pending |
-| 07-01-06 | 01 | 1 | CONF-07 | unit | `npx vitest run src/__tests__/CatalogueClient.test.tsx` | ✅ (extend) | ⬜ pending |
-| 07-01-07 | 01 | 1 | CONF-08 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ✅ (extend) | ⬜ pending |
-| 07-01-08 | 01 | 1 | CONF-09 | unit | existant | ✅ | ⬜ pending |
-| 07-01-09 | 01 | 1 | CONF-10 | unit | existant | ✅ | ⬜ pending |
+| 07-01-01 | 01 | 0 | D-09 | unit | `npx vitest run src/__tests__/isActiveFilter.test.ts` | ✅ | ✅ green |
+| 07-01-02 | 01 | 1 | CONF-01 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ✅ | ✅ green |
+| 07-01-03 | 01 | 1 | CONF-02 | unit | `npx vitest run src/__tests__/CatalogueClient.test.tsx` | ✅ | ✅ green |
+| 07-01-04 | 01 | 1 | CONF-04 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ✅ | ✅ green |
+| 07-01-05 | 01 | 1 | CONF-05 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ✅ | ✅ green |
+| 07-01-06 | 01 | 1 | CONF-07 | unit | `npx vitest run src/__tests__/CatalogueClient.test.tsx` | ✅ | ✅ green |
+| 07-01-07 | 01 | 1 | CONF-08 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ✅ | ✅ green |
+| 07-01-08 | 01 | 1 | CONF-09 | unit | `npx vitest run` | ✅ | ✅ green |
+| 07-01-09 | 01 | 1 | CONF-10 | unit | `npx vitest run` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -54,8 +55,9 @@ created: 2026-03-29
 
 ## Wave 0 Requirements
 
-- [ ] `src/__tests__/CatalogueClient.test.tsx` — extend with: fabrics/visuals props, is_active filtering test
-- [ ] `src/__tests__/ConfiguratorModal.test.tsx` — extend with: fabrics/visuals props acceptance
+- [x] `src/__tests__/isActiveFilter.test.ts` — test unitaire dedie : logique pure filtrage is_active (7 tests)
+- [x] `src/__tests__/CatalogueClient.test.tsx` — etendu avec fabrics/visuals props (24 tests)
+- [x] `src/__tests__/ConfiguratorModal.test.tsx` — etendu avec fabrics/visuals props acceptance (23 tests)
 
 *Existing infrastructure covers most phase requirements — Wave 0 extends existing test files.*
 
@@ -71,11 +73,11 @@ created: 2026-03-29
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** 2026-03-29 — 94/94 tests verts (suite complete)

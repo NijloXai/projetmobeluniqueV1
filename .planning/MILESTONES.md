@@ -1,5 +1,19 @@
 # Milestones
 
+## v8.0 Catalogue Produits (Shipped: 2026-03-29)
+
+**Phases completed:** 3 phases, 5 plans, 7 tasks
+
+**Key accomplishments:**
+
+- next.config.ts remotePatterns Supabase debloque, ProductCard et CatalogueSkeletonGrid implementes en TDD avec 36 tests GREEN
+- CatalogueSection async Server Component connecte a Supabase, CatalogueClient grille responsive 1/2/3 colonnes avec Suspense/skeleton integre dans page.tsx — 41 tests GREEN
+- 6 tests RED TDD ecrits pour recherche catalogue (SRCH-01/SRCH-02/CAT-04) avec @testing-library/user-event, contrat comportemental etabli avant implementation
+- 1. [Rule 1 - Bug] Conflit aria-label bouton clear X vs bouton reset
+- One-liner:
+
+---
+
 ## v7.0 Header + Hero + Comment ca marche (Shipped: 2026-03-27)
 
 **Phases completed:** 3 phases, 3 plans, 10 tasks

@@ -31,12 +31,12 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 - [x] **CAT-04**: Barre de recherche catalogue (filtre par nom, normalisation accents) -- Validated in Phase 05
 - [x] **SRCH-01**: Recherche canape par nom via barre de recherche -- Validated in Phase 05
 - [x] **SRCH-02**: Message etat vide quand aucun resultat de recherche -- Validated in Phase 05
-
-### Active
-
 - [x] **MODAL-01**: CTA "Configurer ce modele" ouvre modal large 90vw/plein ecran mobile -- Validated in Phase 06
 - [x] **MODAL-02**: Modal accessible (focus trap, fermeture Escape/X/backdrop, retour focus) -- Validated in Phase 06
 - [x] **MODAL-03**: Modal affiche placeholder "Configurateur a venir" avec nom/prix/image du canape -- Validated in Phase 06
+
+### Active
+
 - [ ] **CONF-01**: Selection tissu avec swatches et zoom texture
 - [ ] **SIM-01**: Upload photo salon et simulation IA
 
@@ -52,7 +52,7 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 ## Context
 
 - Backend complet (~5350 lignes, M001-M006)
-- Frontend v8.0 complet : Header + Hero + HowItWorks + Catalogue avec recherche + Modal configurateur placeholder (Phase 06 complete — toutes 6 phases livrées)
+- Frontend v7.0 + v8.0 complets : Header + Hero + HowItWorks + Catalogue (recherche, grille responsive, skeleton) + Modal configurateur placeholder — 6 phases, 8 plans, 74 tests
 - Brand assets client integres depuis `fichier-mobelunique/` (logos, favicon, app icons)
 - URL Shopify reelle : https://www.mobelunique.fr/
 - Maquette Stitch "Mobel Unique -- SPA Desktop" (project ID: 16534774796210155266)
@@ -81,22 +81,21 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 | Brand assets dans public/brand/ | Organisation propre, separee des assets Next.js | ✓ Good |
 | Favicon convention App Router | favicon.ico + icon.png + apple-icon.png dans src/app/ | ✓ Good |
 | Modal large configurateur | Pas de section separee, modal 90vw desktop / plein ecran mobile | ✓ Good |
-| Catalogue scalable | Recherche + tri pour absorber 20+ produits au fil du temps | ✓ Good |
+| Catalogue scalable | Recherche + filtrage pour absorber 20+ produits | ✓ Good |
+| Server/Client boundary | CatalogueSection (Server) fetch Supabase, CatalogueClient (Client) gere etat | ✓ Good |
+| Dialog natif (pas Radix) | Zero dependance externe, focus trap natif via showModal + inert | ✓ Good |
+| TDD RED-GREEN | Tests ecrits avant implementation, contrat comportemental garanti | ✓ Good |
 
-## Current Milestone: v8.0 Catalogue Produits
+## Completed Milestones
 
-**Goal:** Afficher les canapes depuis l'API avec un catalogue scalable, recherche, tri et modal configurateur
+- **v7.0** Header + Hero + Comment ca marche (shipped 2026-03-27)
+- **v8.0** Catalogue Produits (shipped 2026-03-29)
 
-**Target features:**
-- Section Catalogue "Collection Signature" avec layout large et aere
-- Cards produits alimentees par GET /api/models (images, noms, prix)
-- Swatches miniatures en apercu sur chaque card
-- Barre de recherche dans le catalogue (filtre par nom)
-- Tri : prix croissant, prix decroissant, nouveautes
-- Grid responsive (1 col mobile / 2 col tablet / 3 col desktop)
-- Scalable : prevu pour absorber 20+ produits
-- CTA "Configurer ce modele" ouvre un modal large (90vw desktop, plein ecran mobile)
-- Modal placeholder "Configurateur a venir" (contenu reel en v9.0)
+## Next Milestone
+
+A definir via `/gsd:new-milestone`. Candidats :
+- **v9.0** Configurateur tissu (CONF-01, swatches, zoom texture)
+- **v10.0** Simulation IA salon (SIM-01, upload photo, rendu IA)
 
 ## Evolution
 
@@ -116,4 +115,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-29 after Phase 06 completion — milestone v8.0 complete*
+*Last updated: 2026-03-29 after v8.0 milestone completion*

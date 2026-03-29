@@ -31,7 +31,7 @@
 **Milestone Goal:** Le client peut choisir un tissu et voir le rendu IA du canapé dans ce tissu, avec prix mis à jour et lien achat Shopify.
 
 - [x] **Phase 7: Fetch données + câblage props** - Co-fetch server-side fabrics/visuals et forwarding props jusqu'à ConfiguratorModal (completed 2026-03-29)
-- [ ] **Phase 8: Configurateur core** - Swatches tissu, rendu IA avec fallback, prix dynamique, CTA Shopify
+- [x] **Phase 8: Configurateur core** - Swatches tissu, rendu IA avec fallback, prix dynamique, CTA Shopify (completed 2026-03-29)
 - [ ] **Phase 9: Navigation angles** - Thumbnails angles disponibles et sélection angle actif
 
 ## Phase Details
@@ -62,7 +62,7 @@ Plans:
   5. Le CTA "Acheter sur Shopify" est présent et redirige vers le produit en nouvel onglet ; il est masqué si le modèle n'a pas de shopify_url
 **Plans**: 1 plan
 Plans:
-- [ ] 08-01-PLAN.md — Swatches cliquables + rendu IA avec fallback + prix dynamique + CTA Shopify
+- [x] 08-01-PLAN.md — Swatches cliquables + rendu IA avec fallback + prix dynamique + CTA Shopify
 **UI hint**: yes
 
 ### Phase 9: Navigation angles
@@ -89,7 +89,7 @@ Plans:
 | 5. Recherche et états interactifs | v8.0 | 2/2 | Complete | 2026-03-29 |
 | 6. Modal configurateur placeholder | v8.0 | 1/1 | Complete | 2026-03-29 |
 | 7. Fetch données + câblage props | v9.0 | 1/1 | Complete   | 2026-03-29 |
-| 8. Configurateur core | v9.0 | 0/1 | Planning | - |
+| 8. Configurateur core | v9.0 | 1/1 | Complete   | 2026-03-29 |
 | 9. Navigation angles | v9.0 | 0/? | Not started | - |
 
 ---

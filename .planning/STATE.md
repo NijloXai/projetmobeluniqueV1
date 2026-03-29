@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v9.0
 milestone_name: Configurateur Tissu
 status: verifying
-stopped_at: Phase 8 UI-SPEC approved
-last_updated: "2026-03-29T20:56:41.780Z"
+stopped_at: Completed 08-01-PLAN.md (checkpoint human-verify Task 3 pending)
+last_updated: "2026-03-29T21:27:59.213Z"
 last_activity: 2026-03-29
 progress:
   total_phases: 3
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
   percent: 0
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-29)
 
 **Core value:** Le client peut visualiser un canapé dans le tissu de son choix et le simuler dans son salon avant d'acheter.
-**Current focus:** Phase 07 — fetch-donn-es-c-blage-props
+**Current focus:** Phase 08 — configurateur-core
 
 ## Current Position
 
-Phase: 8
-Plan: Not started
+Phase: 08 (configurateur-core) — EXECUTING
+Plan: 1 of 1
 Status: Phase complete — ready for verification
 Last activity: 2026-03-29
 
@@ -58,6 +58,9 @@ Décisions clés v9.0 :
 - [Phase 07-fetch-donn-es-c-blage-props]: Promise.all dans CatalogueSection — 3 fetches paralleles, zero waterfall reseau
 - [Phase 07-fetch-donn-es-c-blage-props]: Filtrage JS is_active obligatoire — PostgREST ne filtre pas les jointures imbriquees
 - [Phase 07-fetch-donn-es-c-blage-props]: Props fabrics/visuals obligatoires (sans ?) dans ConfiguratorModal — garantit donnees disponibles Phase 8
+- [Phase 08]: alias import formatPriceUtil — conserve formatPrice locale exportee, evite conflit de noms
+- [Phase 08]: eligibleFabrics filtre swatch_url !== null — seuls tissus avec swatch affiches dans grille
+- [Phase 08]: isOriginalFallback = selectedFabricId !== null && currentVisual === null — badge uniquement en fallback
 
 ### Pending Todos
 
@@ -70,6 +73,6 @@ Décisions clés v9.0 :
 
 ## Session Continuity
 
-Last session: 2026-03-29T20:56:41.777Z
-Stopped at: Phase 8 UI-SPEC approved
-Resume file: .planning/phases/08-configurateur-core/08-UI-SPEC.md
+Last session: 2026-03-29T21:27:59.211Z
+Stopped at: Completed 08-01-PLAN.md (checkpoint human-verify Task 3 pending)
+Resume file: None

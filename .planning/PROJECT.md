@@ -37,7 +37,10 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 
 ### Active
 
-- [ ] **CONF-01**: Selection tissu avec swatches et zoom texture
+- [ ] **CONF-01**: Selection tissu avec swatches cliquables dans le modal configurateur
+- [ ] **CONF-02**: Affichage rendu IA publie par angle quand un tissu est selectionne
+- [ ] **CONF-03**: Prix dynamique avec supplement premium (+80 EUR si applicable)
+- [ ] **CONF-04**: CTA "Acheter sur Shopify" avec lien vers le produit
 - [ ] **SIM-01**: Upload photo salon et simulation IA
 
 ### Out of Scope
@@ -91,11 +94,16 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 - **v7.0** Header + Hero + Comment ca marche (shipped 2026-03-27)
 - **v8.0** Catalogue Produits (shipped 2026-03-29)
 
-## Next Milestone
+## Current Milestone: v9.0 Configurateur Tissu
 
-A definir via `/gsd:new-milestone`. Candidats :
-- **v9.0** Configurateur tissu (CONF-01, swatches, zoom texture)
-- **v10.0** Simulation IA salon (SIM-01, upload photo, rendu IA)
+**Goal:** Le client peut choisir un tissu et voir le rendu IA du canape dans ce tissu, avec prix mis a jour et lien achat Shopify.
+
+**Target features:**
+- Swatches tissu dans le modal (miniatures cliquables des tissus actifs)
+- Affichage du rendu IA pre-publie (par angle) quand un tissu est selectionne
+- Prix dynamique (base + 80 EUR premium si applicable)
+- CTA "Acheter sur Shopify" avec lien vers le produit
+- Remplacement du placeholder "Configurateur a venir" par le contenu reel
 
 ## Evolution
 
@@ -115,4 +123,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-29 after v8.0 milestone completion*
+*Last updated: 2026-03-29 after v9.0 milestone start*

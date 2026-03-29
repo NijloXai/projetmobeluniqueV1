@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
-milestone: (none)
-milestone_name: (none)
-status: milestone_complete
-stopped_at: v8.0 Catalogue Produits shipped
-last_updated: "2026-03-29T13:05:00.000Z"
+milestone: v9.0
+milestone_name: Configurateur Tissu
+status: defining_requirements
+stopped_at: Milestone v9.0 started
+last_updated: "2026-03-29T13:15:00.000Z"
 last_activity: 2026-03-29
 progress:
   total_phases: 0
@@ -21,13 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-29)
 
 **Core value:** Le client peut visualiser un canape dans le tissu de son choix et le simuler dans son salon avant d'acheter.
-**Current focus:** Planning next milestone
+**Current focus:** Defining requirements for v9.0 Configurateur Tissu
 
 ## Current Position
 
-Milestone: v8.0 shipped 2026-03-29
-Status: Between milestones — ready for /gsd:new-milestone
-Last activity: 2026-03-29
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-29 — Milestone v9.0 started
 
 ## Performance Metrics
 
@@ -42,7 +43,7 @@ Last activity: 2026-03-29
 
 ### Decisions
 
-Decisions majeures consolidees dans PROJECT.md Key Decisions table.
+Decisions consolidees dans PROJECT.md Key Decisions table.
 
 ### Pending Todos
 
@@ -51,10 +52,10 @@ Aucun.
 ### Blockers/Concerns
 
 - iOS Safari body scroll lock : requiert test sur appareil physique (pas simulateur)
-- getPrimaryImage/formatPrice dupliques entre ProductCard et ConfiguratorModal — a extraire en v9.0
+- getPrimaryImage/formatPrice dupliques entre ProductCard et ConfiguratorModal — a extraire
 
 ## Session Continuity
 
-Last session: 2026-03-29T13:05:00.000Z
-Stopped at: v8.0 milestone complete
+Last session: 2026-03-29T13:15:00.000Z
+Stopped at: Milestone v9.0 started — defining requirements
 Resume file: None

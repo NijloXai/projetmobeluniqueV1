@@ -57,11 +57,11 @@ Tous les tokens viennent de `globals.css`. Font : Montserrat.
 | Rôle | Token CSS | Valeur | Weight | Line Height | Usage dans le modal |
 |------|-----------|--------|--------|-------------|---------------------|
 | Body | `--font-size-base` | 16px (1rem) | 400 | 1.6 (global) | Description du canapé, texte placeholder |
-| Label / Prix | `--font-size-sm` | 14px (0.875rem) | 500 | 1.5 | Prix formaté (`à partir de X €`), meta labels |
+| Label / Prix | `--font-size-sm` | 14px (0.875rem) | 600 | 1.5 | Prix formaté (`à partir de X €`), meta labels |
 | Heading modal | `--font-size-xl` | 20px (1.25rem) | 600 | 1.2 | Nom du canapé (`h2#modal-title`) |
 | Heading placeholder | `--font-size-lg` | 18px (1.125rem) | 600 | 1.3 | "Configurateur à venir" (titre de section) |
 
-**Règle stricte : 4 tailles maximum, 2 weights (400 régulier + 600 semibold). Le weight 500 est réservé au prix uniquement.**
+**Règle stricte : 4 tailles maximum, 2 weights : 400 (régulier) + 600 (semibold — headings, prix, labels).**
 
 ---
 

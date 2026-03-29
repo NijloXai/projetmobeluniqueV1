@@ -1,17 +1,17 @@
 # Project Research Summary
 
-**Project:** Möbel Unique — M008 Catalogue Produits
-**Domain:** SPA catalogue e-commerce luxe — canapés personnalisables, Next.js 16 App Router
-**Researched:** 2026-03-28
+**Project:** Möbel Unique — M009 Configurateur Tissu
+**Domain:** Configurateur tissu canapé dans modal dialog — SPA Next.js 16 App Router
+**Researched:** 2026-03-29
 **Confidence:** HIGH
 
 ## Executive Summary
 
-M008 est la section catalogue de la SPA publique, s'intégrant à la page existante (Header + Hero + HowItWorks livrés en v7.0). Elle affiche les canapés actifs depuis Supabase en grille responsive, avec recherche par nom, tri par prix et nouveauté, et un modal configurateur (placeholder en v8.0, fonctionnel en M009). La bonne nouvelle : aucune dépendance npm supplémentaire n'est requise. Tout se construit avec le stack déjà installé — `@radix-ui/react-dialog@1.1.15`, `next/image`, `lucide-react@1.7.0`, `useState`/`useMemo` React natif, et CSS Modules.
+M009 transforme le placeholder "Configurateur à venir" en configurateur fonctionnel. La bonne nouvelle : aucune dépendance npm n'est requise. Le projet possède déjà tout ce qu'il faut — React `useState`/`useMemo`, `next/image`, CSS Modules, `calculatePrice()` dans `utils.ts`, et la route API `/api/models/[slug]/visuals` qui retourne les rendus publiés avec les données tissu embarquées. Le configurateur repose sur des données pré-générées côté admin, pas sur une génération temps-réel. La complexité est donc organisationnelle (câbler les données) plutôt que technique.
 
-L'approche recommandée repose sur une séparation nette Server/Client : `CatalogueSection` (Server Component) appelle Supabase directement et passe les données en props à `CatalogueClient` (Client Component) qui gère l'état local (recherche, tri, modal). Ce pattern évite tout waterfall client, élimine le loading state initial visible, et conserve les bénéfices SSR tout en permettant l'interactivité. Le state reste local à `CatalogueClient` — Zustand est réservé à M009+ quand le configurateur (section distante) devra consommer le produit sélectionné.
+L'approche recommandée est un co-fetch server-side dans `CatalogueSection` (déjà un Server Component async) pour charger en parallèle les modèles, les tissus actifs et les visuels publiés. Ces données sont passées en props jusqu'à `ConfiguratorModal` — un prop drilling de 3 niveaux acceptable. L'état local (`selectedFabricId`, `selectedAngle`) reste confiné au modal via `useState`. Zustand n'est pas justifié à ce stade. Cette architecture élimine tout waterfall réseau à l'ouverture du modal et produit une expérience sans latence perceptible.
 
-Le risque principal est technique et résolu d'emblée : `next.config.ts` est actuellement vide — la configuration `remotePatterns` pour Supabase Storage doit être ajoutée en tout premier, avant tout composant utilisant `next/image`. Le second risque concerne le modal : sans le focus trap natif de Radix Dialog (déjà installé), le modal serait inaccessible au clavier. Ces deux risques sont préemptés par l'utilisation des outils déjà présents dans le projet.
+Le risque principal n'est pas technique mais régressif : `ConfiguratorModal` a un `return null` conditionnel hérité de la Phase 6, et les nouveaux hooks doivent impérativement être déclarés avant ce guard. Le scroll lock iOS implémenté en Phase 6 doit rester intact malgré l'ajout du contenu configurateur. Le filtre `fabric.is_active` ne peut pas être délégué à Supabase PostgREST pour les jointures imbriquées — il doit être appliqué côté JS après fetch, comme dans la route existante.
 
 ---
 
@@ -19,101 +19,136 @@ Le risque principal est technique et résolu d'emblée : `next.config.ts` est ac
 
 ### Recommended Stack
 
-Aucune installation npm n'est requise pour M008. Toutes les capacités nécessaires sont couvertes par l'existant. Le fetch des données s'effectue côté serveur avec `createClient()` Supabase (pattern déjà établi dans l'admin), ce qui élimine le waterfall visible. La recherche et le tri sont des opérations `useMemo` en mémoire — instantané pour 20-50 produits sans debounce obligatoire, bien qu'un debounce 300ms via `useTransition` React 19 améliore le ressenti sur les machines lentes.
+Aucune nouvelle dépendance. Le configurateur est réalisable intégralement avec l'existant.
 
 **Core technologies :**
-- **Next.js 16.2.1 (Server Components)** : fetch Supabase direct dans `CatalogueSection` — données disponibles avant hydratation, zero waterfall
-- **React 19 `useState` + `useMemo`** : recherche/tri client-side en mémoire — instantané pour moins de 50 produits, zero dépendance
-- **`@radix-ui/react-dialog@1.1.15`** (installé) : modal configurateur — focus trap, ARIA, Escape key nativement inclus, z-index 200/201 pour passer au-dessus du header (100)
-- **`next/image` fill + sizes** : images produit — WebP auto, lazy loading, CLS évité — requiert `remotePatterns` dans `next.config.ts`
-- **`lucide-react@1.7.0`** (installé) : icône Search dans la barre de recherche
+- `React useState / useMemo` — état swatch sélectionné + angle actif + calcul visuels filtrés, organisation en `Map<fabricId, Map<viewType, Visual>>` pour lookup O(1)
+- `next/image` (inclus Next.js 16.2.1) — rendu images swatches et visuels IA, `remotePatterns` Supabase déjà configuré
+- `CSS Modules` — layout 2 colonnes 60/40 desktop, rail swatches, thumbnails angles, respect convention projet
+- `calculatePrice()` / `formatPrice()` (`src/lib/utils.ts`) — source unique de vérité pour le prix premium (+80 EUR fixe)
+- `/api/models/[slug]/visuals` — route publique existante (M006), retourne rendus publiés + `fabric` embedded + `model_image`
+- `lucide-react` (1.7.0 installé) — icônes lien externe Shopify, chevrons
+
+**Ce qu'il ne faut pas installer :**
+- `react-zoom-pan-pinch` : peerDeps `^17 || ^18` seulement, React 19.2.4 non supporté officiellement
+- `react-image-gallery` : ~30KB gzip pour 5 thumbnails statiques — surdimensionné
+- `@uiw/react-color-swatch` : conçu pour couleurs hex, pas pour textures tissu (images)
 
 ### Expected Features
 
-**Must have — table stakes M008 :**
-- Cards produit (image, nom, prix "à partir de X €", CTA "Configurer ce modèle") — base absolue de tout catalogue
-- Grid responsive 1 col mobile / 2 col tablet / 3 col desktop — standard universel
-- États : skeleton chargement, erreur API, catalogue vide — robustesse minimale attendue
-- Barre de recherche filtrage par nom — scalable dès 20+ produits
-- Tri prix croissant / décroissant / nouveautés — contrôle utilisateur attendu en e-commerce
-- Modal configurateur placeholder (Radix Dialog, 90vw desktop / plein écran mobile) — destination du CTA card
-- Focus trap modal + fermeture Escape + overlay clic — WCAG 2.1 AA non-négociable
+**Indispensables (table stakes) — livrer en M009 :**
+- Grille de swatches cliquables avec `swatch_url`, badge "+80 EUR" sur premium, état actif visuellement distinct (bordure `--color-primary`)
+- Affichage du rendu IA quand un tissu est sélectionné (image principale + badge "Rendu IA")
+- Fallback sur la photo originale du modèle si aucun rendu publié pour le tissu sélectionné (badge "Photo originale")
+- Prix dynamique mis à jour en temps réel dès la sélection du tissu via `calculatePrice()`
+- CTA "Commander sur Shopify" lié à `model.shopify_url` (masqué si null, désactivé sans tissu sélectionné)
+- Skeleton discret pendant le fetch initial, fermeture modal sans régression
+- Tissu sélectionné par défaut au chargement (premier tissu non-premium)
 
-**Should have — différenciateurs :**
-- Swatches miniatures 22px sur les cards (cercles de couleur tissu) + badge "+N" — communication de la personnalisation sans ouvrir le modal (requiert vérification/création de `GET /api/fabrics` public)
-- Compteur de résultats "X modèles" pendant filtrage/tri — feedback immédiat
-- Scroll anchor CTA hero vers `#catalogue` — cohérence de la SPA
-- Hover state card avec élévation subtile (`box-shadow` + `translateY(-2px)`) — feeling de qualité luxe
+**Compétitifs (différenciateurs) — ajouter si le temps le permet :**
+- Navigation par angles : thumbnails 72x54px, uniquement les angles disponibles pour le tissu sélectionné
+- Encart zoom texture : `swatch_url` dans un aperçu 100-120px avec nom et badge premium
+- Badge "Rendu IA" / "Photo originale" selon la nature du visuel affiché
+- Lien "Changer de modèle" pour éviter la dead-end dans le modal
+- Dimensions du modèle affichées si `model.dimensions` non-null
 
-**Defer (M009+) :**
-- Contenu réel du modal : sélection tissu, swatches 52px, zoom texture — M009
-- Animation entrée/sortie modal raffinée — M011 polish
-- Bandeau sticky mobile dans le modal — M009/M010
+**Différer (v10+) :**
+- Bandeau sticky mobile (swatch + prix + CTA) — M009 si temps disponible, sinon M010
+- Partage de configuration — M010 Simulation, WhatsApp share
+- Simulation salon (upload photo + génération IA) — M010
+
+**Anti-features à rejeter explicitement :**
+- Génération IA temps-réel : les rendus sont pré-générés côté admin, pas de temps-réel public
+- Filtrage swatches par catégorie : pertinent seulement à 20+ tissus, surcharge cognitive avant
+- Zoom interactif loupe sur le rendu IA : complexité touch events élevée, non justifiée pour des rendus IA
 
 ### Architecture Approach
 
-L'architecture repose sur 7 composants dans un dossier `src/components/public/Catalogue/`. La boundary Server/Client est explicite : `CatalogueSection` (Server Component) fait le fetch Supabase via `createClient()` serveur et passe `ModelWithImages[]` en props à `CatalogueClient` (Client Component). Ce dernier orchestre `SearchBar`, `SortSelect`, `ProductGrid` (qui contient `ProductCard`) et `ConfigurateurModal`. La seule modification de l'existant concerne `next.config.ts` (ajout `remotePatterns`) et `src/app/page.tsx` (ajout `<CatalogueSection />`).
+L'architecture suit le pattern établi du projet : co-fetch server-side dans `CatalogueSection` avec `Promise.all` (3 queries Supabase parallèles), forwarding en props via `CatalogueClient`, état local dans `ConfiguratorModal`. Quatre composants feuilles sont créés (`FabricSelector`, `RenduIA`, `AngleSelector`, `PriceDisplay`) et trois fichiers existants sont modifiés (`CatalogueSection`, `CatalogueClient`, `ConfiguratorModal`). Aucune nouvelle route API publique.
 
 **Composants principaux :**
-1. **`CatalogueSection`** (Server) — fetch Supabase direct, wrapper `<section id="catalogue">`, H2 "Collection Signature"
-2. **`CatalogueClient`** (Client) — state local `searchQuery`, `sortOrder`, `selectedProduct`, `modalOpen` + `useMemo` filtrage/tri avec normalisation diacritiques
-3. **`ProductCard`** (Client) — `next/image fill + sizes`, prix `Intl.NumberFormat('fr-FR')`, CTA callback `onConfigurer`
-4. **`ConfigurateurModal`** (Client) — `@radix-ui/react-dialog`, overlay `z-index:200`, content `z-index:201`, CSS mobile plein écran
-5. **`SearchBar`** / **`SortSelect`** / **`ProductGrid`** — composants feuilles contrôlés par `CatalogueClient`
+1. `CatalogueSection` (Server Component, MODIFIÉ) — co-fetch fabrics actifs + visuals publiés en `Promise.all`
+2. `CatalogueClient` (Client Component, MODIFIÉ) — forwarding props fabrics/visuals, filtre visuals par `model.id` au moment du forwarding à `ConfiguratorModal`
+3. `ConfiguratorModal` (Client Component, MODIFIÉ) — remplace le placeholder, porte `selectedFabricId` + `selectedAngle` en state local, orchestre les composants feuilles
+4. `FabricSelector` (CRÉÉ) — rail de swatches cliquables, `role="radiogroup"`, état actif, badge premium
+5. `RenduIA` (CRÉÉ) — image visuel IA ou fallback gracieux, badge "Rendu IA" / "Photo originale", `key={url}` pour forcer remount
+6. `AngleSelector` (CRÉÉ) — thumbnails d'angles disponibles pour le tissu sélectionné uniquement
+7. `PriceDisplay` (CRÉÉ) — `calculatePrice()` depuis `utils.ts`, `aria-live="polite"` pour annonce accessibilité
+
+**Organisation des données en mémoire :**
+
+Les données arrivent sous forme de tableau plat depuis `CatalogueSection`. Le `ConfiguratorModal` les organise en `Map<fabricId, Map<viewType, Visual>>` pour des lookups O(1). Les tissus disponibles sont dérivés de cette Map (pas de fetch séparé). Angle par défaut : `3/4` si disponible pour le tissu sélectionné, sinon premier angle disponible.
+
+**Ordre de build (feuille → conteneur) :**
+
+1. Vérifier types `VisualWithFabricAndImage` dans `database.ts`
+2. `PriceDisplay` (dépend uniquement de `utils.ts`)
+3. `FabricSelector` (dépend de `Fabric[]` + `next/image`)
+4. `AngleSelector` (dépend de `string[]` uniquement)
+5. `RenduIA` (dépend de `GeneratedVisual | null` + `next/image`)
+6. `ConfiguratorModal` (assemble tout, porte l'état)
+7. `CatalogueClient` (forwarding minimal)
+8. `CatalogueSection` (ajoute `Promise.all`)
 
 ### Critical Pitfalls
 
-1. **`next.config.ts` vide bloque toutes les images Supabase** — configurer `remotePatterns: [{ protocol: 'https', hostname: '*.supabase.co', pathname: '/storage/v1/object/public/**' }]` en premier absolu, avant d'écrire le moindre composant image.
+1. **Hooks avant `return null`** — les nouveaux `useState` et `useEffect` doivent être déclarés AVANT le guard `if (!model) return null` hérité de la Phase 6. Ce guard doit rester en dernière position. Violation = crash React "Rendered more hooks than expected" en production.
 
-2. **Hydration mismatch si l'état search/sort lit `localStorage`** — initialiser `useState('')` et `useState('newest')` avec des valeurs fixes déterministes ; toute lecture de `localStorage` uniquement dans un `useEffect` post-rendu.
+2. **Filtre `fabric.is_active` côté JS obligatoire** — PostgREST ne supporte pas les filtres sur jointures imbriquées au niveau WHERE. Reproduire le pattern de `/api/models/[slug]/visuals/route.ts` : `filter(v => v.fabric?.is_active)` après fetch. Sans ce filtre, des tissus désactivés apparaissent dans les swatches.
 
-3. **Modal sans focus trap (WCAG 2.1 AA)** — utiliser `@radix-ui/react-dialog` (déjà installé) qui gère focus trap, `aria-modal`, Escape key et retour de focus nativement. Ne pas recoder manuellement.
+3. **CLS sur swap d'angle** — fixer `aspect-ratio: 4/3` sur `.visualWrapper` indépendamment de l'angle, et utiliser `key={currentVisualUrl}` sur `<Image>` pour forcer le remount. Sans ça, le layout "saute" à chaque changement d'angle et l'ancienne image persiste pendant le chargement.
 
-4. **Body scroll non bloqué sur iOS Safari** — `overflow: hidden` sur `body` est ignoré par iOS Safari ; utiliser le pattern `position: fixed; top: var(--scroll-position)` avec restauration `window.scrollTo` dans le cleanup `useEffect` du modal.
+4. **Scroll iOS — ne pas ajouter `overflow: hidden` sur les conteneurs intermédiaires** — le scroll lock Phase 6 repose sur `overflow-y: auto` sur `.content` uniquement. Tout `overflow: hidden` sur `.inner`, `.body` ou équivalent coupe le scroll sur mobile. Tester sur appareil physique après chaque ajout de section dans le modal.
 
-5. **`next/image` sans prop `sizes`** — sans `sizes`, Next.js télécharge une image 1920px pour une card de 400px. Toujours passer `sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"` sur les product cards (grille 1/2/3 colonnes).
+5. **Reset état à l'ouverture d'un nouveau modèle** — utiliser `useEffect([model?.id])` pour reset `selectedFabricId` et `selectedAngle`. Alternative plus simple : `key={model?.id}` sur `ConfiguratorModal` depuis `CatalogueClient` (démontage/remontage automatique, zéro logique de reset).
+
+6. **Ne pas exposer `reference_image_url`** — le bucket `fabric-references` est privé. Les URLs signées expirent. Utiliser uniquement `swatch_url` (bucket `fabric-swatches` public) dans le configurateur public.
+
+7. **Swatches sans `aria-pressed` / `aria-label`** — non-conformité WCAG silencieuse. Chaque swatch doit avoir `aria-label={fabric.name}` et `aria-pressed={isSelected}`. Le groupe doit avoir `role="radiogroup"`.
+
+8. **`calculatePrice` inline** — ne jamais recréer la logique `price + 80` dans le composant. Importer depuis `src/lib/utils.ts`. La constante 80 est dans `utils.ts` — une seule source de vérité.
 
 ---
 
 ## Implications for Roadmap
 
-La recherche identifie 3 phases naturelles basées sur les dépendances entre composants. L'ordre suit le principe feuilles avant conteneurs.
+Les 4 features du milestone (CONF-01 swatches, CONF-02 galerie angles, CONF-03 prix dynamique, CONF-04 CTA Shopify) ont des dépendances claires qui dictent un ordre d'implémentation feuille vers conteneur.
 
-### Phase 1 — Prérequis et fondation (CAT-01)
-**Rationale :** `next.config.ts` doit être configuré avant tout composant image — c'est un blocker absolu. ProductCard est la feuille dont dépendent ProductGrid et CatalogueClient.
-**Delivers :** `next.config.ts` avec `remotePatterns` + `ProductCard` + `ProductGrid` + `CatalogueSection` affichant les vraies données Supabase en grille responsive.
-**Addresses :** Cards produit, grid 1/2/3 colonnes, image optimisée, placeholder image, état vide, titre H2 section.
-**Avoids :** Pitfall `remotePatterns` manquant (blocker), pitfall `<img>` natif, pitfall `'use client'` sur `CatalogueSection`.
+### Phase 1 : Fetch et câblage données (fondation)
+**Rationale :** Toutes les features dépendent des données visuals/fabrics. Le choix fetch server-side vs client-side impacte la structure des types et les props. Décision à prendre avant d'écrire le premier composant.
+**Delivers :** `CatalogueSection` avec `Promise.all` (3 queries), types `VisualWithFabricAndImage` vérifiés ou ajoutés, interface props `CatalogueClient` étendue, `ConfiguratorModal` étendue avec `fabrics` + `visuals` props
+**Addresses :** Prérequis CONF-01, CONF-02, CONF-03, CONF-04
+**Avoids :** Pitfall 1 (pas de route `/api/fabrics` publique), Pitfall 2 (waterfall fetch client-side), Pitfall 9 (hooks avant `return null`), Pitfall 10 (reset état)
 
-### Phase 2 — Interactivité catalogue (CAT-02, CAT-03)
-**Rationale :** La recherche et le tri dépendent de `CatalogueClient` qui dépend de `ProductGrid` (Phase 1). Une fois les données visibles, l'interactivité s'ajoute sans risque de régression.
-**Delivers :** `CatalogueClient` avec `SearchBar`, `SortSelect`, skeleton chargement, état erreur, compteur résultats.
-**Uses :** `useState` + `useMemo` + `useTransition` React 19, `lucide-react` Search icon, `Intl.NumberFormat('fr-FR')`.
-**Implements :** Pattern filtrage/tri en mémoire, normalisation diacritiques NFD, composition filtre puis tri.
-**Avoids :** Pitfall hydration mismatch (init `useState` avec valeurs fixes), pitfall `useSearchParams` sans Suspense (décision : state client pur), pitfall filtre sans `useMemo`.
+### Phase 2 : Configurateur core (CONF-01, CONF-03, CONF-04)
+**Rationale :** Swatches + prix + CTA forment le MVP minimal livrable. Dépendent uniquement des données Phase 1. Représentent la valeur métier principale — visible et testable par l'utilisateur sans galerie d'angles.
+**Delivers :** `FabricSelector` (swatches cliquables 52px, badge premium), `PriceDisplay` (prix dynamique), `RenduIA` (image IA ou fallback), CTA Shopify, badge "Rendu IA" / "Photo originale", skeleton chargement, lien "Changer de modèle"
+**Uses :** `calculatePrice()` / `formatPrice()` depuis `utils.ts`, `next/image` pour swatches et visuels, CSS Modules
+**Avoids :** Pitfall 3 (filtre `fabric.is_active`), Pitfall 5 (utiliser `calculatePrice`, jamais inline), Pitfall 6 (scroll iOS), Pitfall 7 (swatches 44px minimum tap target), Pitfall 8 (fallback si aucun visual), Pitfall `calculatePrice` inline
 
-### Phase 3 — Modal configurateur (CAT-04)
-**Rationale :** Le modal dépend du `selectedProduct` géré par `CatalogueClient` (Phase 2). L'accessibilité clavier et mobile requiert des tests dédiés sur appareil physique.
-**Delivers :** `ConfigurateurModal` placeholder 90vw desktop / plein écran mobile, overlay `z-index:200+`, focus trap Radix, Escape, body scroll lock iOS.
-**Uses :** `@radix-ui/react-dialog@1.1.15` (installé), CSS Modules, pattern `position: fixed + top: var(--scroll-position)`.
-**Avoids :** Pitfall focus trap absent, pitfall body scroll iOS Safari, pitfall z-index conflit avec header (`z-index:100`).
+### Phase 3 : Galerie angles et polish (CONF-02)
+**Rationale :** La navigation par angles dépend du tissu sélectionné (les angles disponibles varient selon le tissu). Ne peut être implémentée qu'après Phase 2. Augmente la valeur de visualisation mais n'est pas bloquante pour valider le configurateur.
+**Delivers :** `AngleSelector` (thumbnails 72x54px, uniquement les angles disponibles pour le tissu actif), encart zoom texture (swatch_url en 100-120px), dimensions modèle si non-null, bandeau sticky mobile (si temps disponible)
+**Uses :** `useState` pour angle actif, `next/image`, CSS `aspect-ratio: 4/3` fixe sur le wrapper
+**Avoids :** Pitfall 4 (CLS aspect-ratio fixe + `key={url}` sur Image), Pitfall 6 (scroll mobile avec contenu enrichi)
 
 ### Phase Ordering Rationale
 
-- `next.config.ts` remotePatterns est un blocker absolu pour `next/image` — toujours en premier.
-- ProductCard doit exister avant ProductGrid, qui doit exister avant CatalogueClient — les feuilles avant les conteneurs.
-- Le modal peut être développé en parallèle de la Phase 2 techniquement (dépendances uniquement sur les types `ModelWithImages` et Radix Dialog), mais se teste seulement quand CatalogueClient expose le `selectedProduct`.
-- Zustand n'est pas introduit en M008 — le state `selectedProduct` reste local à `CatalogueClient`. La migration vers Zustand est planifiée pour M009 quand le configurateur réel (section distante dans le DOM) devra consommer ce state.
+- Phase 1 avant tout : sans données correctement câblées, aucun composant ne peut être testé avec les vraies données
+- Phase 2 livre le MVP complet (swatches + prix + CTA) — validable par l'utilisateur avant d'ajouter les angles
+- Phase 3 enrichit l'expérience mais n'est pas bloquante pour M010 (Simulation) — peut être livrée en M009 tardif ou M009.x
+- L'ordre build feuilles → conteneurs est obligatoire : `PriceDisplay` et `FabricSelector` avant `ConfiguratorModal`
+- Zustand n'est pas introduit en M009 — migration documentée pour M010 quand le tissu sélectionné doit être lu depuis la section Simulation (distante dans le DOM)
 
 ### Research Flags
 
-**Phases avec patterns standards (pas de research-phase nécessaire) :**
-- **Phase 1 — ProductCard + grid :** Patterns `next/image fill + sizes` et CSS Grid bien documentés, code source existant analysé directement, exemples de code complets fournis dans ARCHITECTURE.md.
-- **Phase 2 — Recherche/tri :** Pattern `useState + useMemo` trivial, implémenté dans des dizaines de projets Next.js, implémentation complète fournie dans ARCHITECTURE.md.
-- **Phase 3 — Radix Dialog :** Librairie déjà installée et utilisée dans l'admin, documentation officielle vérifiée, CSS cible complet fourni dans ARCHITECTURE.md.
+Phases avec patterns bien documentés, pas de `/gsd:research-phase` supplémentaire nécessaire :
 
-**Point d'attention non-bloquant :**
-- **Swatches sur les cards (P2)** : Vérifier l'existence de `GET /api/fabrics` (route publique, distincte de `/api/admin/fabrics`). Si absente, la créer prend environ 30 minutes (pattern identique à `/api/models`). Ne pas bloquer les phases 1/2/3 sur ce point — les swatches sont des P2 ajoutés après validation du MVP.
+- **Phase 1 :** Pattern `Promise.all` dans `CatalogueSection` déjà établi dans le projet. Query Supabase directe depuis Server Component = anti-pattern Route Handler documenté Next.js. Code complet fourni dans ARCHITECTURE.md.
+- **Phase 2 :** `calculatePrice()` existe, `next/image` est configuré, CSS Modules = convention projet. Tous les patterns sont vérifiés dans le code source. Code complet fourni dans STACK.md et ARCHITECTURE.md.
+- **Phase 3 :** `aspect-ratio` CSS + `key` prop React = solutions standard MDN. Thumbnails avec `useState` = pattern établi en Phase 2.
+
+Aucune phase ne nécessite de recherche supplémentaire. La recherche est complète et les patterns sont tous vérifiés dans le code source du projet.
 
 ---
 
@@ -121,43 +156,45 @@ La recherche identifie 3 phases naturelles basées sur les dépendances entre co
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Versions vérifiées dans package.json, zero nouvelle dépendance requise, patterns officiels Next.js vérifiés |
-| Features | HIGH | Wireframe v4 + charte graphique + schéma database + contrat API — toutes sources de vérité directement accessibles dans le projet |
-| Architecture | HIGH | Code source existant analysé directement, patterns App Router officiels vérifiés, exemples de code complets fournis dans ARCHITECTURE.md |
-| Pitfalls | HIGH | Sources officielles Next.js + MDN + CSS-Tricks vérifiées, recovery costs estimés, checklist "Looks Done But Isn't" fournie |
+| Stack | HIGH | Toutes les dépendances vérifiées dans `package.json`. Aucune nouvelle dépendance. peerDeps des alternatives vérifiés (`react-zoom-pan-pinch` exclu pour React 19 incompatibilité). |
+| Features | HIGH | Wireframe v4 comme autorité absolue. API existante vérifiée dans le code source. Analyse concurrentielle IKEA / Roche Bobois / Ligne Roset. WCAG 2.1 AA pour swatches. |
+| Architecture | HIGH | Code source analysé directement (CatalogueSection, CatalogueClient, ConfiguratorModal, route API visuals). Patterns établis dans le projet. Next.js docs anti-pattern Route Handler depuis Server Component. |
+| Pitfalls | HIGH | 10 pitfalls identifiés à partir du code existant. Chaque pitfall a un "warning sign" et un "how to avoid" avec code. Patterns issus de la route existante `/api/models/[slug]/visuals/route.ts`. |
 
 **Overall confidence : HIGH**
 
 ### Gaps to Address
 
-- **`GET /api/fabrics` public** : Non confirmée dans la recherche. Vérifier `src/app/api/fabrics/route.ts` avant de commencer les swatches. Si absente, créer en début de Phase 1 ou déplacer les swatches en v8.x post-validation. Ne bloque pas le MVP.
-
-- **Nom exact du champ prix** : La recherche mentionne à la fois `base_price` (PITFALLS.md, Integration Gotchas) et `price` (STACK.md, ARCHITECTURE.md) comme nom du champ dans la table `models`. Vérifier dans `src/types/database.ts` avant d'implémenter ProductCard et le tri par prix.
-
-- **iOS Safari body scroll** : Requiert un test sur appareil physique — le simulateur Xcode ne reproduit pas ce bug. Prévoir un test manuel explicite dans la checklist CAT-04, distinct des tests desktop.
+- **Bandeau sticky mobile :** Non spécifié précisément dans le wireframe v4 pour M009. La décision d'inclure ou non dans M009 est à prendre à l'implémentation selon le temps disponible. Pas d'impact sur les phases 1-2-3 core.
+- **Volume données en production :** La recherche suppose ~6 tissus et ~30 visuels (justification du co-fetch server-side). Si le catalogue dépasse 20 modèles avec 15+ tissus, migrer vers fetch client-side à l'ouverture du modal. Seuil et migration documentés dans ARCHITECTURE.md section "Scaling Considerations".
+- **`model.dimensions` field :** Mentionné comme feature optionnelle (nullable). Présence dans le schéma Supabase à vérifier en début de Phase 3 avant implémentation.
 
 ---
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- `src/types/database.ts` — types Supabase auto-générés, noms de champs de vérité
-- `src/app/api/models/route.ts` — contrat API publique confirmé
-- `src/app/page.tsx` — structure page existante (Header, Hero, HowItWorks)
-- `src/app/globals.css` — tokens CSS complets, aucun ajout requis pour M008
+- `src/components/public/Catalogue/CatalogueSection.tsx` — architecture Server Component existante, pattern fetch
+- `src/components/public/Catalogue/CatalogueClient.tsx` — pattern forwarding props
+- `src/components/public/Catalogue/ConfiguratorModal.tsx` — modal Phase 6, position hooks, scroll lock iOS
+- `src/app/api/models/[slug]/visuals/route.ts` — pattern fetch + filtre `fabric.is_active` côté JS
+- `src/types/database.ts` — types `Fabric`, `GeneratedVisual`, `ModelWithImages` vérifiés
+- `src/lib/utils.ts` — `calculatePrice()` et `formatPrice()` vérifiées
 - `package.json` — versions installées vérifiées directement
-- `.planning/maquette/wireframe-page-unique.md` — autorité wireframe v4
-- [Next.js Image remotePatterns](https://nextjs.org/docs/app/api-reference/config/next-config-js/images)
-- [Next.js Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components)
-- [Radix UI Dialog Primitives](https://www.radix-ui.com/primitives/docs/components/dialog)
-- [Next.js Missing Suspense with useSearchParams](https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout)
+- `.planning/maquette/wireframe-page-unique.md` — autorité layout section 5 configurateur
+- CLAUDE.md — prix premium = prix de base + 80 EUR fixe
 
 ### Secondary (MEDIUM confidence)
-- [CSS-Tricks — Prevent Page Scrolling When Modal is Open](https://css-tricks.com/prevent-page-scrolling-when-a-modal-is-open/) — pattern body scroll lock iOS
-- [Vercel Community — Supabase Storage image optimization issues](https://community.vercel.com/t/images-from-supabase-storage-result-in-invalid-image-optimize-request/6009) — fallback `unoptimized` si Supabase Storage transformations défaillantes
-- NN/g E-Commerce UX patterns — product listing pages — validation des choix UX catalogue
-- Roche Bobois / Ligne Roset — analyse concurrentielle directe, grille 3 colonnes, swatches sur cards
+- [Next.js — Do not call Route Handlers from Server Components](https://nextjs.org/docs/app/building-your-application/routing/route-handlers#good-to-know) — anti-pattern API route depuis Server Component
+- [react-medium-image-zoom GitHub peerDeps](https://github.com/rpearce/react-medium-image-zoom/blob/main/package.json) — `^16.8 || ^17 || ^18 || ^19` confirmé React 19 compatible
+- [npmpeer.dev — react-zoom-pan-pinch](https://www.npmpeer.dev/packages/react-zoom-pan-pinch/compatibility) — peerDeps `^17 || ^18` seulement, React 19 non supporté
+- Cylindo — Best practices furniture configurator UX
+- Baymard — Mobile swatch UX (57% des sites manquent les swatches mobiles)
+- Analyse concurrentielle IKEA / Roche Bobois / Ligne Roset / France Canapé
+
+### Tertiary (LOW confidence)
+- Smashing Magazine — Configurator UX patterns (preset, real-time feedback, price display)
 
 ---
-*Research completed: 2026-03-28*
+*Research completed: 2026-03-29*
 *Ready for roadmap: yes*

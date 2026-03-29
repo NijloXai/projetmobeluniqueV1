@@ -1,24 +1,28 @@
-# Feature Research — M008 Catalogue Produits
+# Feature Research — M009 Configurateur Tissu
 
-**Domain:** Catalogue e-commerce luxe canapés personnalisables — SPA Next.js
-**Milestone:** M008 — Section Catalogue avec cards, recherche, tri, swatches, modal configurateur
-**Researched:** 2026-03-28
-**Confidence:** HIGH (wireframe v4 + charte graphique + API schema déjà définis)
+**Domain:** Configurateur tissu canapé — SPA Next.js avec visuels IA pré-générés
+**Milestone:** M009 — Remplacement du placeholder "Configurateur à venir" par le configurateur réel
+**Researched:** 2026-03-29
+**Confidence:** HIGH (wireframe v4 + schéma DB + API existantes + analyse concurrentielle)
 
 ---
 
 ## Context
 
-Backend complet (M001–M006). Frontend v7.0 livré : Header, Hero, HowItWorks opérationnels.
-L'API publique `GET /api/models` retourne les modèles actifs avec leurs images triés par
-`created_at DESC`. Le schéma de données est fixé : `models` (name, price, slug, dimensions,
-description, created_at) + `model_images` (image_url, view_type, sort_order).
+Le modal configurateur (MODAL-01/02/03) est en place : dialog natif, focus trap, fermeture
+Escape/X/backdrop, scroll lock iOS. Il affiche actuellement un placeholder "Configurateur à venir".
 
-Les tissus (`fabrics`) sont séparés — ils ne font pas partie de la réponse de `/api/models`.
-L'API `GET /api/models` ne jointure pas les tissus disponibles.
+Les données backend sont complètes :
+- `GET /api/models/[slug]/visuals` : rendus publiés (is_validated + is_published + fabric.is_active),
+  avec tissu jointuré et image_url de chaque rendu
+- `fabrics` table : name, swatch_url, is_premium, is_active, category
+- `generated_visuals` table : model_image_id (= angle), fabric_id, generated_image_url, is_published
+- Contrainte UNIQUE (model_image_id, fabric_id) : un rendu par combinaison angle × tissu
+- Prix premium = prix de base + 80€ fixe (CLAUDE.md)
+- `models.shopify_url` : lien Shopify par modèle (nullable)
 
-Stack contrainte : CSS Modules uniquement, Montserrat, tokens globals.css, breakpoints
-640/1024/1280px.
+Ce milestone transforme ce placeholder en configurateur fonctionnel. Les rendus IA sont
+**pré-générés côté admin** — pas de génération temps-réel dans le configurateur public.
 
 ---
 
@@ -26,132 +30,152 @@ Stack contrainte : CSS Modules uniquement, Montserrat, tokens globals.css, break
 
 ### Table Stakes (Users Expect These)
 
-Features attendues par tout visiteur d'un catalogue produits luxe. Leur absence rend le
-produit incomplet ou peu professionnel.
+Features que tout visiteur d'un configurateur canapé luxe attend. Leur absence = produit cassé.
 
 | Feature | Pourquoi attendu | Complexité | Notes |
 |---------|-----------------|------------|-------|
-| Cards produit avec image, nom, prix | Base absolue de tout catalogue — sans ça, pas de catalogue | FAIBLE | Image via `model_images[0]` (sort_order 0), prix formaté "à partir de X EUR" |
-| Grid responsive 1/2/3 colonnes | Standard universel — mobile 1 col, tablet 2, desktop 3 | FAIBLE | CSS Grid, breakpoints déjà définis (640/1024px) |
-| Image placeholder si aucune photo | Un modèle sans image ne doit pas casser le layout | FAIBLE | Zone fond neutre 220px avec icône canapé SVG |
-| CTA "Configurer ce modèle" sur chaque card | Action principale du produit — raison d'être du catalogue | FAIBLE | Bouton primary pleine largeur, ouvre le modal |
-| État de chargement (skeleton / spinner) | L'API est async — afficher quelque chose pendant le fetch | MOYEN | Skeleton cards préférable au spinner — évite le layout shift |
-| État d'erreur si l'API échoue | Robustesse minimale — ne pas afficher une page blanche | FAIBLE | Message français, lien pour réessayer |
-| État vide si aucun produit actif | Cas réel possible — pas un 500, juste un catalogue vide | FAIBLE | Message "Aucun modèle disponible pour le moment" |
-| Titre de section H2 + sous-titre | Structure hiérarchique, scannabilité | FAIBLE | "Collection Signature", texte muted |
-| Fond alterné pour séparer du HowItWorks | Tonal layering — règle "No-Line" de la charte | FAIBLE | `--color-background` (#FFFFFF) après `--color-background-alt` du HowItWorks |
+| Grille de swatches tissu cliquables | Standard universel des configurateurs meuble — IKEA, BUT, Roche Bobois | FAIBLE | Cercles 52px (wireframe v4), tous les tissus `is_active=true`, au moins 1 swatch visible |
+| Affichage du rendu IA quand un tissu est sélectionné | Raison d'être du configurateur — sans ça, c'est juste une liste de tissus | MOYEN | Image du rendu publié pour (model_image_id, fabric_id) via `/api/models/[slug]/visuals` |
+| Swatch actif visuellement distinct | L'utilisateur doit savoir quel tissu est sélectionné | FAIBLE | Bordure `--color-primary` (#E49400) + éventuel ring ou scale(1.1) |
+| Nom du tissu affiché avec le swatch sélectionné | Identifier ce qu'on a choisi — requis par WCAG 2.1 AA aussi | FAIBLE | Label textuel sous ou à côté du swatch actif — pas seulement en tooltip |
+| Prix mis à jour dynamiquement | Transparence tarifaire — 9/10 acheteurs veulent voir le prix total avant achat | FAIBLE | Base + 80€ si `fabric.is_premium`, sinon prix de base — logique déjà dans PROJECT.md |
+| Badge "premium" ou "+80 EUR" sur les tissus premium | L'utilisateur doit anticiper le surcoût avant de cliquer | FAIBLE | Badge court sur le swatch ou label inline — pas de surprise au checkout |
+| CTA "Commander sur Shopify" | Sortie vers l'achat — sans ça le configurateur est une dead-end | FAIBLE | Lien `model.shopify_url` (nullable) — bouton désactivé ou masqué si null |
+| Image de fallback si aucun rendu publié pour ce tissu | Tissu actif peut ne pas avoir de rendu publié (workflow admin incomplet) | MOYEN | Afficher la photo originale du modèle (`model_images[0]`) + badge "Aperçu sans IA" |
+| État chargement pendant le fetch des visuels | L'appel API est async — éviter le flash de contenu vide | FAIBLE | Skeleton dans la zone image pendant le fetch initial |
+| Fermeture du modal et retour au catalogue fonctionnels | Déjà implémenté — ne pas régresser lors du remplacement du placeholder | FAIBLE | Tester que le remplacement du contenu interne ne casse pas les handlers existants |
 
 ### Differentiators (Competitive Advantage)
 
-Features qui élèvent l'expérience au-dessus d'un catalogue standard.
+Features qui élèvent l'expérience au-dessus du configurateur basique.
 
 | Feature | Valeur ajoutée | Complexité | Notes |
 |---------|---------------|------------|-------|
-| Swatches miniatures en aperçu sur la card | Montre la variété tissu sans ouvrir le configurateur — décision d'achat plus rapide | MOYEN | Cercles 22px issus de `fabrics.swatch_url`. Nécessite un second fetch `/api/fabrics` (public) ou stocker les swatches côté client |
-| Badge "+N tissus" sur la card | Communique la personnalisation disponible en un chiffre | FAIBLE | Overflow après 4-5 swatches visibles, ex: "+3" |
-| Barre de recherche filtre par nom | Scalabilité — essentiel dès 20+ produits, inutile à 3 | FAIBLE | Filtrage client-side sur le tableau en mémoire — pas de requête API supplémentaire |
-| Tri prix croissant / décroissant / nouveautés | Contrôle utilisateur attendu en e-commerce, différenciateur vs catalogue statique | FAIBLE | Tri client-side sur le tableau. "Nouveautés" = tri par `created_at DESC` (déjà le défaut API) |
-| Compteur de résultats ("X modèles") | Feedback immédiat lors du filtrage/tri | FAIBLE | "3 modèles disponibles" ou "2 résultats pour 'Milano'" |
-| Hover state card avec élévation subtile | Feeling de qualité, réactivité de l'interface | FAIBLE | `box-shadow` ou `transform: translateY(-2px)` en 400ms — conforme à la charte |
-| Modal large configurateur (90vw desktop) | Expérience immersive sans navigation — garde le contexte de la page | MOYEN | `position: fixed`, overlay, trap focus, `Escape` pour fermer |
-| Animation d'entrée du modal | Sentiment de qualité — luxe = délibéré | FAIBLE | `opacity 0→1` + `translateY(20px→0)` en 400ms ease-in-out |
-| Scroll vers la section catalogue au clic CTA hero | Lien entre Hero CTA "Découvrir nos canapés" et la section | FAIBLE | `scrollIntoView` ou `href="#catalogue"` avec `scroll-behavior: smooth` |
+| Navigation par angles (thumbnails) | Les rendus existent par `view_type` (3/4, face, profil, dos, détail) — montrer l'angle IA | MOYEN | Thumbnails 72×54px (wireframe v4), un par angle disponible pour le tissu sélectionné, clic = maj image principale |
+| Zoom texture (encart tissu de près) | Sécuriser la décision matière — 70% des acheteurs meuble ont besoin de voir le tissu en détail | FAIBLE | `fabric.reference_image_url` (bucket fabric-references) dans un encart 100-120px avec nom et catégorie |
+| Badge "Rendu IA" sur l'image principale | Transparence sur la nature du visuel — différenciateur de confiance | FAIBLE | Pill sombre bas-droite sur la zone image — "Rendu IA" quand rendu actif, "Photo originale" quand fallback |
+| Nombre d'angles disponibles affiché | Informer sur la richesse du catalogue de rendus avant de cliquer | FAIBLE | "5 angles disponibles" sous les thumbnails ou en label |
+| Lien "Changer de canapé" | Anti dead-end — retour fluide vers le catalogue sans fermer/rouvrir | FAIBLE | Text link `← Changer de modèle` qui appelle `onClose()` |
+| Bandeau sticky mobile (swatch + prix + CTA) | Prix et action toujours visibles sur mobile sans scroller — conversion critique | MOYEN | `position: fixed`, bottom 0, visible uniquement < 1024px (wireframe v4), masqué si Shopify URL absente |
+| Affichage dimensions du modèle | Information produit complémentaire — "220 × 90 × 85 cm" — attendu en haut de gamme | FAIBLE | `model.dimensions` (nullable) — afficher sous le nom si present |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
 | Feature | Pourquoi demandé | Pourquoi problématique | Alternative |
 |---------|-----------------|----------------------|-------------|
-| Pagination / infinite scroll | "Scalabilité pour 100+ produits" | Inutile pour 20-30 produits max. Complexité accidentelle, cassé par le filtrage client-side | Grid responsive + search bar — suffisant pour l'échelle prévue |
-| Filtres multi-critères (catégorie, places, style) | "Filtrage avancé" | Les données n'exposent pas ces attributs (pas de champ `category` sur `models`). Fausse promesse si données absentes | Recherche par nom + tri prix — couvre 90% des besoins réels |
-| Carousel horizontal de cards | "Mode galerie alternatif" | Accessibilité difficile (ARIA live regions, focus management), performances impactées, cache les produits, UX prouvément inférieure au grid | Grid vertical scrollable — plus de découverte |
-| Tri "Meilleures ventes" | "Pertinence commerciale" | Pas de données de ventes dans le schéma actuel (pas de champ `sales_count` ou équivalent) | Tri "Nouveautés" qui est sémantiquement honnête |
-| Wishlist / favoris | "Engagement utilisateur" | Nécessite auth utilisateur — hors scope total du projet (pas d'auth front prévue) | CTA Shopify direct — l'achat est l'engagement |
-| Comparateur produits | "Feature e-commerce avancée" | Complexité élevée, données insuffisantes pour comparer (pas de specs structurées), hors scope | Swatches préview sur card — suffisant pour la décision |
-| Lazy loading image avec effet blur-up | "Performance perçue" | Next.js `<Image>` gère déjà le lazy loading natif. Surengineering. | `next/image` avec `placeholder="blur"` si blur dataURL disponible, sinon `loading="lazy"` natif |
-| Filtrage côté serveur / API | "Scalabilité backend" | À 20-30 produits, un fetch unique + tri/filtre client-side est plus rapide (pas de round-trip). Complexité inutile. | Fetch unique au montage, filtre/tri en mémoire |
-| Swatches animés (rotation tissu, preview texture) | "Expérience premium" | Dépend de données visuelles non encore structurées (pas de génération IA tissu-sur-card prévue). Hors scope M008. | Swatches statiques 22px issus de `swatch_url` — honête et rapide |
+| Génération IA temps-réel dans le configurateur | "Visualisation à la demande" | Les rendus sont pré-générés côté admin — la stack IA (Nano Banana / Mock Sharp) n'est pas conçue pour du temps-réel public. Latence 5-15s, coût par requête, watermark public sur `/api/simulate` | Afficher les rendus publiés — qualité contrôlée par admin, zéro latence |
+| Sélecteur de quantité / taille dans le configurateur | "Upsell inline" | Ce n'est pas un configurateur de commande — c'est un outil de visualisation. La commande se fait sur Shopify. Ajouter quantité = confusion de rôle | Rediriger vers Shopify pour tout ce qui est "commander" |
+| Partage de configuration par URL ou lien | "Partage réseaux sociaux" | Requiert persistance d'état (localStorage ou query params), gestion de l'hydratation SSR, et coordination avec le Shopify URL. Hors scope M009. | Section Simulation (M010) avec WhatsApp share — prévue dans le wireframe |
+| Comparaison avant/après tissu | "Voir la différence" | Requiert deux images côte à côte = layout complexe dans le modal. Le toggle "photo originale → rendu IA" via badge offre une forme de comparaison suffisante | Badge "Rendu IA / Photo originale" + fallback clair |
+| Filtrage des swatches par catégorie de tissu | "Organisation des options" | À 6-10 tissus actifs, un filtre est une surcharge cognitive. La catégorie existe dans `fabric.category` mais n'est pertinente qu'à 20+ tissus | Grille linéaire scrollable — simple et rapide |
+| Zoom interactif sur l'image principale (loupe) | "Voir les détails du rendu" | Complexité d'implémentation élevée (touch events, position calcul), rendu IA ne justifie pas un zoom photo-réaliste. La référence tissu dans l'encart zoom couvre ce besoin | Encart `reference_image_url` pour le détail matière |
+| Loader animé façon "génération en cours" pendant le fetch | "Sentiment de technologie IA" | Trompe l'utilisateur — les rendus sont déjà générés, le fetch est rapide (< 500ms). Un vrai loader donnerait l'impression d'une attente inexistante | Skeleton discret le temps du premier fetch — disparaît rapidement |
+| Mode plein écran image (expand) | "Mieux voir le rendu" | Le modal est déjà 90vw desktop / plein écran mobile. Un expand intérieur = imbrication de modals ou z-index battles | Taille d'image généreuse dans le layout 60/40 (wireframe v4) |
 
 ---
 
 ## Feature Dependencies
 
 ```
-GET /api/models (existant, opérationnel)
-  └──fournit──> Cards produit (name, price, model_images)
-      └──requiert──> Image placeholder si model_images vide
-      └──requiert──> Formatage prix français ("à partir de X EUR")
+GET /api/models/[slug]/visuals (existant, opérationnel)
+  └──fournit──> Liste de rendus publiés avec fabric + model_image jointés
+      └──requiert──> model.slug (déjà dans ConfiguratorModal via ModelWithImages)
 
-Cards produit
-  └──requiert──> État chargement (skeleton)
-  └──requiert──> État erreur API
-  └──requiert──> État vide (0 résultats)
+Swatches cliquables
+  └──requiert──> Liste des tissus actifs ayant au moins un rendu publié
+  └──dépend de──> generated_visuals filtrés (is_published + fabric.is_active)
+  └──dépend de──> fabric.swatch_url (pour l'image du swatch)
+  └──dépend de──> useState selectedFabricId
 
-Recherche par nom
-  └──requiert──> Données chargées en mémoire (après fetch API)
-  └──dépend de──> useState filtre texte
+Image principale rendu IA
+  └──requiert──> selectedFabricId + selectedViewType (angle actif)
+  └──dépend de──> generated_visuals (trouver le rendu pour [fabric_id, model_image.view_type])
+  └──fallback──> model_images[0].image_url si aucun rendu pour cette combinaison
 
-Tri (prix asc/desc, nouveautés)
-  └──requiert──> Données chargées en mémoire
-  └──dépend de──> useState option tri
-  └──conflit avec──> Filtrage serveur (les deux s'excluent — choisir l'un ou l'autre)
+Thumbnails angles
+  └──requiert──> Liste des angles DISPONIBLES pour le tissu sélectionné
+  └──dépend de──> generated_visuals groupés par view_type pour le fabric_id actif
+  └──requiert──> selectedFabricId (les angles disponibles changent selon le tissu)
+  └──dépend de──> useState selectedViewType
 
-Swatches miniatures sur card
-  └──requiert──> GET /api/fabrics (API publique — À CRÉER ou vérifier existence)
-  └──OU requiert──> Stocker swatches dans données statiques (alternative sans API)
-  └──dépend de──> fabric.swatch_url (bucket fabric-swatches)
+Prix dynamique
+  └──requiert──> selectedFabricId → fabric.is_premium
+  └──dépend de──> model.price (base)
+  └──calcule──> price + (is_premium ? 80 : 0)
 
-Compteur résultats
-  └──requiert──> Recherche OU Tri (n'a de sens qu'avec un état filtré)
+Zoom texture (encart)
+  └──requiert──> selectedFabricId → fabric.reference_image_url
+  └──fallback──> fabric.swatch_url si reference_image_url est null
 
-Modal configurateur
-  └──requiert──> Cards produit (le CTA déclenche l'ouverture)
-  └──requiert──> Focus trap (accessibilité — Escape, Tab cycle)
-  └──requiert──> Overlay sombre (position fixed, z-index > header 100)
-  └──enhances──> Swatches (le configurateur est la destination des swatches)
+CTA Commander sur Shopify
+  └──requiert──> model.shopify_url (nullable)
+  └──affiche──> Bouton actif si shopify_url présent, masqué ou disabled si null
 
-CTA Hero "Découvrir nos canapés"
-  └──enhances──> Section catalogue (scroll anchor #catalogue)
-  └──requiert──> id="catalogue" sur la section (ou ref pour scrollIntoView)
+Bandeau sticky mobile
+  └──requiert──> selectedFabricId (swatch + nom tissu)
+  └──requiert──> Prix dynamique calculé
+  └──requiert──> model.shopify_url (lien achat)
+  └──visible──> uniquement < 1024px (CSS media query)
 ```
 
 ### Dependency Notes
 
-- **Swatches miniatures requiert GET /api/fabrics :** Vérifier si cette route publique existe déjà. Les routes admin (`/api/admin/fabrics`) existent, mais une route publique `GET /api/fabrics` n'est pas confirmée dans le PROJECT.md. Si absente, deux options : créer la route publique (scope M008), ou afficher les swatches en v9.0 uniquement.
-- **Modal requiert focus trap :** Sans piège de focus, le modal est inaccessible au clavier — WCAG 2.1 AA l'exige. Utiliser une implémentation manuelle légère (pas de librairie externe).
-- **Tri "Nouveautés" est le comportement par défaut de l'API :** `created_at DESC` est déjà le tri natif. L'option "Nouveautés" dans le select est donc un no-op réinitialisant le filtre.
+- **Données visuals via un seul fetch :** `GET /api/models/[slug]/visuals` retourne tous les rendus
+  publiés du modèle (tous tissus, tous angles). Ce fetch unique charge tout — pas de fetch par swatch
+  ou par angle. Organiser côté client en `Map<fabricId, Map<viewType, GeneratedVisual>>` pour un
+  accès O(1).
+
+- **slug du modèle dans le modal :** Le composant `ConfiguratorModal` reçoit `model: ModelWithImages`.
+  Le type `Model` inclut `slug`. Aucune prop supplémentaire à passer — le slug est disponible.
+
+- **Tissus sans rendu publié :** Un tissu peut être `is_active=true` mais sans aucun rendu publié.
+  Dans ce cas, il ne figure pas dans la réponse de `/api/models/[slug]/visuals`. Ne pas l'afficher
+  dans les swatches, ou l'afficher grisé avec un état "aperçu non disponible". Recommandé : ne pas
+  afficher — évite la frustration de cliquer et de voir un fallback photo.
+
+- **Angle par défaut :** Au chargement, sélectionner l'angle `3/4` si disponible pour le tissu
+  sélectionné par défaut, sinon le premier angle disponible. Logique `getPrimaryImage` déjà dans
+  `ConfiguratorModal.tsx` — réutiliser ce pattern.
+
+- **Tissu sélectionné par défaut :** Premier tissu dans la liste (non-premium si possible) — ne pas
+  forcer l'utilisateur à cliquer avant de voir quoi que ce soit.
 
 ---
 
 ## MVP Definition
 
-### Launch With — M008
+### Launch With — M009
 
-Minimum viable pour valider le catalogue et déclencher le workflow configurateur.
+Minimum viable pour valider le configurateur tissu et débloquer M010 (Simulation).
 
-- [x] **Cards produit** reliées à `GET /api/models` — images, noms, prix, CTA "Configurer"
-- [x] **Grid responsive** 1 col mobile / 2 col tablet / 3 col desktop
-- [x] **États** : chargement skeleton, erreur API, catalogue vide
-- [x] **Barre de recherche** filtrage client-side par nom (useState)
-- [x] **Tri** prix croissant, prix décroissant, nouveautés (useState)
-- [x] **Modal configurateur** placeholder "Configurateur à venir — v9.0" (90vw desktop, plein écran mobile)
-- [x] **Focus trap** dans le modal + fermeture Escape + clic overlay
+- [ ] **Fetch visuels** : appel `GET /api/models/[slug]/visuals` au montage du modal — chargé en
+  mémoire une seule fois
+- [ ] **Grille swatches** : afficher tous les tissus ayant au moins 1 rendu publié, avec `swatch_url`,
+  nom au hover/focus, badge "+80 EUR" si premium
+- [ ] **Sélection swatch** : clic → `selectedFabricId` mis à jour → image principale change
+- [ ] **Image principale** : rendu IA si disponible, sinon photo originale + badge "Photo originale"
+- [ ] **Badge "Rendu IA"** sur l'image quand c'est un rendu IA publié
+- [ ] **Prix dynamique** : base + 80€ si premium, affiché en temps réel
+- [ ] **CTA Shopify** : bouton "Commander sur Shopify" lié à `model.shopify_url` (masqué si null)
+- [ ] **État chargement** : skeleton dans la zone image pendant le fetch
+- [ ] **Lien "Changer de modèle"** : `onClose()` avec text link discret
 
-### Add After Validation — v8.x
+### Add After Validation — v9.x
 
-Features à ajouter une fois le catalogue core validé.
+Features à ajouter une fois le configurateur core validé (même milestone si temps).
 
-- [ ] **Swatches miniatures** sur cards — attend confirmation de l'existence ou création de `GET /api/fabrics`
-- [ ] **Compteur résultats** — "X modèles" / "X résultats pour 'Milano'"
-- [ ] **Scroll anchor** du CTA hero vers #catalogue (si pas déjà dans Hero.tsx)
+- [ ] **Navigation angles** : thumbnails 72×54px par angle disponible, clic change l'image principale
+- [ ] **Encart zoom texture** : `reference_image_url` ou fallback `swatch_url`, 100-120px
+- [ ] **Dimensions modèle** : `model.dimensions` affiché sous le nom si non-null
 
-### Future Consideration — v9.0+
+### Future Consideration — v10+
 
-Features à différer — dépendent de milestones ultérieurs.
+Features à différer — dépendent de milestones ultérieurs ou hors scope M009.
 
-- [ ] **Contenu réel du modal** (sélection tissu, swatches 52px, zoom texture) — M009
-- [ ] **Swatches dans le modal** reliées à l'API fabrics — M009
-- [ ] **Animation entrée/sortie modal** raffinée — M011 polish
-- [ ] **Bandeau sticky mobile** (swatch + prix + CTA) — M009/M010
+- [ ] **Bandeau sticky mobile** : swatch + prix + CTA — M009 si temps, sinon M010
+- [ ] **Partage de configuration** : WhatsApp — M010 Simulation
+- [ ] **Simulation salon** : upload photo + génération IA — M010
+- [ ] **Produits similaires** — M011 polish
 
 ---
 
@@ -159,113 +183,162 @@ Features à différer — dépendent de milestones ultérieurs.
 
 | Feature | Valeur Utilisateur | Coût Implémentation | Priorité |
 |---------|-------------------|---------------------|----------|
-| Cards produit + API | HAUTE | FAIBLE | P1 |
-| Grid responsive | HAUTE | FAIBLE | P1 |
-| États chargement/erreur/vide | HAUTE | FAIBLE | P1 |
-| CTA → modal placeholder | HAUTE | MOYEN | P1 |
-| Recherche par nom | MOYENNE | FAIBLE | P1 |
-| Tri prix/nouveautés | MOYENNE | FAIBLE | P1 |
-| Focus trap modal | HAUTE | FAIBLE | P1 |
-| Swatches miniatures card | MOYENNE | MOYEN | P2 |
-| Compteur résultats | FAIBLE | FAIBLE | P2 |
-| Scroll anchor hero CTA | FAIBLE | FAIBLE | P2 |
-| Hover state card élévation | FAIBLE | FAIBLE | P2 |
-| Animations modal entrée | FAIBLE | FAIBLE | P3 |
+| Fetch visuels + organisation en Map | HAUTE | FAIBLE | P1 |
+| Grille swatches cliquables | HAUTE | FAIBLE | P1 |
+| Image principale rendu IA | HAUTE | FAIBLE | P1 |
+| Prix dynamique premium | HAUTE | FAIBLE | P1 |
+| Badge "Rendu IA" / "Photo originale" | HAUTE | FAIBLE | P1 |
+| CTA Commander Shopify | HAUTE | FAIBLE | P1 |
+| Fallback photo originale | MOYENNE | FAIBLE | P1 |
+| Skeleton chargement | MOYENNE | FAIBLE | P1 |
+| Navigation angles (thumbnails) | HAUTE | MOYEN | P2 |
+| Encart zoom texture | MOYENNE | FAIBLE | P2 |
+| Dimensions modèle | FAIBLE | FAIBLE | P2 |
+| Lien "Changer de modèle" | FAIBLE | FAIBLE | P2 |
+| Bandeau sticky mobile | HAUTE (mobile) | MOYEN | P2 |
 
 **Clé priorités :**
-- P1 : Indispensable pour livrer M008
-- P2 : Souhaitable, ajouter quand P1 validé
+- P1 : Indispensable pour livrer M009 — CONF-01, CONF-02, CONF-03, CONF-04
+- P2 : Souhaitable, ajouter dans M009 si temps disponible
 - P3 : Nice-to-have, M011 polish
 
 ---
 
 ## Competitor Feature Analysis
 
-| Feature | Roche Bobois | Ligne Roset | Notre Approche |
-|---------|--------------|-------------|----------------|
-| Grid produits | 3 colonnes desktop, grille uniforme | 3 colonnes, cards avec hover zoom | 3 colonnes desktop, tonal layering, hover élévation (pas zoom) |
-| Filtrage | Filtres par type/style/couleur sidebar | Filtres par collection | Search bar simple + tri — adapté à ~20 produits |
-| Prix affiché | "À partir de X EUR" | Prix fixe ou "À partir de" | "À partir de X EUR" (prix de base, sans premium tissu) |
-| Images cards | Photo lifestyle 3/4 | Photo produit fond blanc | Photo `model_images[0]` — depends du contenu admin |
-| CTA card | "Découvrir" → page produit | "Configurer" → configurateur inline | "Configurer ce modèle" → modal 90vw |
-| Swatches preview | Non (navigation vers page tissu) | Oui, miniatures sur hover | Oui, swatches statiques 22px visibles directement |
-| Recherche | Oui (search global) | Non | Oui, limitée au nom de modèle |
+| Feature | IKEA | Roche Bobois | Ligne Roset | Notre Approche |
+|---------|------|--------------|-------------|----------------|
+| Swatches | Cercles/carrés, tous visibles, tooltip nom | Carrés avec hover zoom, catégories | Cercles 40px, scrollables, label dessous | Cercles 52px (wireframe), label visible pour sélectionné, badge premium |
+| Affichage rendu | 3D temps réel | Photo IA pré-générée par angle | Photo lifestyle studio | Photo IA pré-générée (admin → publish), pas de temps-réel |
+| Angles | Rotation 360° interactive | Thumbnails 3-5 angles cliquables | 2-3 angles, thumbnails | Thumbnails par angle publié — dépend du workflow admin |
+| Prix | Mis à jour temps réel | Affiché en permanence | "À partir de" + surcoût tissu clair | Base + 80€ premium, affiché dynamiquement |
+| Fallback | N/A (3D toujours disponible) | "Visuel non disponible" message | Photo standard si pas de rendu | Photo originale modèle + badge "Photo originale" |
+| CTA achat | "Ajouter au panier" inline | "Demander un devis" | "Commander" → page produit | Lien Shopify externe — sortie contrôlée |
+| Mobile | Swatches scrollables, sticky CTA | Swatches en carousel | Swatches 2 colonnes | Swatches scrollables + bandeau sticky (v9.x) |
 
 ---
 
 ## Considérations Techniques Clés
 
-### API: Swatches sur les cards
+### Organisation des données en mémoire
 
-L'API `GET /api/models` ne retourne pas les tissus disponibles. Deux approches :
-
-**Option A — Fetch GET /api/fabrics (recommandé)** : Créer ou vérifier l'existence d'une route
-publique `/api/fabrics` retournant les tissus actifs (`is_active = true`). Fetch parallèle avec
-`/api/models` au montage. Afficher les N premiers swatches (max 4) + badge "+X".
-
-**Option B — Swatches statiques** : Si la route n'existe pas et que la créer dépasse le scope
-M008, afficher un placeholder "voir les tissus" sans swatches concrets. Peu satisfaisant pour l'UX.
-
-Recommandation : Vérifier d'abord si `/api/fabrics` existe. Si non, la créer en début de M008
-(~30min, pattern identique à `/api/models`).
-
-### Modal: z-index et overlay
-
-Le header est à `z-index: 100`. Le modal doit être à `z-index: 200+` pour passer par-dessus.
-L'overlay doit couvrir le header également — `position: fixed`, `inset: 0`.
-
-### Skeleton Cards
-
-Utiliser des divs CSS avec animation `@keyframes shimmer` (background gradient animé) plutôt qu'un
-spinner global. Évite le layout shift — la grille garde ses dimensions pendant le chargement.
-
-### Prix formaté
-
-Afficher `"À partir de {price} €"` formaté avec `Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' })`.
-Le prix de base n'inclut pas le surcoût tissu premium (+80€ fixe) — correct pour l'affichage catalogue.
-
-### Filtre + Tri : composition
+La réponse de `GET /api/models/[slug]/visuals` est un tableau plat de rendus. Organiser en Map
+imbriquée côté client pour des lookups O(1) :
 
 ```typescript
-// Ordre d'application : filtre d'abord, tri ensuite
-const filtered = models.filter(m => m.name.toLowerCase().includes(query.toLowerCase()))
-const sorted = [...filtered].sort(sortFn)
+// Map<fabricId, Map<viewType, GeneratedVisual>>
+type VisualsMap = Map<string, Map<string, GeneratedVisual & { fabric: Fabric; model_image: ModelImage }>>
+
+function buildVisualsMap(visuals: Visual[]): VisualsMap {
+  const map = new Map()
+  for (const v of visuals) {
+    if (!map.has(v.fabric_id)) map.set(v.fabric_id, new Map())
+    map.get(v.fabric_id)!.set(v.model_image.view_type, v)
+  }
+  return map
+}
 ```
 
-Le tri "Nouveautés" = `created_at DESC` (ordre naturel de l'API). Réinitialiser le tri vers
-"Nouveautés" revient à ne pas trier (conserver l'ordre du fetch).
+### Tissus disponibles (avec au moins 1 rendu)
+
+```typescript
+// Extraire les tissus uniques ayant des rendus
+const availableFabrics = Array.from(
+  new Map(visuals.map(v => [v.fabric_id, v.fabric])).values()
+)
+```
+
+### Sélection angle par défaut
+
+```typescript
+// Trouver le meilleur angle pour un tissu donné
+function getBestAngle(fabricMap: Map<string, Visual>, preferredViewType = '3/4'): string {
+  if (fabricMap.has(preferredViewType)) return preferredViewType
+  return fabricMap.keys().next().value // premier angle disponible
+}
+```
+
+### Fallback image
+
+```typescript
+// Résolution de l'image à afficher
+function resolveImage(
+  visualsMap: VisualsMap,
+  fabricId: string | null,
+  viewType: string,
+  fallbackUrl: string
+): { url: string; isAI: boolean } {
+  if (fabricId && visualsMap.get(fabricId)?.get(viewType)) {
+    return { url: visualsMap.get(fabricId)!.get(viewType)!.generated_image_url, isAI: true }
+  }
+  return { url: fallbackUrl, isAI: false }
+}
+```
+
+### Prix dynamique
+
+```typescript
+const PREMIUM_SURCHARGE = 80 // Fixe selon CLAUDE.md
+
+function calculatePrice(basePrice: number, isPremium: boolean): number {
+  return basePrice + (isPremium ? PREMIUM_SURCHARGE : 0)
+}
+```
+
+### État interne du configurateur
+
+```typescript
+// État minimal dans ConfiguratorModal (ou composant ConfiguratorContent interne)
+const [selectedFabricId, setSelectedFabricId] = useState<string | null>(null)
+const [selectedViewType, setSelectedViewType] = useState<string>('3/4')
+const [visuals, setVisuals] = useState<Visual[]>([])
+const [loading, setLoading] = useState(true)
+
+// Initialisation : sélectionner le premier tissu non-premium par défaut
+useEffect(() => {
+  if (visuals.length > 0 && !selectedFabricId) {
+    const first = availableFabrics.find(f => !f.is_premium) ?? availableFabrics[0]
+    setSelectedFabricId(first?.id ?? null)
+  }
+}, [visuals])
+```
+
+### Reset au changement de modèle
+
+Quand `model` change (l'utilisateur ferme et rouvre pour un autre canapé), réinitialiser
+`selectedFabricId`, `selectedViewType` et `visuals`. Utiliser `useEffect([model?.id])`.
 
 ---
 
-## Accessibilité Catalogue
+## Accessibilité Configurateur
 
-| Élément | Exigence | Mise en œuvre |
-|---------|----------|---------------|
-| Section | `<section aria-labelledby="catalogue-title">` | H2 `id="catalogue-title"` |
-| Cards | `role="article"` ou `<article>` sémantique | Chaque card est une unité de contenu |
-| Bouton CTA card | Texte descriptif : "Configurer le modèle Milano" (pas "Configurer") | `aria-label` dynamique avec le nom du modèle |
-| Image produit | `alt="Canapé Milano — vue de face"` | Formaté depuis `view_type` et `name` |
-| Image placeholder | `alt=""` + `aria-hidden="true"` (décoratif) | Pas de sens pour les AT |
-| Barre recherche | `<label>` explicite ou `aria-label` | "Rechercher un modèle" |
-| Tri select | `<label for="sort-select">Trier par</label>` | Label visible, pas placeholder |
-| Modal | `role="dialog"`, `aria-modal="true"`, `aria-labelledby` | Trap focus, Escape ferme |
-| Overlay modal | `aria-hidden="true"` (l'overlay lui-même) | Pas de contenu pour AT |
-| Skeleton | `aria-busy="true"` sur le container | Indique le chargement aux AT |
+| Élément | Exigence | Mise en oeuvre |
+|---------|----------|----------------|
+| Swatches | `role="radio"` + `aria-checked` + `aria-label="Nom tissu"` | Groupe `role="radiogroup"` avec label "Choisissez votre tissu" |
+| Swatch premium | Mention textuelle dans `aria-label` | `aria-label="Bleu nuit — tissu premium, +80 EUR"` |
+| Image rendu | `alt` descriptif dynamique | `"Rendu IA du canapé Milano en tissu Bleu nuit, vue 3/4"` |
+| Image fallback | `alt` + indication non-AI | `"Photo du canapé Milano — aperçu non disponible pour ce tissu"` |
+| Thumbnails angles | `aria-label` avec view_type | `"Vue de face"`, `"Vue de côté"` — aria-pressed si actif |
+| Prix dynamique | `aria-live="polite"` | Annonce le changement de prix sans interrompre la navigation |
+| Encart zoom texture | `alt` de l'image de référence | `"Texture du tissu Bleu nuit en gros plan"` |
+| CTA Shopify | Lien externe signalé | Texte "Commander sur Shopify" + `aria-label` avec modèle + tissu + prix total |
 
 ---
 
 ## Sources
 
-- Wireframe v4 `.planning/maquette/wireframe-page-unique.md` — autorité absolue (HIGH confidence)
-- `CHARTE-GRAPHIQUE.md` — autorité absolue pour le design (HIGH confidence)
-- Schema database `src/types/database.ts` — source de vérité pour les données disponibles (HIGH confidence)
-- API publique `src/app/api/models/route.ts` — contrat API confirmé (HIGH confidence)
-- PROJECT.md — requirements M008 validés (HIGH confidence)
-- NN/g: E-Commerce UX patterns — product listing pages (MEDIUM confidence)
-- Roche Bobois / Ligne Roset — analyse concurrentielle directe (MEDIUM confidence)
-- WCAG 2.1 AA — dialog pattern, focus management (HIGH confidence)
+- Wireframe v4 `.planning/maquette/wireframe-page-unique.md` — autorité absolue layout + dimensions (HIGH confidence)
+- Schema database `src/types/database.ts` — source de vérité données disponibles (HIGH confidence)
+- API `src/app/api/models/[slug]/visuals/route.ts` — contrat API confirmé (HIGH confidence)
+- `ConfiguratorModal.tsx` — implémentation existante, patterns à conserver (HIGH confidence)
+- PROJECT.md — requirements CONF-01/02/03/04 et contrainte prix premium (HIGH confidence)
+- Cylindo — Best practices furniture configurator (MEDIUM confidence, vérifié)
+- Baymard — Mobile swatch UX, 57% sites manquent swatches mobiles (MEDIUM confidence)
+- Smashing Magazine — Configurator UX patterns (preset, real-time feedback, price display) (MEDIUM confidence)
+- Analyse concurrentielle IKEA / Roche Bobois / Ligne Roset / France Canapé (MEDIUM confidence)
+- WCAG 2.1 AA — radiogroup pattern pour swatches, aria-live pour prix (HIGH confidence)
 
 ---
 
-*Feature research pour : Catalogue produits Möbel Unique — M008*
-*Researched: 2026-03-28*
+*Feature research pour : Configurateur Tissu Möbel Unique — M009*
+*Researched: 2026-03-29*

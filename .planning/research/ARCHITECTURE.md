@@ -1,8 +1,22 @@
-# Architecture Research — M008 Catalogue Produits
+# Architecture Research — v9.0 Configurateur Tissu
 
-**Domain:** SPA publique Next.js 16 App Router — ajout catalogue dynamique avec search, sort, modal
-**Researched:** 2026-03-28
-**Confidence:** HIGH (code source existant analysé directement + patterns Next.js 16 App Router)
+**Domain:** Intégration configurateur tissu dans modal existant — SPA Next.js 16 App Router
+**Researched:** 2026-03-29
+**Confidence:** HIGH (code source analysé directement, patterns établis dans le projet)
+
+---
+
+## Context: Ce qui existe déjà
+
+La frontière Server/Client est établie et fonctionnelle :
+
+- `CatalogueSection` (Server Component) : fetch Supabase `models + model_images`, passe `ModelWithImages[]` en props
+- `CatalogueClient` (Client Component) : state search + selectedModel + triggerRef, ouvre `ConfiguratorModal`
+- `ConfiguratorModal` : dialog natif, reçoit `model: ModelWithImages | null`, affiche placeholder
+
+**Ce que v9.0 doit remplacer :** le bloc `.placeholder` ("Configurateur à venir") dans `ConfiguratorModal.tsx` par le vrai contenu configurateur.
+
+**Ce que v9.0 ne touche pas :** `CatalogueSection`, `CatalogueClient`, `ProductCard`, la logique search/filter, le dialog natif, le scroll lock, les breakpoints.
 
 ---
 
@@ -10,50 +24,74 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│  page.tsx (Server Component — orchestrateur)                        │
-│  ┌───────────────┐ ┌───────────────┐ ┌────────────────────────────┐ │
-│  │  Header       │ │  Hero         │ │  HowItWorks                │ │
-│  │  (Client)     │ │  (Client)     │ │  (Client)                  │ │
-│  └───────────────┘ └───────────────┘ └────────────────────────────┘ │
-│  ┌─────────────────────────────────────────────────────────────────┐ │
-│  │  CatalogueSection (Server Component — fetch Supabase)           │ │
-│  │  ┌─────────────────────────────────────────────────────────┐   │ │
-│  │  │  CatalogueClient (Client Component — state local)       │   │ │
-│  │  │  ┌──────────────┐ ┌──────────────┐ ┌────────────────┐  │   │ │
-│  │  │  │ SearchBar    │ │ SortSelect   │ │ ProductGrid    │  │   │ │
-│  │  │  │ (Client)     │ │ (Client)     │ │ (Client)       │  │   │ │
-│  │  │  └──────────────┘ └──────────────┘ └───────┬────────┘  │   │ │
-│  │  │                                            │            │   │ │
-│  │  │                              ┌─────────────┴──────────┐ │   │ │
-│  │  │                              │  ProductCard (Client)  │ │   │ │
-│  │  │                              └────────────────────────┘ │   │ │
-│  │  └─────────────────────────────────────────────────────────┘   │ │
-│  └─────────────────────────────────────────────────────────────────┘ │
-│  ┌─────────────────────────────────────────────────────────────────┐ │
-│  │  ConfigurateurModal (Client — Radix Dialog)                     │ │
-│  └─────────────────────────────────────────────────────────────────┘ │
+│  CatalogueSection (Server Component)                                │
+│    fetch: models + model_images (inchangé)                          │
+│    + fetch: fabrics actifs (NOUVEAU — co-fetch server-side)         │
+│    + fetch: generated_visuals publiés (NOUVEAU — co-fetch)          │
+│                                                                     │
+│  ↓ props: models: ModelWithImages[]                                 │
+│  ↓ props: fabrics: Fabric[]                        (NOUVEAU)        │
+│  ↓ props: visuals: VisualWithFabric[]              (NOUVEAU)        │
+│                                                                     │
+│  CatalogueClient (Client Component — inchangé sauf forwarding)      │
+│    ↓ passe fabrics + visuals filtrés par model.id à ConfiguratorModal│
+│                                                                     │
+│  ConfiguratorModal (Client Component — MODIFIÉ)                     │
+│  ┌─────────────────────────────────────────────────────────────┐    │
+│  │  [col gauche 60%]          [col droite 40%]                 │    │
+│  │  RenduIA (image visuel     FabricSelector (swatches)        │    │
+│  │  ou placeholder si aucun   PriceDisplay (dynamique)         │    │
+│  │  tissu sélectionné)        ShopifyCTA (lien externe)        │    │
+│  │  AngleSelector             ←                                │    │
+│  └─────────────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────────┘
-                          │ fetch (server-side)
-                          ▼
+                    │
+                    ▼ Supabase (server-side, buildtime)
 ┌─────────────────────────────────────────────────────────────────────┐
-│  API Route : GET /api/models                                        │
-│  Supabase PostgreSQL — models + model_images + fabrics (actifs)     │
+│  Tables: models, model_images, fabrics, generated_visuals           │
+│  Buckets: fabric-swatches (public), generated-visuals (public)      │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
+## Decision Centrale : Fetch Server-Side vs Client-Side
+
+**Verdict : Fetch server-side dans CatalogueSection. Pas de nouvel API route public.**
+
+### Pourquoi server-side
+
+`CatalogueSection` est déjà un Server Component async qui appelle Supabase directement. Le pattern est établi. Étendre ce fetch à deux queries supplémentaires (`fabrics` + `generated_visuals`) coûte zéro roundtrip réseau supplémentaire — tout se passe côté serveur au moment du rendu initial.
+
+Un fetch client-side depuis `ConfiguratorModal` (avec `useEffect` + `fetch('/api/fabrics')`) créerait :
+
+1. Un waterfall : l'utilisateur ouvre le modal, voit un skeleton, attend le réseau
+2. Un état de chargement à gérer (loading, error, retry)
+3. Un double rendu initial inutile
+
+Les données de tissus et de visuels sont **stables au moment du rendu** — elles ne changent pas en temps réel pendant la session utilisateur. Un refresh de page suffit pour voir les nouvelles données publiées par l'admin.
+
+### Pourquoi pas l'API route `/api/models/[slug]/visuals` existante
+
+Cette route est conçue pour des consommateurs externes (mobile, Shopify embed). Elle fait deux requêtes séquentielles (d'abord chercher le model par slug, puis les visuals) et retourne un format enrichi qui n'est pas exactement ce dont le modal a besoin. L'appeler depuis le Server Component serait un aller-retour HTTP inutile — Supabase est accessible directement.
+
+### Contre-argument valide à connaître
+
+Si le catalogue comporte 50+ modèles avec chacun 10+ visuals, charger tous les visuals dès la page initiale alourdit le rendu. Pour v9.0 (catalogue limité à ~10 modèles, ~5 tissus, ~50 visuals max), ce n'est pas un problème. La migration vers un fetch client-side à l'ouverture du modal sera une optimisation différée documentée dans PITFALLS.md.
+
+---
+
 ## Component Responsibilities
 
-| Component | Responsabilité | Type | Fichier |
-|-----------|----------------|------|---------|
-| `CatalogueSection` | Fetch server-side des modèles, passe les données en props | Server Component | `components/public/Catalogue/CatalogueSection.tsx` |
-| `CatalogueClient` | State catalogue (query, sort, selectedProduct, modalOpen), filtre + tri | Client Component | `components/public/Catalogue/CatalogueClient.tsx` |
-| `SearchBar` | Input texte, émet la query vers CatalogueClient | Client Component | `components/public/Catalogue/SearchBar.tsx` |
-| `SortSelect` | Select natif (Radix-free), émet le critère de tri | Client Component | `components/public/Catalogue/SortSelect.tsx` |
-| `ProductGrid` | Layout grid responsive, itère sur les produits filtrés | Client Component | `components/public/Catalogue/ProductGrid.tsx` |
-| `ProductCard` | Affiche un canapé (image, nom, prix, swatches, CTA) | Client Component | `components/public/Catalogue/ProductCard.tsx` |
-| `ConfigurateurModal` | Radix Dialog, fullscreen mobile / 90vw desktop, placeholder v8 | Client Component | `components/public/Catalogue/ConfigurateurModal.tsx` |
+| Composant | Responsabilité | Type | Statut v9.0 |
+|-----------|----------------|------|-------------|
+| `CatalogueSection` | Fetch Supabase (models + images + fabrics + visuals), assemble les props | Server Component | MODIFIÉ |
+| `CatalogueClient` | State search/modal, forward fabrics+visuals à ConfiguratorModal | Client Component | MODIFIÉ (forwarding uniquement) |
+| `ConfiguratorModal` | Remplace le placeholder par le configurateur réel | Client Component | MODIFIÉ (contenu) |
+| `FabricSelector` | Affiche les swatches cliquables, émet `selectedFabric` | Client Component | CRÉÉ |
+| `RenduIA` | Affiche le visuel publié selon tissu + angle sélectionné, ou placeholder image si aucun visuel | Client Component | CRÉÉ |
+| `AngleSelector` | Miniatures d'angles cliquables (view_type: front, 3/4, side, back, detail) | Client Component | CRÉÉ |
+| `PriceDisplay` | Prix dynamique selon `is_premium` du tissu sélectionné | Client Component | CRÉÉ |
 
 ---
 
@@ -61,541 +99,410 @@
 
 ```
 src/
-  app/
-    page.tsx                        ← MODIFIE : ajoute CatalogueSection + section id="catalogue"
-    page.module.css                 ← inchangé
   components/
     public/
-      Header/                       ← inchangé
-      Hero/                         ← inchangé
-      HowItWorks/                   ← inchangé
-      Catalogue/                    ← NOUVEAU dossier
-        CatalogueSection.tsx        ← Server Component (fetch)
-        CatalogueSection.module.css ← styles section wrapper
-        CatalogueClient.tsx         ← Client Component (state)
-        CatalogueClient.module.css  ← styles toolbar (search + sort)
-        SearchBar.tsx               ← Client Component
-        SearchBar.module.css
-        SortSelect.tsx              ← Client Component
-        SortSelect.module.css
-        ProductGrid.tsx             ← Client Component
-        ProductGrid.module.css
-        ProductCard.tsx             ← Client Component
-        ProductCard.module.css
-        ConfigurateurModal.tsx      ← Client Component (Radix Dialog)
-        ConfigurateurModal.module.css
-  lib/
-    supabase/                       ← inchangé
-    ai/                             ← inchangé
-    schemas.ts                      ← inchangé
-    utils.ts                        ← inchangé
+      Catalogue/
+        CatalogueSection.tsx          ← MODIFIÉ : co-fetch fabrics + visuals
+        CatalogueSection.module.css   ← inchangé
+        CatalogueClient.tsx           ← MODIFIÉ : forwarding props fabrics/visuals
+        ConfiguratorModal.tsx         ← MODIFIÉ : remplace placeholder par contenu réel
+        ConfiguratorModal.module.css  ← MODIFIÉ : layout 2 colonnes desktop
+        FabricSelector.tsx            ← CRÉÉ : swatches rail
+        FabricSelector.module.css     ← CRÉÉ
+        RenduIA.tsx                   ← CRÉÉ : image visuel IA ou fallback
+        RenduIA.module.css            ← CRÉÉ
+        AngleSelector.tsx             ← CRÉÉ : miniatures angles
+        AngleSelector.module.css      ← CRÉÉ
+        PriceDisplay.tsx              ← CRÉÉ : prix avec supplément premium
+        PriceDisplay.module.css       ← CRÉÉ
+        ProductCard.tsx               ← inchangé
+        ProductCard.module.css        ← inchangé
+        ProductCardSkeleton.tsx       ← inchangé
+        ProductCardSkeleton.module.css ← inchangé
+  app/
+    api/
+      models/route.ts                 ← inchangé
+      models/[slug]/visuals/route.ts  ← inchangé (route externe non utilisée en interne)
+      (pas de nouvelle route API publique nécessaire)
   types/
-    database.ts                     ← inchangé — ModelWithImages déjà défini
+    database.ts                       ← inchangé — Fabric, GeneratedVisual, ModelWithImages déjà définis
+  lib/
+    utils.ts                          ← inchangé — calculatePrice(basePrice, isPremium) déjà disponible
 ```
 
-### Structure Rationale
+### Rationale
 
-- **Catalogue/ dossier unique** : tous les composants du catalogue vivent ensemble. Pas de sous-dossiers inutiles pour 7 composants liés.
-- **CatalogueSection séparé de CatalogueClient** : pattern Server/Client boundary explicite. Le Server Component fait le fetch, le Client Component gère le state. Ce split évite de mettre `'use client'` au niveau section et de perdre le rendu serveur.
-- **Pas de store Zustand pour M008** : le state catalogue (query, sort, selectedProduct, modalOpen) est local à CatalogueClient. Zustand sera justifié seulement en M009+ quand le configurateur et la simulation doivent partager le produit sélectionné entre des sections distantes.
+- **Pas de sous-dossiers Configurateur/** : 5-6 composants liés qui partagent déjà le dossier `Catalogue/`. Créer un sous-dossier n'apporte rien pour ce volume.
+- **PriceDisplay séparé** : isole la logique de prix dynamique (`calculatePrice` depuis `lib/utils.ts`). Testable indépendamment.
+- **FabricSelector séparé de RenduIA** : découplage clair — sélection du tissu vs affichage du résultat. L'état `selectedFabric` remonte à `ConfiguratorModal` qui l'injecte dans les deux.
 
 ---
 
 ## Architectural Patterns
 
-### Pattern 1 : Server/Client Boundary au niveau section
+### Pattern 1 : Co-fetch server-side dans CatalogueSection
 
-**What:** CatalogueSection est un Server Component qui fait le fetch Supabase et passe `models` en props à CatalogueClient (Client Component).
+**What:** Étendre le Server Component existant avec deux queries Supabase parallèles (fabrics actifs + visuals publiés). Résultat passé en props à CatalogueClient, puis forwardé à ConfiguratorModal.
 
-**When to use:** Quand une section a des données initiales serveur + state interactif client. C'est le pattern standard Next.js App Router pour les sections avec données.
+**When to use:** Données stables au moment du rendu, pas besoin de refetch en temps réel.
 
 **Trade-offs:**
-- Pro : fetch server-side, pas de waterfall client, pas de loading state initial
-- Pro : CatalogueClient peut être réduit au minimum de JavaScript
-- Con : les données sont figées au moment du rendu serveur (pas de refetch automatique)
-- Con : légèrement plus de fichiers qu'une approche tout-client
+- Pro : zéro waterfall, zéro loading state dans le modal
+- Pro : pas de nouveau fichier API, cohérent avec le pattern existant
+- Con : toutes les données sont chargées même si l'utilisateur n'ouvre aucun modal
+- Con : si visuals devient très volumineux (100+), considérer une stratégie lazy
 
 ```typescript
-// CatalogueSection.tsx — Server Component
-import { createClient } from '@/lib/supabase/server'
-import { CatalogueClient } from './CatalogueClient'
-import type { ModelWithImages } from '@/types/database'
-
+// CatalogueSection.tsx — modification minimale
 export async function CatalogueSection() {
   const supabase = await createClient()
-  const { data } = await supabase
-    .from('models')
-    .select('*, model_images(*)')
-    .eq('is_active', true)
-    .order('created_at', { ascending: false })
 
-  const models: ModelWithImages[] = (data ?? []).map((m) => ({
-    ...m,
-    model_images: (m.model_images ?? []).sort(
-      (a, b) => a.sort_order - b.sort_order
-    ),
-  }))
+  // Queries parallèles — pas de await séquentiel
+  const [modelsResult, fabricsResult, visualsResult] = await Promise.all([
+    supabase
+      .from('models')
+      .select('*, model_images(*)')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('fabrics')
+      .select('*')
+      .eq('is_active', true)
+      .order('name', { ascending: true }),
+    supabase
+      .from('generated_visuals')
+      .select('*, fabric:fabrics(*), model_image:model_images(*)')
+      .eq('is_validated', true)
+      .eq('is_published', true),
+  ])
 
+  // ... gestion erreurs + tri model_images
   return (
-    <section id="catalogue" className={styles.section}>
-      <div className={styles.container}>
-        <h2 className={styles.sectionTitle}>Collection Signature</h2>
-        <p className={styles.sectionSubtitle}>
-          Choisissez votre modèle et configurez-le dans le tissu de votre choix.
-        </p>
-        <CatalogueClient initialModels={models} />
-      </div>
-    </section>
-  )
-}
-```
-
-**Note :** Ne pas passer par `/api/models` depuis le Server Component — appeler Supabase directement avec `createClient()` serveur. Évite un aller-retour HTTP inutile. L'API route existe pour les clients publics externes, pas pour la consommation interne serveur.
-
-### Pattern 2 : State local dans CatalogueClient (sans Zustand)
-
-**What:** CatalogueClient gère `searchQuery`, `sortOrder`, `selectedProduct`, `modalOpen` avec `useState`. Le filtrage et le tri sont des opérations pures `useMemo` sur `initialModels`.
-
-**When to use:** State localisé à une seule section, pas partagé entre sections distantes.
-
-**Trade-offs:**
-- Pro : simple, zero dépendance externe, trivial à tester
-- Pro : pas d'overhead Zustand pour 4 champs de state
-- Con : si M009 a besoin de `selectedProduct`, il faudra le remonter (lift state up vers page.tsx ou migrer vers Zustand)
-
-```typescript
-// CatalogueClient.tsx — Client Component
-'use client'
-
-import { useState, useMemo } from 'react'
-import type { ModelWithImages } from '@/types/database'
-
-type SortOrder = 'newest' | 'price_asc' | 'price_desc'
-
-interface CatalogueClientProps {
-  initialModels: ModelWithImages[]
-}
-
-export function CatalogueClient({ initialModels }: CatalogueClientProps) {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [sortOrder, setSortOrder] = useState<SortOrder>('newest')
-  const [selectedProduct, setSelectedProduct] = useState<ModelWithImages | null>(null)
-  const [modalOpen, setModalOpen] = useState(false)
-
-  const filteredModels = useMemo(() => {
-    let result = [...initialModels]
-
-    // Filtre par nom (insensible à la casse, diacritiques normalisées)
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      result = result.filter((m) =>
-        m.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(q)
-      )
-    }
-
-    // Tri
-    switch (sortOrder) {
-      case 'price_asc':
-        result.sort((a, b) => a.price - b.price)
-        break
-      case 'price_desc':
-        result.sort((a, b) => b.price - a.price)
-        break
-      case 'newest':
-      default:
-        result.sort((a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        )
-    }
-
-    return result
-  }, [initialModels, searchQuery, sortOrder])
-
-  function handleConfigurer(model: ModelWithImages) {
-    setSelectedProduct(model)
-    setModalOpen(true)
-  }
-
-  return (
-    <>
-      <div className={styles.toolbar}>
-        <SearchBar value={searchQuery} onChange={setSearchQuery} />
-        <SortSelect value={sortOrder} onChange={setSortOrder} />
-      </div>
-      <ProductGrid models={filteredModels} onConfigurer={handleConfigurer} />
-      {selectedProduct && (
-        <ConfigurateurModal
-          open={modalOpen}
-          model={selectedProduct}
-          onClose={() => setModalOpen(false)}
-        />
-      )}
-    </>
-  )
-}
-```
-
-### Pattern 3 : Modal avec Radix UI Dialog
-
-**What:** ConfigurateurModal utilise `@radix-ui/react-dialog` (déjà installé, version 1.1.15). Le Dialog gère accessibilité, focus trap, Escape key, aria-modal nativement.
-
-**When to use:** Modal accessible sans recoder les comportements natifs. Radix Dialog est déjà une dépendance du projet.
-
-**Trade-offs:**
-- Pro : accessibilité complète out of the box (focus trap, Esc, aria)
-- Pro : déjà installé, pas de dépendance supplémentaire
-- Con : les styles Radix sont headless — tout CSS à écrire dans le module
-- Con : l'overlay Radix a un `z-index` à caler avec le header (z-index: 100)
-
-```typescript
-// ConfigurateurModal.tsx — Client Component
-'use client'
-
-import * as Dialog from '@radix-ui/react-dialog'
-import type { ModelWithImages } from '@/types/database'
-import styles from './ConfigurateurModal.module.css'
-
-interface ConfigurateurModalProps {
-  open: boolean
-  model: ModelWithImages
-  onClose: () => void
-}
-
-export function ConfigurateurModal({ open, model, onClose }: ConfigurateurModalProps) {
-  return (
-    <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
-      <Dialog.Portal>
-        <Dialog.Overlay className={styles.overlay} />
-        <Dialog.Content className={styles.content} aria-describedby={undefined}>
-          <Dialog.Title className={styles.title}>
-            Configurateur — {model.name}
-          </Dialog.Title>
-          <Dialog.Close asChild>
-            <button className={styles.closeBtn} aria-label="Fermer le configurateur">
-              ✕
-            </button>
-          </Dialog.Close>
-          <div className={styles.placeholder}>
-            <p>Configurateur à venir en v9.0</p>
-          </div>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
-  )
-}
-```
-
-CSS cible pour le modal :
-```css
-/* ConfigurateurModal.module.css */
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: var(--color-overlay);
-  z-index: 200;
-}
-
-.content {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 90vw;
-  max-width: var(--container-max);
-  max-height: 90vh;
-  overflow-y: auto;
-  background: var(--color-background);
-  border-radius: var(--radius-xl);
-  z-index: 201;
-  padding: var(--spacing-2xl);
-}
-
-@media (max-width: 640px) {
-  .content {
-    width: 100vw;
-    height: 100vh;
-    max-height: 100vh;
-    border-radius: 0;
-    top: 0;
-    left: 0;
-    transform: none;
-  }
-}
-```
-
-### Pattern 4 : next/image pour les ProductCards
-
-**What:** Utiliser `<Image>` de `next/image` avec `fill` + `sizes` pour les images produit. Les images viennent de Supabase Storage (URLs absolues).
-
-**When to use:** Toujours pour les images produit — optimisation automatique (WebP, lazy loading, LCP optimization).
-
-**Trade-offs:**
-- Pro : format WebP automatique, lazy loading natif, évite le CLS
-- Con : requiert `next.config.js` avec le domaine Supabase dans `images.remotePatterns`
-- Con : le container parent doit avoir `position: relative` et une hauteur explicite pour `fill`
-
-```typescript
-// ProductCard.tsx — extrait image
-import Image from 'next/image'
-
-const primaryImage = model.model_images[0]?.image_url
-
-{primaryImage ? (
-  <div className={styles.imageWrapper}>
-    <Image
-      src={primaryImage}
-      alt={model.name}
-      fill
-      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-      className={styles.image}
-      style={{ objectFit: 'cover' }}
+    <CatalogueClient
+      models={models}
+      fabrics={fabricsResult.data ?? []}
+      visuals={visualsResult.data ?? []}
     />
-  </div>
-) : (
-  <div className={styles.imagePlaceholder} aria-hidden="true" />
-)}
-```
-
-```css
-/* ProductCard.module.css */
-.imageWrapper {
-  position: relative;
-  aspect-ratio: 4 / 3;
-  width: 100%;
-  overflow: hidden;
-  background: var(--surface-container-low);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-}
-
-.image {
-  transition: transform var(--transition-smooth);
-}
-
-.card:hover .image {
-  transform: scale(1.03);
+  )
 }
 ```
 
-**Configuration requise** dans `next.config.js` ou `next.config.ts` :
+### Pattern 2 : Forwarding props sans Zustand
+
+**What:** `CatalogueClient` reçoit `fabrics` et `visuals` en props et les passe à `ConfiguratorModal`. Pas de store global.
+
+**When to use:** Les données de tissus et visuels sont en lecture seule dans le modal — aucun besoin de mutation partagée entre sections. Zustand sera justifié uniquement quand le configurateur doit communiquer avec la section Simulation (milestone ultérieur).
+
+**Trade-offs:**
+- Pro : zéro abstraction supplémentaire, props explicites, trivial à tracer
+- Con : prop drilling un niveau (CatalogueSection → CatalogueClient → ConfiguratorModal) — acceptable pour 3 niveaux
 
 ```typescript
-// next.config.ts
-const nextConfig = {
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '*.supabase.co',
-        pathname: '/storage/v1/object/public/**',
-      },
-    ],
-  },
+// CatalogueClient.tsx — ajout minimal
+interface CatalogueClientProps {
+  models: ModelWithImages[]
+  fabrics: Fabric[]                    // NOUVEAU
+  visuals: VisualWithFabricAndImage[]  // NOUVEAU
 }
+
+// Dans le JSX :
+<ConfiguratorModal
+  model={selectedModel}
+  onClose={handleModalClose}
+  fabrics={fabrics}          // NOUVEAU
+  visuals={visuals.filter(v => v.model_id === selectedModel?.id)}  // filtre par modèle
+/>
+```
+
+### Pattern 3 : State local dans ConfiguratorModal
+
+**What:** `selectedFabric` et `selectedAngle` sont des états locaux à `ConfiguratorModal` via `useState`. Réinitialisés à chaque ouverture du modal (via `useEffect` sur `model`).
+
+**When to use:** État purement UI du configurateur, pas partagé avec l'extérieur du modal.
+
+**Trade-offs:**
+- Pro : simple, pas de fuite d'état entre deux ouvertures de modal
+- Pro : cohérent avec le pattern existant (selectedModel est dans CatalogueClient)
+- Con : si le sticky bar mobile (milestone ultérieur) doit afficher le tissu sélectionné, il faudra remonter l'état
+
+```typescript
+// ConfiguratorModal.tsx
+const [selectedFabricId, setSelectedFabricId] = useState<string | null>(null)
+const [selectedAngle, setSelectedAngle] = useState<string>('3/4')
+
+// Reset à chaque changement de modèle
+useEffect(() => {
+  setSelectedFabricId(null)
+  setSelectedAngle('3/4')
+}, [model?.id])
+
+// Visuel actif : croisement model_image (par view_type) + fabric sélectionné
+const activeVisual = useMemo(() => {
+  if (!selectedFabricId || !model) return null
+  return visuals.find(
+    v => v.fabric_id === selectedFabricId &&
+         v.model_image?.view_type === selectedAngle
+  ) ?? null
+}, [visuals, selectedFabricId, selectedAngle])
+```
+
+### Pattern 4 : Tissu sélectionné → prix dynamique via calculatePrice
+
+**What:** Utiliser `calculatePrice(model.price, fabric.is_premium)` depuis `src/lib/utils.ts` (déjà écrit et testé). Le supplément premium est 80 € fixe.
+
+**When to use:** Toujours — la logique métier prix est centralisée dans utils.ts, ne pas la dupliquer dans le composant.
+
+```typescript
+// PriceDisplay.tsx
+import { calculatePrice, formatPrice } from '@/lib/utils'
+
+const total = selectedFabric
+  ? calculatePrice(model.price, selectedFabric.is_premium)
+  : model.price
+
+const label = selectedFabric?.is_premium
+  ? `${formatPrice(total)} (dont +80 € supplement premium)`
+  : formatPrice(total)
 ```
 
 ---
 
 ## Data Flow
 
-### Request Flow — Chargement initial
+### Flux initial — chargement de la page
 
 ```
 Navigateur demande /
     ↓
-page.tsx (Server Component) render
+CatalogueSection (Server Component)
+    ↓ Promise.all — 3 queries Supabase parallèles
+    ├─ models + model_images WHERE is_active = true
+    ├─ fabrics WHERE is_active = true
+    └─ generated_visuals + fabric + model_image
+           WHERE is_validated = true AND is_published = true
     ↓
-CatalogueSection (Server Component) render
+HTML initial avec données embarquées (pas de fetch client initial)
     ↓
-createClient() Supabase server → SELECT models + model_images WHERE is_active = true
-    ↓
-ModelWithImages[] passé en props à CatalogueClient
-    ↓
-HTML initial envoyé au navigateur (données embarquées, pas de fetch client)
-    ↓
-Hydratation : CatalogueClient becomes interactive (useState, useMemo actifs)
+Hydratation React — CatalogueClient devient interactif
 ```
 
-### Request Flow — Interaction utilisateur
+### Flux ouverture configurateur
 
 ```
-User tape dans SearchBar
+User clique "Configurer ce modèle" (ProductCard)
     ↓
-setSearchQuery(value) → re-render CatalogueClient
+CatalogueClient.handleConfigure(model)
+    → setSelectedModel(model)
     ↓
-useMemo recalcule filteredModels (synchrone, pas d'API call)
+ConfiguratorModal render avec:
+    model = ModelWithImages (le canapé)
+    fabrics = Fabric[] (tous les tissus actifs — filtrés côté CatalogueClient non nécessaire,
+                        filtrage par "a au moins un visual publié pour ce modèle" est optionnel)
+    visuals = VisualWithFabricAndImage[] (filtrés par model.id dans CatalogueClient)
     ↓
-ProductGrid re-render avec filteredModels filtrés
-
-User clique "Configurer ce modèle"
-    ↓
-handleConfigurer(model) → setSelectedProduct + setModalOpen(true)
-    ↓
-ConfigurateurModal render avec open=true
-    ↓
-Radix Dialog.Portal insère le DOM modal dans body
-    ↓
-Focus trap activé, Escape key gérée par Radix
-
-User ferme le modal (Esc ou bouton X)
-    ↓
-onOpenChange(false) → onClose() → setModalOpen(false)
-    ↓
-ConfigurateurModal render avec open=false
-    ↓
-Radix retire le DOM du portal
+ConfiguratorModal affiche:
+    - Image principale (model_images view_type '3/4' — identique à avant)
+    - FabricSelector avec fabrics []
+    - RenduIA avec activeVisual = null (aucun tissu sélectionné → placeholder)
+    - PriceDisplay avec model.price (tissu non sélectionné)
+    - ShopifyCTA désactivé ou masqué (pas de tissu → pas d'achat direct)
 ```
 
-### State Management
+### Flux sélection tissu
 
 ```
-CatalogueClient (état local)
-  searchQuery: string         ← SearchBar contrôlé
-  sortOrder: SortOrder        ← SortSelect contrôlé
-  selectedProduct: Model|null ← ProductCard CTA
-  modalOpen: boolean          ← contrôle ConfigurateurModal
-
-  filteredModels (useMemo)    ← dérivé de initialModels + searchQuery + sortOrder
+User clique un swatch (FabricSelector)
+    ↓
+setSelectedFabricId(fabric.id) dans ConfiguratorModal
+    ↓
+useMemo recalcule activeVisual
+    → cherche generated_visuals WHERE fabric_id = selectedFabricId
+                                  AND model_image.view_type = selectedAngle
+    ↓
+RenduIA re-render :
+    si activeVisual trouvé → affiche generated_image_url (next/image)
+    si aucun visual pour cet angle → affiche image originale du modèle (fallback gracieux)
+    ↓
+PriceDisplay re-render :
+    calculatePrice(model.price, selectedFabric.is_premium)
+    ↓
+ShopifyCTA re-render :
+    href = model.shopify_url (existant dans la table models)
+    texte = "Commander sur Shopify" (actif car tissu sélectionné)
 ```
 
-**Pas de Zustand pour M008.** Zustand sera introduit en M009 quand le configurateur (section distante dans le DOM) devra accéder au `selectedProduct`. À ce moment, `useCatalogueStore` avec `{ selectedProduct, setSelectedProduct, modalOpen, setModalOpen }` remplacera le state local.
+### Flux changement d'angle
+
+```
+User clique miniature angle (AngleSelector)
+    ↓
+setSelectedAngle(view_type) dans ConfiguratorModal
+    ↓
+useMemo recalcule activeVisual (même fabric_id, nouveau view_type)
+    ↓
+RenduIA re-render avec nouveau visuel ou fallback si pas de visual pour cet angle
+```
+
+### Schéma de données — types TypeScript utilisés
+
+```
+ModelWithImages (existant)
+  model.id           → clé pour filtrer les visuals
+  model.price        → base du calcul prix
+  model.shopify_url  → href du CTA Shopify
+  model.model_images → AngleSelector (thumbnails) + RenduIA (fallback)
+
+Fabric (existant)
+  fabric.id          → selectedFabricId
+  fabric.name        → label swatch
+  fabric.swatch_url  → miniature swatch (next/image)
+  fabric.is_premium  → calcul prix (+80 €)
+  fabric.category    → optionnel : groupement swatches
+
+GeneratedVisual + fabric: Fabric + model_image: ModelImage (existant : VisualWithFabricAndImage)
+  visual.generated_image_url  → RenduIA (next/image)
+  visual.fabric_id            → croisement avec selectedFabricId
+  visual.model_image.view_type → croisement avec selectedAngle
+```
 
 ---
 
-## Integration Points — Nouveau vs Modifié
+## Integration Points — Nouveau vs Modifié vs Inchangé
 
 ### Fichiers MODIFIÉS
 
 | Fichier | Modification | Raison |
 |---------|-------------|--------|
-| `src/app/page.tsx` | Ajouter `<CatalogueSection />` après `<HowItWorks />` | Orchestre la nouvelle section |
-| `src/next.config.ts` | Ajouter `images.remotePatterns` pour Supabase Storage | next/image avec images Supabase |
+| `src/components/public/Catalogue/CatalogueSection.tsx` | Ajouter 2 queries Promise.all (fabrics + visuals), passer en props | Co-fetch server-side |
+| `src/components/public/Catalogue/CatalogueClient.tsx` | Recevoir + forward fabrics/visuals en props, filtrer visuals par model.id | Forwarding minimal |
+| `src/components/public/Catalogue/ConfiguratorModal.tsx` | Remplacer bloc `.placeholder` par FabricSelector + RenduIA + PriceDisplay + ShopifyCTA | Contenu réel |
+| `src/components/public/Catalogue/ConfiguratorModal.module.css` | Ajuster layout `.body` pour accueillir les nouveaux composants | Mise en page configurateur |
 
-### Fichiers CRÉÉS (nouveaux)
+### Fichiers CRÉÉS
 
 | Fichier | Type | Rôle |
 |---------|------|------|
-| `src/components/public/Catalogue/CatalogueSection.tsx` | Server Component | Fetch Supabase + wrapper section |
-| `src/components/public/Catalogue/CatalogueSection.module.css` | CSS Module | Layout section, titre |
-| `src/components/public/Catalogue/CatalogueClient.tsx` | Client Component | State (search, sort, modal) |
-| `src/components/public/Catalogue/CatalogueClient.module.css` | CSS Module | Toolbar (search + sort) |
-| `src/components/public/Catalogue/SearchBar.tsx` | Client Component | Input texte filtrage |
-| `src/components/public/Catalogue/SearchBar.module.css` | CSS Module | Styles input |
-| `src/components/public/Catalogue/SortSelect.tsx` | Client Component | Select tri (3 options) |
-| `src/components/public/Catalogue/SortSelect.module.css` | CSS Module | Styles select |
-| `src/components/public/Catalogue/ProductGrid.tsx` | Client Component | Grid CSS responsive |
-| `src/components/public/Catalogue/ProductGrid.module.css` | CSS Module | Grid 1/2/3 col |
-| `src/components/public/Catalogue/ProductCard.tsx` | Client Component | Card produit (image, prix, swatches, CTA) |
-| `src/components/public/Catalogue/ProductCard.module.css` | CSS Module | Styles card |
-| `src/components/public/Catalogue/ConfigurateurModal.tsx` | Client Component | Radix Dialog placeholder |
-| `src/components/public/Catalogue/ConfigurateurModal.module.css` | CSS Module | Overlay + content modal |
+| `src/components/public/Catalogue/FabricSelector.tsx` | Client Component | Rail de swatches cliquables, état actif visuel |
+| `src/components/public/Catalogue/FabricSelector.module.css` | CSS Module | Grille swatches, état selected, badge premium |
+| `src/components/public/Catalogue/RenduIA.tsx` | Client Component | Image visuel IA (next/image) ou fallback gracieux |
+| `src/components/public/Catalogue/RenduIA.module.css` | CSS Module | Wrapper image, badge "Rendu IA", état loading |
+| `src/components/public/Catalogue/AngleSelector.tsx` | Client Component | Miniatures d'angles cliquables |
+| `src/components/public/Catalogue/AngleSelector.module.css` | CSS Module | Rail horizontal, état actif |
+| `src/components/public/Catalogue/PriceDisplay.tsx` | Client Component | Prix formaté avec supplément premium |
+| `src/components/public/Catalogue/PriceDisplay.module.css` | CSS Module | Layout prix + badge premium |
 
 ### Fichiers INCHANGÉS
 
 | Fichier | Raison |
 |---------|--------|
-| `src/app/api/models/route.ts` | API existante — pas de modification nécessaire |
-| `src/types/database.ts` | `ModelWithImages` déjà défini |
-| `src/lib/supabase/server.ts` | Client serveur réutilisé tel quel |
-| `src/components/public/Header/Header.tsx` | Inchangé |
-| `src/components/public/Hero/Hero.tsx` | Inchangé |
-| `src/components/public/HowItWorks/HowItWorks.tsx` | Inchangé |
-| `src/components/admin/**` | Espace admin isolé, pas touché |
-| `src/proxy.ts` | Middleware inchangé — `/` est publique |
-| `src/app/globals.css` | Tokens déjà complets, aucun ajout nécessaire |
+| `src/app/api/models/route.ts` | Route externe — pas touchée |
+| `src/app/api/models/[slug]/visuals/route.ts` | Route externe — pas consommée en interne |
+| `src/types/database.ts` | Fabric, GeneratedVisual, ModelWithImages déjà définis |
+| `src/lib/utils.ts` | `calculatePrice` + `formatPrice` déjà disponibles |
+| `src/components/public/Catalogue/ProductCard.tsx` | Inchangé |
+| `src/components/public/Catalogue/ProductCardSkeleton.tsx` | Inchangé |
+| `src/components/public/Catalogue/CatalogueSection.module.css` | Inchangé |
+| `src/app/globals.css` | Tokens suffisants |
+| Tous les composants admin | Espace isolé |
 
 ---
 
-## Build Order (ordre de construction recommandé)
+## Build Order
 
-L'ordre suit les dépendances : les feuilles (composants sans enfants) avant les conteneurs.
+L'ordre suit les dépendances feuille → conteneur.
 
-1. **`next.config.ts`** — Ajouter `images.remotePatterns`. Blocker pour toute image Supabase dans next/image. [MODIFIE `next.config.ts`]
+1. **Types** — Vérifier que `VisualWithFabricAndImage` (ou équivalent avec `model_image`) est défini dans `types/database.ts`. La query Supabase retourne `generated_visuals + fabric:fabrics(*) + model_image:model_images(*)`. Si le type enrichi n'existe pas, l'ajouter. [MODIFIE `types/database.ts` — ajout minimal si nécessaire]
 
-2. **`ProductCard`** — Composant feuille. Dépend uniquement des types `ModelWithImages` (déjà définis) et de next/image (déjà installé). [CRÉE `Catalogue/ProductCard.tsx` + `.module.css`]
+2. **PriceDisplay** — Composant feuille, dépend uniquement de `Fabric` (type) et `calculatePrice`/`formatPrice` (utils). Aucune dépendance interne. [CRÉE `PriceDisplay.tsx` + `.module.css`]
 
-3. **`ProductGrid`** — Dépend de `ProductCard`. Layout grid + itération. [CRÉE `Catalogue/ProductGrid.tsx` + `.module.css`]
+3. **FabricSelector** — Composant feuille, reçoit `fabrics: Fabric[]`, `selectedId: string | null`, `onSelect: (id: string) => void`. Dépend de `next/image` pour les swatches. [CRÉE `FabricSelector.tsx` + `.module.css`]
 
-4. **`SearchBar`** — Composant feuille, aucune dépendance interne. [CRÉE `Catalogue/SearchBar.tsx` + `.module.css`]
+4. **AngleSelector** — Composant feuille, reçoit `angles: string[]`, `selectedAngle: string`, `onSelect: (angle: string) => void`. Sans images (juste labels ou thumbnails des model_images). [CRÉE `AngleSelector.tsx` + `.module.css`]
 
-5. **`SortSelect`** — Composant feuille, aucune dépendance interne. [CRÉE `Catalogue/SortSelect.tsx` + `.module.css`]
+5. **RenduIA** — Composant feuille, reçoit `visual: GeneratedVisual | null`, `fallbackUrl: string | null`, `alt: string`. Affiche le rendu IA ou l'image originale. Dépend de `next/image`. [CRÉE `RenduIA.tsx` + `.module.css`]
 
-6. **`ConfigurateurModal`** — Dépend de `@radix-ui/react-dialog` (installé). Composant feuille du point de vue du catalogue. [CRÉE `Catalogue/ConfigurateurModal.tsx` + `.module.css`]
+6. **ConfiguratorModal** — Assemble FabricSelector + AngleSelector + RenduIA + PriceDisplay. Porte `selectedFabricId` + `selectedAngle` en state local. Remplace le bloc `.placeholder`. [MODIFIE `ConfiguratorModal.tsx` + `.module.css`]
 
-7. **`CatalogueClient`** — Assemble SearchBar + SortSelect + ProductGrid + ConfigurateurModal. Porte le state local. [CRÉE `Catalogue/CatalogueClient.tsx` + `.module.css`]
+7. **CatalogueClient** — Recevoir les nouvelles props `fabrics` + `visuals`, les forwarder à ConfiguratorModal avec le filtre `model_id`. [MODIFIE `CatalogueClient.tsx`]
 
-8. **`CatalogueSection`** — Appelle Supabase server + rend CatalogueClient. [CRÉE `Catalogue/CatalogueSection.tsx` + `.module.css`]
-
-9. **`page.tsx`** — Ajouter `<CatalogueSection />` après `<HowItWorks />`. Ajout minimal, pas de remplacement complet. [MODIFIE `src/app/page.tsx`]
+8. **CatalogueSection** — Ajouter `Promise.all` avec les deux nouvelles queries. Passer `fabrics` + `visuals` en props à CatalogueClient. [MODIFIE `CatalogueSection.tsx`]
 
 ---
 
 ## Anti-Patterns
 
-### Anti-Pattern 1 : Fetch côté client dans CatalogueClient
+### Anti-Pattern 1 : Fetch client-side à l'ouverture du modal
 
-**What people do:** Mettre `'use client'` sur CatalogueSection, appeler `fetch('/api/models')` dans un `useEffect`, gérer loading/error states.
+**What people do:** `useEffect(() => { fetch('/api/fabrics').then(...) }, [model])` dans ConfiguratorModal.
 
-**Why it's wrong:** Ajoute un waterfall (HTML livré vide, puis fetch, puis render), un état de loading à gérer, et un skeleton à coder. L'API route existe pour les consommateurs externes — pas pour la consommation interne.
+**Why it's wrong:** Crée un waterfall perceptible par l'utilisateur — le modal s'ouvre vide, puis les swatches apparaissent après 200-500ms. Nécessite un skeleton, un état d'erreur, une logique de retry. Toute cette complexité est évitable.
 
-**Do this instead:** Server Component qui appelle Supabase directement, passe les données en props. Zéro waterfall, zéro loading state initial.
+**Do this instead:** Co-fetch server-side dans CatalogueSection, données disponibles instantanément à l'ouverture du modal.
 
-### Anti-Pattern 2 : 'use client' sur CatalogueSection
+### Anti-Pattern 2 : Créer une nouvelle route API publique /api/fabrics
 
-**What people do:** Mettre toute la section en Client Component pour simplifier.
+**What people do:** `GET /api/fabrics` publique pour que le Client Component fetch les tissus.
 
-**Why it's wrong:** Tout le fetch se fait côté client, le HTML initial ne contient pas les données, LCP dégradé.
+**Why it's wrong:** Ajoute une indirection inutile. CatalogueSection est déjà un Server Component avec accès direct Supabase. Une API route pour consommation interne par un Server Component est un anti-pattern Next.js documenté.
 
-**Do this instead:** Split explicite — CatalogueSection (Server) → CatalogueClient (Client). La boundary est une prop `initialModels: ModelWithImages[]`.
+**Do this instead:** Query Supabase directe depuis CatalogueSection avec `createClient()` serveur.
 
-### Anti-Pattern 3 : Zustand dès M008
+### Anti-Pattern 3 : Filtrer les visuals par model_id dans CatalogueSection
 
-**What people do:** Créer `useCatalogueStore` pour gérer query + sort + selectedProduct.
+**What people do:** Pour chaque modèle, ne passer que ses propres visuals en props.
 
-**Why it's wrong:** Overkill pour un state qui ne sort pas de CatalogueClient. Zustand ajoute une dépendance runtime et une complexité inutile quand `useState` suffit.
+**Why it's wrong:** Oblige à restructurer les visuals en dictionnaire par model_id côté serveur, complique le type des props, et de toute façon CatalogueClient doit quand même filtrer dynamiquement quand `selectedModel` change.
 
-**Do this instead:** State local dans CatalogueClient. Migrer vers Zustand en M009 si le configurateur (section séparée) doit consommer `selectedProduct`.
+**Do this instead:** Passer tous les visuals publiés à CatalogueClient, filtrer par `model_id === selectedModel.id` au moment du forwarding à ConfiguratorModal (une ligne de code).
 
-### Anti-Pattern 4 : URL searchParams pour le state catalogue
+### Anti-Pattern 4 : Zustand pour selectedFabricId
 
-**What people do:** Synchroniser search + sort dans `?q=&sort=` via `useSearchParams` + `router.push`.
+**What people do:** Créer un store Zustand `useConfiguratorStore` avec `selectedFabricId`, `selectedAngle`, etc.
 
-**Why it's wrong:** Chaque keystroke déclenche une navigation, ce qui recrée le Server Component et re-fetche. Pour M008, la recherche est purement client-side sur les données initiales — pas besoin de persister dans l'URL.
+**Why it's wrong:** Overkill pour un état confiné à ConfiguratorModal. Zustand sera justifié en v10.0 (simulation salon) quand le tissu sélectionné doit être lu depuis une section distante dans le DOM.
 
-**Do this instead:** State local React. Si le besoin de partage de lien apparaît (deep link vers un filtre), envisager `useSearchParams` en M011+.
+**Do this instead:** `useState` local à ConfiguratorModal. Migration documentée pour v10.0.
 
-### Anti-Pattern 5 : `<img>` natif au lieu de next/image
+### Anti-Pattern 5 : Afficher tous les swatches comme cliquables même sans visual publié
 
-**What people do:** `<img src={model.model_images[0]?.image_url} />` pour éviter la config.
+**What people do:** Afficher tous les tissus actifs avec la même apparence visuelle.
 
-**Why it's wrong:** Pas d'optimisation WebP, pas de lazy loading Next.js, pas de LCP optimization, CLS potentiel sans dimensions explicites.
+**Why it's wrong:** L'utilisateur clique un tissu, aucun rendu ne s'affiche — frustration. Il ne sait pas si c'est un bug ou une absence volontaire.
 
-**Do this instead:** next/image avec `fill` + `sizes` + container `position: relative`.
+**Do this instead:** Identifier quels tissus ont au moins un visual publié pour ce modèle. Les autres tissus : apparence `opacity: 0.4` + curseur `not-allowed` + tooltip "Rendu non disponible". Cette logique est un `Set` calculé à partir des visuals reçus — aucun appel réseau supplémentaire.
 
 ---
 
 ## Scaling Considerations
 
-| Scale | Approach |
-|-------|----------|
-| 1-20 produits (état actuel) | fetch all + filter client-side — aucun problème |
-| 20-100 produits | fetch all reste viable ; envisager pagination côté client si >50 produits visible simultanément |
-| 100+ produits | Migrer vers server-side filtering : URL searchParams + revalidation, ou API route avec pagination |
+| Échelle | Approche |
+|---------|----------|
+| Actuel : ~5 modèles, ~6 tissus, ~30 visuals | Co-fetch tout en server-side — aucun problème |
+| 20 modèles, 15 tissus, ~300 visuals | Toujours viable en server-side ; `Promise.all` retourne rapidement |
+| 50+ modèles, 30+ tissus, 1500+ visuals | Migrer vers fetch client-side à l'ouverture du modal : `GET /api/models/[id]/configurator` qui retourne fabrics + visuals pour un modèle spécifique |
 
-**First bottleneck :** Le filtre `useMemo` client-side sur 20-30 modèles JSON est negligeable. Le vrai bottleneck sera le nombre d'images chargées simultanément. `next/image` avec `loading="lazy"` (par défaut sauf `priority`) et `sizes` correct gère cela naturellement.
+**Premier bottleneck :** Non pas le volume de données JSON (quelques Ko), mais le nombre d'images `generated_image_url` chargées. `next/image` avec `loading="lazy"` gère cela — les visuals hors-viewport ne sont pas téléchargés.
 
 ---
 
 ## Sources
 
-- Code source analysé directement : `src/app/page.tsx`, `src/app/api/models/route.ts`, `src/types/database.ts`, `src/components/public/Header/Header.tsx`, `src/components/admin/ConfirmDialog.tsx`, `src/lib/supabase/client.ts`, `src/lib/supabase/server.ts`, `package.json`
-- Wireframe : `.planning/maquette/wireframe-page-unique.md` (section 4 — Catalogue)
-- Design tokens : `src/app/globals.css`
-- [Next.js App Router — Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components) (HIGH confidence)
-- [next/image — Remote Patterns](https://nextjs.org/docs/app/api-reference/components/image#remotepatterns) (HIGH confidence)
-- [@radix-ui/react-dialog — déjà installé v1.1.15](https://www.radix-ui.com/primitives/docs/components/dialog) (HIGH confidence)
-- Zustand v5.0.12 installé — patron state local préféré avant Zustand pour state non-partagé (MEDIUM confidence)
+- Code source analysé directement :
+  - `src/components/public/Catalogue/CatalogueSection.tsx`
+  - `src/components/public/Catalogue/CatalogueClient.tsx`
+  - `src/components/public/Catalogue/ConfiguratorModal.tsx`
+  - `src/components/public/Catalogue/ConfiguratorModal.module.css`
+  - `src/app/api/models/[slug]/visuals/route.ts`
+  - `src/app/api/admin/fabrics/route.ts`
+  - `src/types/database.ts`
+  - `src/lib/utils.ts`
+  - `src/lib/schemas.ts`
+- Wireframe : `.planning/maquette/wireframe-page-unique.md` (section 5 — Configurateur)
+- Requirements actifs : `.planning/PROJECT.md` (CONF-01, CONF-02, CONF-03, CONF-04)
+- [Next.js — Do not call Route Handlers from Server Components](https://nextjs.org/docs/app/building-your-application/routing/route-handlers#good-to-know) (HIGH confidence)
+- Pattern `calculatePrice` : `src/lib/utils.ts` ligne 16 (HIGH confidence — code existant)
 
 ---
 
-*Architecture research pour : M008 Catalogue Produits*
-*Researched: 2026-03-28*
+*Architecture research pour : v9.0 Configurateur Tissu*
+*Researched: 2026-03-29*

@@ -1,429 +1,555 @@
-# Pitfalls Research — v8.0 Catalogue Produits
+# Pitfalls Research — v9.0 Configurateur Tissu
 
-**Domain:** Next.js 16 App Router — Catalogue dynamique (search, sort, product grid, modal configurateur)
-**Researched:** 2026-03-28
-**Confidence:** HIGH (sources officielles Next.js + MDN + documentation Supabase verifiees)
+**Domain:** Configurateur tissu dans modal dialog natif — swatches, visuels IA, prix dynamique
+**Researched:** 2026-03-29
+**Confidence:** HIGH (analyse directe du code existant + patterns établis dans le projet)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1 : `useSearchParams` sans Suspense boundary — build cassé en production
+### Pitfall 1 : Pas d'API publique fabrics — appel admin par erreur ou fetch interdit
 
 **What goes wrong:**
-Le hook `useSearchParams()` utilise pour lire ou mettre a jour les parametres de recherche/tri dans l'URL necessite une `<Suspense>` boundary en Next.js App Router. Sans elle, le build de production echoue avec l'erreur `Missing Suspense boundary with useSearchParams` — ou pire, l'ensemble de la page bascule en rendu client pur (CSR bailout), supprimant tout benefice SSR.
+Il n'existe pas de route `/api/fabrics` publique dans le projet. La seule route disponible est `/api/admin/fabrics` qui requiert `requireAdmin()`. Si le composant ConfiguratorModal tente de fetcher les tissus via un fetch côté client vers cette route, il reçoit une 401 et affiche un configurateur vide sans explication claire.
 
 **Why it happens:**
-En phase de build statique, l'URL n'existe pas encore — les search params sont des donnees dynamiques du client. Next.js ne peut pas prerendre un composant qui depend de valeurs inconnues a la compilation sans un mecanisme d'isolation. La Suspense boundary est ce mecanisme : elle permet de prerendre le shell statique et de charger les donnees dynamiques apres hydratation.
-
-Pour ce projet, le filtre de recherche par nom et le tri seront probablement geres en memoire cote client (sans URL params) — mais si on choisit la route URL params pour la persistance, le pieges 'useSearchParams sans Suspense' est garantie de casser le build.
+Le développeur suppose par analogie avec les modèles (`/api/models`) qu'il existe une route publique parallèle pour les tissus. Ce n'est pas le cas : les modèles ont une route publique parce que le catalogue les affiche ; les tissus n'en ont jamais eu besoin avant la v9.0.
 
 **How to avoid:**
-Deux approches valides selon le besoin :
+Deux options, chacune avec un pattern précis à suivre :
 
-Option A — State client pur (recommandee pour ce projet) : Gerer la recherche et le tri avec `useState` dans un Client Component. Pas d'URL params, pas de Suspense requis. Adapte car le catalogue est une section d'une SPA sans navigation independante.
-
-```typescript
-'use client'
-// CatalogueSection.tsx — Client Component
-const [search, setSearch] = useState('')
-const [sort, setSort] = useState<'price_asc' | 'price_desc' | 'newest'>('newest')
-```
-
-Option B — URL params avec Suspense obligatoire :
+Option A — Fetch Supabase direct dans un Server Component (recommandée, cohérente avec `CatalogueSection`) :
+Créer un wrapper Server Component autour du modal qui fetch les tissus actifs avant d'ouvrir. Passer les tissus comme props au composant client.
 
 ```typescript
-// page.tsx (Server Component)
-<Suspense fallback={<CatalogueSkeleton />}>
-  <CatalogueClient />  {/* Client Component avec useSearchParams */}
-</Suspense>
-```
+// FabricLoader.tsx (Server Component)
+import { createClient } from '@/lib/supabase/server'
+import type { Fabric } from '@/types/database'
 
-**Warning signs:**
-Erreur de build `useSearchParams() should be wrapped in a suspense boundary` ou page blanche en production uniquement.
-
-**Phase to address:**
-Phase catalogue (CAT-01 a CAT-03) — decision architecturale a prendre avant d'ecrire le premier composant.
-
----
-
-### Pitfall 2 : `next/image` avec URLs Supabase — `next.config.ts` vide bloque toutes les images
-
-**What goes wrong:**
-Le fichier `next.config.ts` est actuellement vide (`const nextConfig: NextConfig = {}`). Les images des produits (`model_images`) et des swatches tissu (`fabrics.swatch_url`) sont stockees dans Supabase Storage — leurs URLs ressemblent a `https://<ref>.supabase.co/storage/v1/object/public/model-photos/...`. Si on utilise `<Image>` de `next/image` avec ces URLs sans configurer `remotePatterns`, Next.js renvoie une erreur `Un-configured Host` et refuse d'optimiser l'image.
-
-**Why it happens:**
-Par securite, Next.js bloque toutes les sources d'images externes non declarees explicitement. Cette protection evite que des acteurs malveillants forcent le serveur d'optimisation d'images a traiter des URLs arbitraires.
-
-**How to avoid:**
-Configurer `remotePatterns` dans `next.config.ts` AVANT de creer le premier composant qui affiche une image Supabase :
-
-```typescript
-// next.config.ts
-import type { NextConfig } from 'next'
-
-const nextConfig: NextConfig = {
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '*.supabase.co',
-        pathname: '/storage/v1/object/public/**',
-      },
-    ],
-  },
+export async function fetchActiveFabrics(): Promise<Fabric[]> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('fabrics')
+    .select('id, name, slug, swatch_url, is_premium, is_active')
+    .eq('is_active', true)
+    .order('name')
+  return data ?? []
 }
-
-export default nextConfig
 ```
 
-La valeur `*.supabase.co` couvre tous les projets Supabase (wildcard sur le sous-domaine). Le pathname `/storage/v1/object/public/**` restreint aux buckets publics uniquement — ne pas utiliser `/**` sans restriction de path.
-
-Ajouter aussi `unoptimized: false` (default) est inutile, mais si les URLs Supabase retournent des erreurs 400 lors de l'optimisation (probleme connu dans certaines regions), le fallback est `unoptimized: true` sur les images concernees ou un custom loader.
+Option B — Créer une route publique `/api/fabrics` filtrée sur `is_active=true` :
+Pattern identique à `/api/models/route.ts` mais pour les tissus. Si cette route est créée, la sécurité doit se limiter aux champs publics (pas `reference_image_url` qui vient d'un bucket privé).
 
 **Warning signs:**
-Erreur console `Error: Invalid src prop (...) hostname "*.supabase.co" is not configured` ou images grises/manquantes sur les product cards.
+Console réseau : 401 sur `/api/admin/fabrics`. Swatches absents dans le configurateur. Si `createClient()` sans `requireAdmin()` est appelé sur une route admin, RLS bloque la requête silencieusement (retourne `[]` au lieu d'une erreur explicite).
 
 **Phase to address:**
-Prerequis absolu de la Phase 1 (CAT-01 — product cards). Configurer avant tout code de composant.
+Phase 1 (architecture fetch) — décision à prendre avant d'écrire le premier composant du configurateur.
 
 ---
 
-### Pitfall 3 : Hydration mismatch avec l'etat de recherche/tri initialise cote client
+### Pitfall 2 : Fetch visuals dans le modal au clic — latence perceptible et état vide transitoire
 
 **What goes wrong:**
-Si la valeur initiale de l'etat `search` ou `sort` depend de quelque chose de specifique au client (valeur sauvegardee en `localStorage`, ou lue depuis l'URL via `window.location`), le rendu SSR et le rendu client seront differents. React detecte la discordance et produit un warning d'hydratation, parfois accompagne d'un flash visuel ou d'une reinitialisation des filtres.
+Le développeur déclenche le fetch des visuels générés (`/api/models/[slug]/visuals`) au moment où l'utilisateur clique sur "Configurer ce modèle". Le modal s'ouvre immédiatement mais affiche un spinner, puis les swatches apparaissent 500–1500ms plus tard (cold start Supabase). L'utilisateur voit un modal vide ou partiellement chargé avant d'interagir.
 
 **Why it happens:**
-Next.js App Router fait une passe SSR meme pour les composants `'use client'`. Les valeurs comme `localStorage`, `sessionStorage`, ou `window.location.search` n'existent pas cote serveur — utiliser ces valeurs comme valeurs initiales de `useState` produit des contenus differents entre le premier rendu serveur et le rendu client.
+Le modal reçoit un `ModelWithImages` (juste les images du modèle, pas les visuels IA). Les visuels générés sont dans `generated_visuals` avec jointure `fabrics` — ils ne font pas partie du payload initial du catalogue. Le développeur les charge au moment de l'ouverture du modal pour éviter de tout charger au load de la page.
 
 **How to avoid:**
-Toujours initialiser les etats de recherche/tri avec des valeurs deterministes et identiques cote serveur et client :
+Deux stratégies selon le nombre de produits :
+
+Stratégie A — Preload côté serveur dans `CatalogueSection` pour les projets avec peu de produits (< 20) :
+Étendre la query existante pour inclure les visuels publiés avec leurs tissus dans le payload initial :
 
 ```typescript
-'use client'
-// BON : valeur initiale fixe, identique SSR et client
-const [search, setSearch] = useState('')
-const [sort, setSort] = useState<SortOption>('newest')
+// CatalogueSection.tsx — requête enrichie
+const { data } = await supabase
+  .from('models')
+  .select(`
+    *,
+    model_images(*),
+    generated_visuals(
+      id,
+      generated_image_url,
+      model_image_id,
+      fabric:fabrics(id, name, slug, swatch_url, is_premium, is_active)
+    )
+  `)
+  .eq('is_active', true)
+  .eq('generated_visuals.is_published', true)
+  .eq('generated_visuals.is_validated', true)
+  .order('created_at', { ascending: false })
+```
 
-// MAUVAIS : lecture localStorage -> hydration mismatch
-const [sort, setSort] = useState(() => {
-  return (localStorage.getItem('catalogue-sort') as SortOption) ?? 'newest'
+**Attention** : le filtre `.eq('generated_visuals.is_published', true)` sur une relation ne fonctionne pas comme un WHERE sur la table principale — il filtre les visuels mais retourne quand même tous les modèles (même ceux sans visuels). C'est le comportement voulu : un modèle sans visual IA reste visible dans le catalogue.
+
+Stratégie B — Fetch lazy côté client avec `useEffect` déclenché à l'ouverture du modal (projets > 20 produits, ou visuels nombreux) :
+Afficher un skeleton swatches pendant le fetch, jamais de vide silencieux.
+
+**Warning signs:**
+Modal qui s'ouvre avec un swatch grid vide pendant 1-2 secondes. Ou au contraire, chargement initial de la page lent parce que la query initiale inclut trop de données joinées.
+
+**Phase to address:**
+Phase 1 (fetch strategy) — décision avant implémentation, impacts directs sur la structure des types.
+
+---
+
+### Pitfall 3 : Supabase join sur `generated_visuals` — filtre relationnel non transitif
+
+**What goes wrong:**
+La query Supabase `.eq('generated_visuals.is_published', true)` ne filtre pas les rangs de la table principale (`models`) — elle filtre seulement les éléments de la relation. Un modèle sans aucun visual publié est retourné avec `generated_visuals: []`, pas exclu. C'est correct pour l'affichage catalogue, mais peut surprendre si le développeur attend une liste de modèles "seulement ceux avec des visuels".
+
+Plus critique : le filtre `fabric.is_active` ne peut pas être appliqué côté Supabase sur une jointure imbriquée à deux niveaux dans l'API PostgREST standard. La route existante `/api/models/[slug]/visuals/route.ts` le fait correctement en filtrant côté serveur après fetch :
+
+```typescript
+// Pattern établi (correct) — à reproduire
+const filteredVisuals = (visuals ?? []).filter((v) => {
+  const fabric = v.fabric as { is_active: boolean } | null
+  return fabric?.is_active === true
 })
 ```
 
-Si la persistance de tri entre sessions est requise (feature optionnelle), lire `localStorage` uniquement dans un `useEffect` APRES le premier rendu :
+Si ce filtre est oublié dans le nouveau code du configurateur, des swatches de tissus désactivés apparaissent dans la liste.
+
+**Why it happens:**
+PostgREST (le moteur derrière Supabase) ne supporte pas les filtres sur jointures imbriquées au niveau WHERE de la table parente. Les filtres sur relations sont des filtres sur les colonnes retournées, pas des conditions d'exclusion de la table principale.
+
+**How to avoid:**
+Reproduire le pattern de `/api/models/[slug]/visuals/route.ts` pour tout fetch de visuels : filtrer côté JS après réception des données pour éliminer les tissus `is_active: false`. Ne jamais assumer que Supabase a filtré les tissus désactivés automatiquement.
 
 ```typescript
-const [sort, setSort] = useState<SortOption>('newest')
-
-useEffect(() => {
-  const saved = localStorage.getItem('catalogue-sort') as SortOption
-  if (saved) setSort(saved)
-}, [])
+// Pattern correct à reproduire dans le configurateur
+const publishedVisuals = allVisuals.filter(
+  (v) => v.is_published && v.is_validated && v.fabric?.is_active
+)
 ```
 
 **Warning signs:**
-Warning React `Hydration failed because the initial UI does not match what was rendered on the server` en console. Aussi : les filtres "sautent" apres le chargement de la page.
+Des swatches de tissus "désactivés" apparaissent dans le configurateur. Ou un modèle qui devrait avoir des visuels apparaît avec `generated_visuals: []` parce que le filtre a exclu le modèle au lieu des visuels.
 
 **Phase to address:**
-Phase catalogue (CAT-02, CAT-03) — a l'implementation de la barre de recherche et du tri.
+Phase 1 (fetch strategy) + Phase 2 (rendu swatches).
 
 ---
 
-### Pitfall 4 : Recherche sans debounce — appels API excessifs ou filtrage saccade
+### Pitfall 4 : CLS (Cumulative Layout Shift) quand on bascule d'angle de vue
 
 **What goes wrong:**
-Sans debounce sur le champ de recherche, chaque frappe du clavier declenche un re-render du catalogue (si le filtrage est en memoire) ou un appel API (si le filtrage est serveur-side). Sur un filtre en memoire, le probleme est mineur mais le rendu est saccade. Sur un filtre serveur, 10 frappes = 10 requetes HTTP, dont la plupart seront abandonnees.
+Dans le configurateur, l'utilisateur sélectionne un tissu et voit l'image IA sous différents angles (3/4, face, côté, etc.). Quand il clique sur un autre angle, l'image se recharge et le conteneur "saute" le temps que la nouvelle image se charge — surtout si les images ont des ratios différents ou si `next/image` recalcule les dimensions.
 
 **Why it happens:**
-Le pattern `onChange={e => setSearch(e.target.value)}` met a jour l'etat a chaque caractere saisi. Sans limitation de cadence, React rerender le composant et recalcule les resultats filtres a chaque keystroke.
+Le composant gallery d'angle utilise `<Image fill>` ou des dimensions variables selon le `view_type`. Sans dimensions fixes réservées sur le conteneur, le navigateur recalcule le layout à chaque swap d'image. `next/image` avec `fill` requiert un parent avec `position: relative` et des dimensions fixes — si ces dimensions ne sont pas fixées, le CLS se produit.
 
 **How to avoid:**
-Pour ce projet (filtrage en memoire, pas serveur-side), un debounce de 300ms sur le terme de recherche est suffisant :
-
-```typescript
-'use client'
-import { useState, useMemo, useTransition } from 'react'
-
-const [inputValue, setInputValue] = useState('') // mis a jour immediatement
-const [debouncedSearch, setDebouncedSearch] = useState('') // utilise pour filtrer
-
-useEffect(() => {
-  const timer = setTimeout(() => setDebouncedSearch(inputValue), 300)
-  return () => clearTimeout(timer)
-}, [inputValue])
-
-// Filtrage avec la valeur debouncee
-const filteredModels = useMemo(() => {
-  return models.filter(m =>
-    m.name.toLowerCase().includes(debouncedSearch.toLowerCase())
-  )
-}, [models, debouncedSearch])
-```
-
-Alternative plus simple — `useTransition` de React 19 pour marquer le filtrage comme transition non-urgente :
-
-```typescript
-const [isPending, startTransition] = useTransition()
-
-const handleSearch = (value: string) => {
-  setInputValue(value) // mise a jour immediate de l'input
-  startTransition(() => setDebouncedSearch(value)) // filtre en arriere-plan
-}
-```
-
-**Warning signs:**
-Input qui "lag" pendant la frappe, ou liste qui scintille a chaque caractere.
-
-**Phase to address:**
-Phase catalogue (CAT-02) — implementation de la barre de recherche.
-
----
-
-### Pitfall 5 : Modal sans focus trap — ecran bloquant au clavier et lecteurs d'ecran
-
-**What goes wrong:**
-Un modal qui n'emprisonne pas le focus clavier permet aux utilisateurs de "Tab" derriere le modal et d'interagir avec le contenu de la page sous-jacente. Pour les lecteurs d'ecran, le contenu derriere le modal reste visible et lisible, rendant l'experience confuse et non-conforme WCAG.
-
-**Why it happens:**
-La construction d'un modal avec un simple `display: flex` et une gestion de `z-index` ne suffit pas. Le DOM reste entierement accessible au clavier — le navigateur ne sait pas que le contenu derriere est "bloque".
-
-**How to avoid:**
-Pour le modal configurateur (90vw desktop, plein ecran mobile), implanter les attributs ARIA minimum et un focus trap manuel :
-
-```typescript
-// Modal.tsx — 'use client'
-// 1. Attributs ARIA obligatoires
-<div
-  role="dialog"
-  aria-modal="true"
-  aria-labelledby="modal-title"
->
-  <h2 id="modal-title">Configurateur</h2>
-  ...
-  <button onClick={onClose} aria-label="Fermer le configurateur">✕</button>
-</div>
-
-// 2. Focus automatique a l'ouverture
-useEffect(() => {
-  if (isOpen) {
-    closeButtonRef.current?.focus()
-  }
-}, [isOpen])
-
-// 3. Retour du focus a l'element declencheur a la fermeture
-// (conserver la ref du bouton "Configurer ce modele" qui a ouvert le modal)
-useEffect(() => {
-  return () => {
-    triggerRef.current?.focus()
-  }
-}, [])
-
-// 4. Fermeture avec Escape
-useEffect(() => {
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') onClose()
-  }
-  document.addEventListener('keydown', handleKeyDown)
-  return () => document.removeEventListener('keydown', handleKeyDown)
-}, [onClose])
-```
-
-Pour le focus trap complet (cycle Tab/Shift+Tab), utiliser la librairie `focus-trap-react` (3KB gzip) — approuvee car ce projet n'a pas Radix UI disponible comme composant inline pour la SPA publique.
-
-**Warning signs:**
-Naviguer au clavier (Tab) fait sortir le focus du modal. VoiceOver/NVDA lit le contenu de la page sous le modal.
-
-**Phase to address:**
-Phase modal configurateur (CAT-04) — des la creation du composant Modal.
-
----
-
-### Pitfall 6 : Body scroll non bloque sur iOS Safari quand le modal est ouvert
-
-**What goes wrong:**
-Sur iOS Safari, `overflow: hidden` sur le `<body>` ne bloque pas le scroll de la page derriere un modal. L'utilisateur peut scroller la page de fond pendant que le modal est ouvert — le contenu glisse sous le modal, creant un effet desorienant.
-
-**Why it happens:**
-C'est un bug historique d'iOS Safari qui ignore `overflow: hidden` sur `body` pour les evenements touch. Le body continue de recevoir les evenements `touchmove`.
-
-**How to avoid:**
-Pattern CSS moderne (2025) sans JavaScript :
+Fixer un aspect-ratio constant sur le conteneur image, indépendamment de l'angle affiché :
 
 ```css
-/* globals.css ou Modal.module.css */
-body.modal-open {
-  position: fixed;
+/* ConfiguratorModal.module.css */
+.visualWrapper {
+  position: relative;
   width: 100%;
-  /* Stocker la position de scroll via JS avant de fixer */
-  top: var(--scroll-position, 0);
-  overflow-y: scroll; /* evite le saut de layout quand la scrollbar disparait */
+  aspect-ratio: 4 / 3; /* fixe pour tous les angles */
+  overflow: hidden;
+  background: var(--color-background-alt); /* placeholder visible pendant le load */
 }
 ```
 
 ```typescript
-// Dans le composant Modal
-useEffect(() => {
-  if (isOpen) {
-    const scrollY = window.scrollY
-    document.documentElement.style.setProperty('--scroll-position', `-${scrollY}px`)
-    document.body.classList.add('modal-open')
-    return () => {
-      document.body.classList.remove('modal-open')
-      window.scrollTo(0, scrollY) // restaurer position scroll
-    }
-  }
-}, [isOpen])
+// Dans le composant gallery
+<div className={styles.visualWrapper}>
+  <Image
+    src={currentVisualUrl}
+    alt={`${model.name} - ${selectedFabric.name} - ${currentAngle}`}
+    fill
+    style={{ objectFit: 'cover' }}
+    sizes="(max-width: 640px) 100vw, 50vw"
+    priority={currentAngle === '3/4'} // priorité pour l'angle principal
+  />
+</div>
+```
+
+L'attribut `key` sur `<Image>` permet de forcer un remount (et donc un state loading distinct) quand la source change — sans `key`, React réutilise le composant et l'ancienne image reste visible pendant le chargement de la nouvelle :
+
+```typescript
+<Image key={currentVisualUrl} src={currentVisualUrl} ... />
 ```
 
 **Warning signs:**
-Sur un iPhone, le contenu de la page derriere le modal scroll quand on fait glisser le doigt dans le modal.
+Layout "saute" visiblement quand l'utilisateur change d'angle. Ou l'image précédente persiste pendant le chargement de la nouvelle sans état de transition visible.
 
 **Phase to address:**
-Phase modal configurateur (CAT-04) — tester imperativement sur Safari iOS physique.
+Phase 2 (gallery angles) — aspect-ratio fixe obligatoire dès la création du conteneur.
+
+---
+
+### Pitfall 5 : Prix dynamique — afficher le mauvais prix si `is_premium` change entre sessions
+
+**What goes wrong:**
+Le composant affiche `model.price + 80` quand `selectedFabric.is_premium` est `true`. Si les données tissus sont chargées une seule fois au mount du composant (snapshot), et que l'admin change `is_premium` d'un tissu entre deux visites utilisateur, la page peut afficher un prix incorrect jusqu'au prochain reload.
+
+Le problème plus courant : calculer le prix premium avec la mauvaise logique. La contrainte projet est `prix premium = prix de base + 80€ fixe`, mais un développeur peut l'interpréter comme `prix × 1.05` ou ajouter le supplément à chaque sélection de tissu au lieu de le calculer à la sélection.
+
+**Why it happens:**
+La contrainte `+80€` est documentée dans `CLAUDE.md` et `src/lib/utils.ts` (`calculatePrice`), mais un développeur qui ne consulte pas ces fichiers peut recréer la logique différemment.
+
+**How to avoid:**
+Toujours utiliser `calculatePrice` de `src/lib/utils.ts` — cette fonction est l'unique source de vérité pour ce calcul :
+
+```typescript
+import { calculatePrice, formatPrice } from '@/lib/utils'
+
+// Dans le composant configurateur
+const displayPrice = selectedFabric
+  ? calculatePrice(model.price, selectedFabric.is_premium)
+  : model.price
+
+// Affichage
+<p className={styles.price}>
+  {formatPrice(displayPrice)}
+  {selectedFabric?.is_premium && (
+    <span className={styles.premiumBadge}>Tissu premium (+80 €)</span>
+  )}
+</p>
+```
+
+Ne pas dupliquer la constante `80` dans le composant. Ne pas recréer une fonction `formatPrice` locale dans le modal — la version dans `src/lib/utils.ts` utilise `Intl.NumberFormat` avec le style currency EUR, ce qui est différent de la version simplifiée dans `ProductCard` (qui n'utilise pas le style currency). Choisir un seul format et s'y tenir.
+
+**Warning signs:**
+`model.price` affiché sans le supplément pour un tissu premium. Ou supplément calculé à tort comme pourcentage. Ou deux implémentations différentes de `formatPrice` dans le même écran (ProductCard et ConfiguratorModal affichent des formats de prix différents).
+
+**Phase to address:**
+Phase 2 (prix dynamique) — utiliser `calculatePrice` dès le premier rendu du prix dans le configurateur.
+
+---
+
+### Pitfall 6 : Scroll interne du modal bloqué sur iOS Safari — régression de la Phase 6
+
+**What goes wrong:**
+Le scroll lock implémenté en Phase 6 (`document.body.style.position = 'fixed'`) résout le problème de scroll du fond de page sur iOS. Mais quand le configurateur ajoute un swatch grid et une galerie d'angles dans le modal, le contenu du modal lui-même peut dépasser `90vh` sur desktop ou `100dvh` sur mobile. Si le scroll est uniquement sur `.content` (le wrapper interne), un contenu plus riche peut casser l'équilibre et rendre le modal non-scrollable sur certains appareils.
+
+**Why it happens:**
+La Phase 6 a configuré le scroll sur `.content` avec `max-height: 90vh; overflow-y: auto` sur desktop, et `height: 100dvh; overflow-y: auto` sur mobile. Avec le configurateur réel, le contenu triple (swatches, galerie, angles, prix, CTA). La hauteur fixe du `.content` reste correcte, mais si un élément enfant a `overflow: hidden` ou `position: absolute` sans tenir compte du contexte de scroll, des parties du configurateur peuvent disparaître hors du viewport scrollable.
+
+**How to avoid:**
+Valider le scroll du modal sur mobile avec le contenu complet (pas seulement le placeholder). Structure CSS à maintenir :
+
+```css
+/* Invariant à ne pas modifier — Phase 6 */
+.dialog {
+  overflow: visible; /* scroll sur .content, pas ici */
+}
+
+.content {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@media (max-width: 639px) {
+  .content {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow-y: auto;
+  }
+}
+```
+
+Ne pas ajouter `overflow: hidden` sur `.inner`, `.body`, ou tout autre conteneur intermédiaire — cela couperait le scroll. Le seul conteneur qui peut avoir `overflow: hidden` est `.imageWrapper` et `.visualWrapper` (pour clipper les images).
+
+**Warning signs:**
+Sur mobile, le CTA "Acheter sur Shopify" est invisible (hors écran) sans possibilité de scroller. Sur desktop, le grid swatches est tronqué en bas du modal. Ou la scrollbar du `.content` disparaît après ajout du nouveau contenu.
+
+**Phase to address:**
+Phase 2 et Phase 3 — tester le scroll sur mobile physique après chaque ajout de section dans le modal.
+
+---
+
+### Pitfall 7 : Swatch grid — overflow horizontal sur mobile, swatches trop petits pour le tap
+
+**What goes wrong:**
+Le swatch grid s'affiche en flex-wrap ou grid multi-colonnes, ce qui fonctionne bien sur desktop. Sur mobile, si le modal est en plein écran et le grid contient 8+ tissus, les swatches peuvent déborder horizontalement (scroll horizontal non voulu), ou être trop petits (< 44px tap target) pour être activables au doigt.
+
+**Why it happens:**
+Les swatches de tissu sont typiquement des petits cercles ou carrés (32–48px) représentant la texture/couleur. Un design correct sur desktop avec 5 colonnes donne des swatches trop petits sur un écran de 375px si le même grid est utilisé.
+
+**How to avoid:**
+Utiliser `flex-wrap: wrap` avec un `min-width` garanti sur chaque swatch, et une taille minimum respectant les guidelines tactiles (44px minimum selon WCAG 2.5.5) :
+
+```css
+/* Swatch grid */
+.swatchGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm); /* 8px */
+}
+
+.swatchButton {
+  width: 48px;
+  height: 48px;
+  min-width: 44px; /* tap target minimum */
+  min-height: 44px;
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 150ms ease;
+  flex-shrink: 0;
+}
+
+.swatchButton[aria-pressed="true"] {
+  border-color: var(--color-primary); /* #E49400 — sélection visible */
+}
+```
+
+Ne pas utiliser un grid CSS avec `repeat(auto-fill, minmax(40px, 1fr))` sans `min-width` explicite — sur des viewports très étroits, les colonnes peuvent être calculées à moins de 44px.
+
+**Warning signs:**
+Sur un écran 375px, les swatches font 32px ou moins. Scroll horizontal dans la zone de swatches. Difficile de cliquer sur un swatch spécifique au doigt.
+
+**Phase to address:**
+Phase 2 (swatch grid) — définir les dimensions des swatches avec les valeurs absolues, pas uniquement relatives.
+
+---
+
+### Pitfall 8 : Swatch sélectionné sans fallback si aucun visuel publié pour ce tissu
+
+**What goes wrong:**
+L'utilisateur clique sur un swatch de tissu. Le configurateur cherche dans les visuels le rendu correspondant à `(model_image_id, fabric_id)`. Si aucun visuel n'est publié pour ce tissu + ce modèle, le slot image reste vide ou affiche l'image originale sans indication que le rendu IA n'est pas disponible. L'utilisateur est confus — il pense que l'app est cassée.
+
+**Why it happens:**
+La table `generated_visuals` a une contrainte UNIQUE sur `(model_image_id, fabric_id)` mais il n'y a aucune garantie qu'un visual existe pour chaque combinaison tissu/angle. Un tissu peut être actif mais n'avoir aucun visuel généré (ou généré mais non publié) pour ce modèle.
+
+**How to avoid:**
+Afficher explicitement un état "visuel non disponible" quand la sélection tissu + angle ne correspond à aucun visual publié. Ne jamais afficher un slot vide silencieux :
+
+```typescript
+// Dans le composant configurateur
+const currentVisual = visuals.find(
+  (v) => v.fabric_id === selectedFabric?.id &&
+         v.model_image_id === currentAngle?.id
+)
+
+// Dans le JSX
+{currentVisual ? (
+  <Image src={currentVisual.generated_image_url} ... />
+) : (
+  <div className={styles.noVisual}>
+    <p>Rendu non disponible pour cet angle</p>
+  </div>
+)}
+```
+
+Pour l'angle par défaut (3/4 front), si aucun visual n'existe, revenir à l'image de base du modèle (`model_images` pour ce `view_type`) comme fallback visuel.
+
+**Warning signs:**
+Slot image vide quand l'utilisateur sélectionne un tissu. Ou l'image précédente persiste sans changement visible quand aucun visual n'existe pour le nouveau tissu sélectionné.
+
+**Phase to address:**
+Phase 2 (affichage visuel) — l'état "pas de rendu disponible" doit être prévu dès le premier rendu du configurateur.
+
+---
+
+### Pitfall 9 : `return null` avant les hooks dans ConfiguratorModal — régression Phase 6
+
+**What goes wrong:**
+La Phase 6 a correctement placé `if (!model) return null` APRES tous les hooks. Si une refactorisation de `ConfiguratorModal.tsx` déplace ou ajoute des hooks après ce early return, React lève l'erreur "Rendered more hooks than during the previous render" — qui crashe l'application entière silencieusement en production (erreur boundary).
+
+**Why it happens:**
+Quand le configurateur ajoute de nouveaux hooks (`useState` pour le tissu sélectionné, `useState` pour l'angle courant, `useEffect` pour fetch des visuels), un développeur peut être tenté de les placer après le `if (!model) return null` pour "éviter de les exécuter inutilement". C'est une violation des règles des hooks React.
+
+**How to avoid:**
+Tous les hooks (`useState`, `useEffect`, `useCallback`, `useMemo`) doivent être déclarés AVANT tout `return null` conditionnel. Pour les hooks qui n'ont de sens que quand `model` est défini, initialiser avec des valeurs par défaut :
+
+```typescript
+export function ConfiguratorModal({ model, onClose }: ConfiguratorModalProps) {
+  const dialogRef = useRef<HTMLDialogElement>(null)
+  const open = model !== null
+
+  // Nouveaux hooks v9.0 — tous avant le return null
+  const [selectedFabricId, setSelectedFabricId] = useState<string | null>(null)
+  const [currentAngleId, setCurrentAngleId] = useState<string | null>(null)
+
+  // useEffect scroll lock (Phase 6 — ne pas toucher)
+  useEffect(() => { ... }, [open])
+
+  // useEffect dialog control (Phase 6 — ne pas toucher)
+  useEffect(() => { ... }, [open])
+
+  // Reset des sélections à l'ouverture d'un nouveau modèle
+  useEffect(() => {
+    if (model) {
+      setSelectedFabricId(null)
+      setCurrentAngleId(null)
+    }
+  }, [model?.id]) // dépend de l'id, pas de l'objet entier (évite les boucles)
+
+  // IMPORTANT : early return APRÈS tous les hooks
+  if (!model) return null
+
+  // ... reste du composant
+}
+```
+
+**Warning signs:**
+Erreur React "Rendered fewer hooks than expected" ou "Rendered more hooks than expected" dans la console. En production, error boundary déclenché à l'ouverture du modal.
+
+**Phase to address:**
+Phase 1 (refactorisation du composant) — vérifier l'ordre des hooks dès l'ajout du premier `useState` pour le tissu sélectionné.
+
+---
+
+### Pitfall 10 : Reset état configurateur à l'ouverture d'un nouveau modèle
+
+**What goes wrong:**
+L'utilisateur ouvre le configurateur pour "Canapé Milano", sélectionne le tissu "Velours Bleu" et angle "Face". Il ferme le modal. Il ouvre ensuite le configurateur pour "Canapé Firenzé". Le modal s'ouvre avec le tissu "Velours Bleu" encore sélectionné (état React non resetté), et cherche un visual `(firenze_model_image_id, velours_bleu_fabric_id)` qui n'existe peut-être pas.
+
+**Why it happens:**
+`ConfiguratorModal` garde son état React (`selectedFabricId`, `currentAngleId`) entre les ouvertures si le composant reste monté dans le DOM. `CatalogueClient` ne démonte pas le `ConfiguratorModal` entre les sélections — il passe simplement `model=null` pour fermer, et un nouveau `model` pour ouvrir.
+
+**How to avoid:**
+Resetter l'état tissu/angle quand `model.id` change (pas quand `model` change — un changement d'objet référence est différent d'un changement de modèle) :
+
+```typescript
+useEffect(() => {
+  if (model?.id) {
+    setSelectedFabricId(null)
+    setCurrentAngleId(null)
+  }
+}, [model?.id])
+```
+
+Alternative : utiliser `key={model?.id}` sur `ConfiguratorModal` depuis `CatalogueClient`. Next.js/React démonte et remonte le composant à chaque changement de `key`, ce qui remet tous les états à zero automatiquement. Avantage : aucune logique de reset à gérer. Inconvénient : le composant se réinitialise entièrement (perte des animations d'ouverture si elles sont ajoutées plus tard).
+
+**Warning signs:**
+Swatch du tissu précédent reste sélectionné après changement de modèle. Prix premium affiché pour un modèle dont aucun tissu n'a encore été sélectionné.
+
+**Phase to address:**
+Phase 1 (architecture state) — décision `useEffect + model.id` vs `key={model.id}` à prendre avant implémentation.
 
 ---
 
 ## Technical Debt Patterns
 
-Raccourcis qui semblent raisonnables mais creent des problemes a moyen terme.
-
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Filtrer les modeles directement dans le composant sans `useMemo` | Moins de code | Re-calcul du filtre a chaque re-render, meme si les donnees n'ont pas change | Jamais — `useMemo` sur le filtre est gratuit |
-| `unoptimized={true}` sur toutes les images Supabase | Evite la config `remotePatterns` | Supabase renvoie des images non-optimisees (pas de WebP, pas de resize) → page lente | Jamais en production |
-| Un seul composant `CatalogueSection.tsx` de 300+ lignes | Rapide a ecrire | Impossible a maintenir, search/sort/cards/modal entangled | MVP uniquement si composant < 150 lignes |
-| Recherche qui compare en cassant les accents (`indexOf` sans normalize) | Trivial a implanter | "Canape" ne trouve pas "Canapé" — mauvaise UX | Jamais — normaliser les diacritiques |
-| Sort state en `localStorage` immediatement (sans `useEffect`) | Persistance entre sessions | Hydration mismatch garanti | Jamais sans useEffect |
-| Cards sans dimensions fixes sur l'image | Pas de CSS a calculer | CLS (Cumulative Layout Shift) — les cards "sautent" au chargement | Jamais en production |
+| Dupliquer `getPrimaryImage` et `formatPrice` dans `ConfiguratorModal` au lieu de les centraliser | Pas de refacto | Deux sources de vérité, divergence possible si le format prix change | Jamais — extraire dans `src/lib/utils.ts` dès la v9.0 |
+| Fetch visuels dans `useEffect` au clic sans cache | Simple à implémenter | 500ms de latence à chaque ouverture de modal, cold start Supabase visible | MVP uniquement si couplé à un skeleton swatches |
+| Inliner la constante `80` pour le prix premium | Rapide | Inconsistance si le supplément change, impossible à tester unitairement | Jamais — utiliser `calculatePrice` de `src/lib/utils.ts` |
+| Swatch grid sans état accessible (`aria-pressed`) | Visuellement correct | Non conforme WCAG — les lecteurs d'écran ne savent pas quel swatch est sélectionné | Jamais en production |
+| `<img>` natif pour les swatches au lieu de `next/image` | Évite la config `sizes` | Pas d'optimisation WebP, pas de lazy loading optimisé | Pour les swatches < 48px seulement (`next/image` a un overhead pour très petites images) |
+| Charger toutes les images de tous les angles en mémoire | Transition instantanée entre angles | N images chargées même si l'utilisateur ne change jamais d'angle | Jamais si plus de 3 angles — lazy load par angle |
 
 ---
 
 ## Integration Gotchas
 
-Erreurs courantes lors de la connexion aux services existants.
-
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| `GET /api/models` | Appeler l'API dans un composant avec `fetch` cote client sans gerer l'etat loading/error | Utiliser `useState` + `useEffect` avec 3 etats (loading, data, error) ou React Suspense avec Server Component |
-| Supabase Storage URLs | Utiliser `model_images[0].image_url` directement dans `<img>` natif (bypass next/image) | Toujours `<Image>` next/image avec `remotePatterns` configure — permet l'optimisation WebP automatique |
-| `fabrics.swatch_url` pour les swatches | Utiliser `<Image fill>` pour des cercles de 22px | Utiliser `<Image width={22} height={22}>` — `fill` est pour les images sans dimensions connues |
-| Types TypeScript | Utiliser `any[]` pour les donnees de l'API | Importer et utiliser les types de `src/types/database.ts` — `Database['public']['Tables']['models']['Row']` |
-| Sort par prix | Trier directement `model.base_price` | Verification : le champ s'appelle `base_price` dans la table `models` — verifier les types avant de trier |
-| Swatches sur les cards | Appeler `/api/fabrics` depuis chaque card separement | Inclure les tissus dans l'appel initial ou passer les swatches comme props depuis le parent |
+| Supabase `generated_visuals` + `fabrics` | Oublier le filtre `fabric.is_active` côté JS | Filtrer après fetch comme dans `/api/models/[slug]/visuals/route.ts` : `filter(v => v.fabric?.is_active)` |
+| Supabase join imbriqué | Utiliser `.eq('generated_visuals.is_published', true)` comme filtre modèle | Ce filtre s'applique aux visuels retournés, pas aux modèles — les modèles sans visuals restent dans le résultat |
+| `next/image` avec swatch URLs | Utiliser `<Image fill>` pour des swatches de 48px dans un flex container | Utiliser `<Image width={48} height={48}>` — `fill` nécessite `position: relative` sur le parent et est surdimensionné pour des petites images |
+| `calculatePrice` | Recréer la logique `price + 80` localement | Importer depuis `src/lib/utils.ts` — source unique de vérité pour le supplément premium |
+| Dialog natif — onClose event | Appeler `dialog.close()` dans le handler `onClose` | `onClose` signifie "le dialog vient de se fermer" — mettre à jour uniquement le state React, ne pas rappeler `close()` |
+| Supabase bucket `fabric-references` | Utiliser `reference_image_url` dans le configurateur public | Ce bucket est privé — l'URL signée expire. Ne pas exposer ce champ dans l'API publique ou les props publics. Utiliser uniquement `swatch_url` (bucket `fabric-swatches` public) |
 
 ---
 
 ## Performance Traps
 
-Patterns qui fonctionnent en dev mais posent probleme a la croissance.
-
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Charger TOUTES les images de tous les angles de chaque modele au load initial | Chargement long, bandwidth inutile | Charger uniquement `model_images[0]` (front) pour la card. Les autres angles se chargent dans le modal | Des 3+ modeles avec 5 angles chacun |
-| `<Image>` sans prop `sizes` sur les product cards | Next.js telecharge une image 1920px pour une card de 400px | `sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"` — correspond au grid 1/2/3 colonnes | Immediate — impact LCP |
-| Re-fetch `GET /api/models` a chaque ouverture/fermeture du modal | API appelee plusieurs fois inutilement | Stocker les donnees dans le state parent du catalogue, passer le modele selectionne comme prop au modal | Immediate — visible dans Network tab |
-| Filtre en memoire sur 100+ modeles sans `useMemo` | Lag visible dans l'input de recherche | `useMemo` sur le calcul de filtrage, dependances `[models, debouncedSearch, sort]` | Catalogue > 50 produits |
-| Swatches: charger les tissu-swatches de TOUS les modeles au load | N requetes images supplementaires | Charger max 3-4 swatches par card, afficher "+N" pour le reste | Des 5+ tissus par modele |
+| Charger `generated_visuals` pour tous les modèles au load initial | Page catalogue lente, Time to Interactive dégradé | Fetch lazy au clic ou preload uniquement pour les N premiers modèles | Dès 5 modèles avec 4 angles × 6 tissus = 120 images potentielles |
+| `<Image>` sans prop `priority` pour le premier angle (3/4) | Premier visuel IA charge après interaction, perceptible | Ajouter `priority` sur le visual de l'angle par défaut après sélection tissu | Immédiat — impact LCP dans le modal |
+| Swatches sans dimensions fixes (`width`/`height`) | CLS dans le swatch grid au chargement des images swatch | `width={48} height={48}` explicite sur chaque `<Image>` swatch | Immédiat — visible dans Lighthouse |
+| Re-render du ConfiguratorModal à chaque frappe dans la barre de recherche | Modal flickering si ouvert pendant la recherche | `selectedModel` dans `CatalogueClient` est indépendant de `query` — vérifier que le modal n'est pas dans le flux de rendu conditionnel de la recherche | Immédiat dès que `query` change avec le modal ouvert |
+| Fetch visuels sans déduplication fabric | Même tissu demandé plusieurs fois si l'utilisateur change d'angle | Grouper les visuels par `fabric_id` une seule fois à la réception des données | Dès 3+ tissus avec 3+ angles |
 
 ---
 
 ## Security Mistakes
 
-Problemes de securite specifiques a ce domaine.
-
 | Mistake | Risk | Prevention |
 |---------|------|------------|
-| Appeler `/api/admin/models` (route protegee) depuis le front public | Expose les donnees admin non-filtrées | Utiliser uniquement `GET /api/models` — route publique qui filtre sur `is_active = true` |
-| Afficher `is_active`, `model_id` ou d'autres champs internes dans le HTML rendu | Fuite d'informations sur la structure backend | Ne passer aux composants cards que les champs utiles : `id`, `name`, `base_price`, `slug`, images front |
-| Search input XSS | Injection de contenu si la valeur est rendue sans echappement | React echappe automatiquement les valeurs dans JSX — ne pas utiliser `dangerouslySetInnerHTML` avec la valeur de recherche |
+| Exposer `reference_image_url` dans une API publique | URL signée (bucket privé) exposée publiquement, expiration = lien cassé | Exclure `reference_image_url` de toute route ou query publique — ce champ est admin uniquement |
+| Appeler `/api/admin/fabrics` depuis le frontend public | 401 en production, ou contournement si l'auth est mal configurée | Créer une route publique dédiée ou fetcher Supabase directement avec le client anonyme qui est contraint par RLS |
+| Afficher `model_id` ou `fabric_id` (UUIDs) dans le HTML rendu | Fuite mineure sur la structure BDD | Passer uniquement les données affichées (name, slug, swatch_url, is_premium) comme props — les IDs peuvent rester pour les lookups internes mais pas dans le DOM |
 
 ---
 
 ## UX Pitfalls
 
-Erreurs d'experience utilisateur courantes sur les catalogues produits.
-
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Aucun etat vide quand la recherche ne retourne rien | L'utilisateur pense que l'app est cassee | Afficher un message "Aucun canapé ne correspond a votre recherche" avec un bouton "Effacer la recherche" |
-| Aucun skeleton/placeholder pendant le chargement initial de l'API | Ecran vide puis apparition brutale de toutes les cards | Afficher 3 skeleton cards pendant le fetch — meme structure visuelle que les vraies cards |
-| Search qui efface le tri quand on tape | L'utilisateur perd le contexte | Les etats `search` et `sort` sont independants — ne jamais resetter le tri quand la recherche change |
-| CTA "Configurer ce modele" ne retourne pas le focus apres fermeture du modal | Navigation clavier cassee — l'utilisateur est "perdu" dans la page | `triggerRef.current?.focus()` dans le cleanup de l'useEffect du modal |
-| Cards sans dimension image fixe | Les cards changent de taille selon le ratio de l'image — layout instable | `aspect-ratio: 4/3` sur le container image de chaque card, indépendamment des dimensions de l'image |
-| Swatches sans tooltip/title | L'utilisateur ne sait pas a quel tissu correspond le cercle de couleur | `title={fabric.name}` sur chaque swatch — tooltip natif HTML accessible |
-| Sort qui "saute" la vue scroll apres changement | L'utilisateur perd sa position dans le catalogue | Ne pas scroller vers le haut automatiquement apres un changement de tri — laisser l'utilisateur la ou il est |
+| Pas d'indication visuelle du tissu sélectionné | L'utilisateur ne sait pas quel swatch est actif | Border colorée + `aria-pressed="true"` sur le swatch sélectionné |
+| Aucun état "chargement" entre sélection tissu et affichage visuel | L'utilisateur répète ses clics en pensant que rien ne s'est passé | Skeleton ou opacité réduite sur le visuel pendant le swap d'image |
+| Prix affiché comme "à partir de X €" même après sélection tissu | Confusion — le prix exact n'est jamais affiché | Afficher le prix exact (avec ou sans supplément premium) dès qu'un tissu est sélectionné, supprimer "à partir de" |
+| CTA "Acheter sur Shopify" visible même sans tissu sélectionné | Lien vers Shopify sans configuration — l'utilisateur arrive sur la page produit sans contexte tissu | Désactiver ou masquer le CTA Shopify jusqu'à ce qu'un tissu soit sélectionné |
+| Tous les angles affichés même si certains n'ont pas de visuel | L'utilisateur clique sur un angle et voit "rendu non disponible" | Afficher uniquement les angles qui ont un visual publié pour le tissu sélectionné, masquer les autres |
+| Swatch sans nom accessible | Les utilisateurs daltoniens ne peuvent pas identifier le tissu | `aria-label={fabric.name}` obligatoire sur chaque bouton swatch |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-Elements qui semblent complets en dev mais manquent en production.
-
-- [ ] **Product cards :** Images visibles en dev (URLs hardcodees) mais cassees en production — verifier que `remotePatterns` est configure avec la vraie URL Supabase, pas une URL exemple.
-- [ ] **Recherche :** Fonctionne avec accents en francais — "Canapé", "Möbel", "Firenzé" — tester `normalize('NFD').replace(/\p{Mn}/gu, '')` ou `.localeCompare` avec `sensitivity: 'base'`.
-- [ ] **Modal :** Escape key ferme le modal — tester au clavier, pas seulement en cliquant le bouton fermer.
-- [ ] **Modal :** Body scroll bloque sur iOS Safari — tester sur un vrai iPhone (pas simulateur).
-- [ ] **Loading state :** API peut etre lente (cold start Supabase) — le skeleton doit s'afficher > 200ms.
-- [ ] **Empty state :** Recherche "zzzzz" affiche un message explicatif, pas une grille vide silencieuse.
-- [ ] **Grid responsive :** 1 colonne mobile / 2 colonnes tablette / 3 colonnes desktop — verifier les 3 breakpoints.
-- [ ] **next/image sizes :** Prop `sizes` correcte sur chaque image de card — inspecter le srcset genere dans les DevTools Network.
-- [ ] **TypeScript strict :** `npx tsc --noEmit` passe sans erreur apres integration des types Supabase sur les props de cards.
-- [ ] **'use client' boundary :** Le composant Server Component `page.tsx` ne recoit pas la directive `'use client'` a cause du catalogue dynamique.
+- [ ] **Prix premium :** Le supplément +80€ s'affiche sur le swatch sélectionné ET dans le prix total — vérifier que `calculatePrice(model.price, true)` est utilisé, pas `model.price + 80` inline.
+- [ ] **État désélectionné :** Cliquer deux fois sur le même swatch ne casse pas l'état — vérifier que `selectedFabricId` ne devient pas `null` si on reclique le tissu déjà sélectionné (ou décider si c'est le comportement voulu).
+- [ ] **Scroll mobile :** Le CTA "Acheter sur Shopify" est visible et cliquable sur un iPhone 375px sans scroll — tester avec le contenu complet (swatches, galerie, prix, CTA).
+- [ ] **Reset modèle :** Fermer et rouvrir le configurateur sur un autre modèle remet le tissu sélectionné à zéro — vérifier avec deux modèles différents en séquence.
+- [ ] **Fabric désactivée :** Un tissu passé à `is_active: false` entre le chargement de la page et la sélection n'apparaît pas dans les swatches — dépend du moment du fetch.
+- [ ] **Visuals non publiés :** La sélection d'un tissu sans aucun visual publié affiche un message explicatif, pas un slot vide.
+- [ ] **Lien Shopify :** `model.shopify_url` peut être `null` (champ nullable dans la table `models`) — le bouton "Acheter sur Shopify" doit être désactivé ou masqué si `shopify_url` est null.
+- [ ] **Accessibilité swatches :** Chaque bouton swatch a `aria-label`, `aria-pressed`, et une taille de tap d'au moins 44px — vérifier avec les DevTools accessibilité.
+- [ ] **TypeScript strict :** `generatesd_visuals` jointure avec `fabric` a le bon type — vérifier que `v.fabric` est typé `Fabric` et non `unknown` ou `Record<string, unknown>`.
+- [ ] **`formatPrice` unifiée :** Une seule implémentation de formatage prix dans tout le modal — ni `ProductCard.formatPrice` ni la version locale, uniquement `formatPrice` de `src/lib/utils.ts`.
 
 ---
 
 ## Recovery Strategies
 
-Si les pieges se produisent malgre la prevention.
-
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| `remotePatterns` manquant | LOW | Ajouter la config dans `next.config.ts`, redemarrer le serveur de dev. 5 minutes. |
-| Hydration mismatch sur search state | LOW | Identifier la valeur initiale non-deterministe, la remplacer par une valeur fixe ou la deplacer dans `useEffect`. 15 minutes. |
-| `useSearchParams` sans Suspense (si adopte) | MEDIUM | Extraire le composant appelant dans un enfant enveloppe de `<Suspense>`. 30 minutes. |
-| Modal sans focus trap — reconcevoir | MEDIUM | Ajouter `focus-trap-react` (npm install), envelopper le contenu du modal. Tester clavier/VoiceOver. 1 heure. |
-| Body scroll iOS non bloque | MEDIUM | Ajouter le pattern `position: fixed + top: var(--scroll-position)`. Tester sur iPhone physique. 1 heure. |
-| Images Supabase non optimisees (400 errors) | HIGH | Investiguer si Supabase Storage transformations sont activees, ou configurer un custom loader. 2-4 heures. |
-| Architecture composants trop monolithique | HIGH | Refactorer CatalogueSection en sous-composants separes (SearchBar, SortSelector, ProductGrid, ProductCard, Modal). Risque de regression. |
+| Pas d'API publique fabrics — découvert en prod | LOW | Créer `src/app/api/fabrics/route.ts` en 15 min (copie de `/api/models/route.ts` adapté), ou convertir un composant client en Server Component avec fetch Supabase direct |
+| `calculatePrice` non utilisée — prix incohérents | LOW | Grep tous les `+ 80` et `price + ` dans le code, remplacer par `calculatePrice` de `src/lib/utils.ts`. 20 min. |
+| CLS swatch/angle — recalcul layout | LOW | Ajouter `aspect-ratio: 4/3` fixe sur `.visualWrapper`, ajouter `key={currentVisualUrl}` sur `<Image>`. 10 min. |
+| Return null avant hooks — crash modal | MEDIUM | Déplacer tous les `useState`/`useEffect` avant le early return. Vérifier l'ordre avec les règles des hooks React. 30 min. |
+| État tissu non resetté entre modèles | MEDIUM | Ajouter `useEffect(() => { reset() }, [model?.id])` ou `key={model?.id}` sur `ConfiguratorModal`. 15 min + tests. |
+| Tissus désactivés visibles dans configurateur | MEDIUM | Ajouter `.filter(v => v.fabric?.is_active)` dans le composant de rendu. 10 min. |
+| Scroll iOS modal cassé après ajout contenu | HIGH | Audit de tous les `overflow: hidden` ajoutés sur les conteneurs internes. Vérifier que seul `.visualWrapper` et `.imageWrapper` ont `overflow: hidden`. Tester sur iPhone physique. 1-2h. |
 
 ---
 
 ## Pitfall-to-Phase Mapping
 
-Comment les phases de la roadmap adressent ces pitfalls.
-
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| `remotePatterns` Supabase manquant | Phase 1 — prerequis avant product cards | `next.config.ts` contient `remotePatterns` avec `*.supabase.co` |
-| Hydration mismatch search/sort state | Phase 1 — architecture composants | `useState` initialise avec valeurs fixes, pas de `localStorage` en valeur initiale |
-| `useSearchParams` sans Suspense | Phase 1 — decision search state | Decision documentee : state client pur (`useState`) vs URL params |
-| Debounce recherche manquant | Phase 2 — implementation SearchBar | Input avec 300ms debounce, `useMemo` sur le filtre |
-| Cards sans `sizes` next/image | Phase 2 — product cards | DevTools Network : srcset genere par Next.js present sur les images |
-| Modal sans focus trap + ARIA | Phase 3 — composant Modal | Test clavier (Tab cycle) + VoiceOver (dialog announce) |
-| Body scroll iOS non bloque | Phase 3 — composant Modal | Test manuel sur Safari iOS — body immobile pendant modal ouvert |
-| Empty state manquant | Phase 2 — product grid | Recherche "test-inexistant" affiche message + bouton reset |
-| Loading state absent | Phase 1 ou 2 | Skeleton visible pendant > 200ms (throttle Network en DevTools) |
-| TypeScript non-strict sur les types API | Toutes les phases | `npx tsc --noEmit` passe a 0 erreur apres chaque phase |
+| Pas d'API publique fabrics | Phase 1 — architecture fetch | Route ou Server Component créé, swatches visibles dans le modal |
+| Fetch visuals au clic — latence | Phase 1 — décision fetch strategy | Choix documenté (preload vs lazy), skeleton swatches si lazy |
+| Supabase join filtre non transitif | Phase 1 — query design | `filter(v => v.fabric?.is_active)` présent dans le code |
+| CLS au changement d'angle | Phase 2 — gallery angles | `aspect-ratio` fixe sur `.visualWrapper`, `key` sur `<Image>` |
+| Prix dynamique — mauvaise logique | Phase 2 — prix dynamique | `calculatePrice` de `src/lib/utils.ts` utilisée, pas de constante `80` inline |
+| Scroll modal iOS — régression | Phase 2 + Phase 3 | Test mobile physique après chaque ajout de section dans le modal |
+| Swatch grid — tap target mobile | Phase 2 — swatch grid | Swatches 44px minimum, flex-wrap, pas d'overflow horizontal |
+| Swatch sans visuel — état vide | Phase 2 — affichage visuel | État "rendu non disponible" présent dans le JSX |
+| Return null avant hooks | Phase 1 — refactorisation | `if (!model) return null` est la dernière ligne avant le JSX |
+| Reset état entre modèles | Phase 1 — architecture state | Ouvrir deux modèles différents en séquence : état tissu resetté |
 
 ---
 
 ## Sources
 
-- [Next.js — Missing Suspense with useSearchParams (docs officielles)](https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout) — HIGH confidence
-- [Next.js — useSearchParams API reference](https://nextjs.org/docs/app/api-reference/functions/use-search-params) — HIGH confidence
-- [Next.js — Image remotePatterns configuration](https://nextjs.org/docs/app/api-reference/config/next-config-js/images) — HIGH confidence
-- [Supabase Storage Image Transformations](https://supabase.com/docs/guides/storage/serving/image-transformations) — HIGH confidence
-- [Vercel Community — Supabase Storage INVALID_IMAGE_OPTIMIZE_REQUEST](https://community.vercel.com/t/images-from-supabase-storage-result-in-invalid-image-optimize-request/6009) — MEDIUM confidence
-- [oneuptime.com — How to Fix useSearchParams SSR Issues (2026-01-24)](https://oneuptime.com/blog/post/2026-01-24-nextjs-usesearchparams-ssr-issues/view) — MEDIUM confidence
-- [Aurora Scharff — Managing Advanced Search Param Filtering in Next.js App Router](https://aurorascharff.no/posts/managing-advanced-search-param-filtering-next-app-router/) — MEDIUM confidence
-- [LogRocket — Build an accessible modal with focus-trap-react](https://blog.logrocket.com/build-accessible-modal-focus-trap-react/) — MEDIUM confidence
-- [CSS-Tricks — Prevent Page Scrolling When a Modal is Open](https://css-tricks.com/prevent-page-scrolling-when-a-modal-is-open/) — HIGH confidence
-- [DEV Community — iOS Safari scroll lock bug CSS fix (2025)](https://dev.to/stripearmy/i-fixed-ios-safaris-scroll-lock-bug-with-just-css-and-made-a-react-package-for-it-2o41) — MEDIUM confidence
-- [Next.js — Adding Search and Pagination (official tutorial)](https://nextjs.org/learn/dashboard-app/adding-search-and-pagination) — HIGH confidence
-- [GitHub Issue #61654 — useSearchParams Suspense requirement discussion](https://github.com/vercel/next.js/discussions/61654) — HIGH confidence
+- Analyse directe du code : `src/components/public/Catalogue/ConfiguratorModal.tsx` — pattern dialog natif Phase 6
+- Analyse directe du code : `src/app/api/models/[slug]/visuals/route.ts` — pattern filtre `fabric.is_active` côté JS
+- Analyse directe du code : `src/lib/utils.ts` — `calculatePrice`, `formatPrice` (sources de vérité uniques)
+- Analyse directe du code : `src/types/database.ts` — schéma `generated_visuals`, `fabrics`, contrainte UNIQUE
+- Analyse directe du code : `src/components/public/Catalogue/CatalogueSection.tsx` — pattern Server Component + Supabase direct
+- Documentation projet : `.planning/phases/06-modal-configurateur-placeholder/06-RESEARCH.md` — pitfalls Phase 6 documentés
+- Documentation projet : `CLAUDE.md` — contrainte prix premium = base + 80€ fixe
+- MDN Web Docs — React Rules of Hooks (hooks avant les returns conditionnels)
+- PostgREST docs — filtres sur relations (comportement des filtres sur jointures imbriquées)
+- WCAG 2.5.5 — Target Size (44px minimum pour les cibles tactiles)
 
 ---
-*Pitfalls research for: Catalogue produits Next.js App Router + Supabase (search, sort, grid, modal)*
-*Researched: 2026-03-28*
+
+*Pitfalls research for: Configurateur tissu dans modal dialog natif — v9.0 Möbel Unique*
+*Researched: 2026-03-29*

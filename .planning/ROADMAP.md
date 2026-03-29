@@ -45,7 +45,9 @@
   2. ConfiguratorModal reçoit les props fabrics et visuals sans aucun fetch côté client au moment de l'ouverture
   3. Les types TypeScript reflètent le contrat de données complet (VisualWithFabricAndImage, props étendues)
   4. Les tissus désactivés (is_active = false) sont filtrés côté JS avant forwarding — aucun tissu inactif n'atteint le modal
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 07-01-PLAN.md — Type VisualWithFabricAndImage + Promise.all fetch + props drilling + tests
 **UI hint**: yes
 
 ### Phase 8: Configurateur core
@@ -58,7 +60,9 @@
   3. Le rendu IA publié s'affiche quand un tissu est sélectionné ; si aucun rendu n'existe, la photo originale du modèle s'affiche avec un badge "Photo originale"
   4. Le prix affiché se met à jour immédiatement lors de la sélection d'un tissu (base + 80 EUR si premium) et le détail du surcoût est visible quand applicable
   5. Le CTA "Acheter sur Shopify" est présent et redirige vers le produit en nouvel onglet ; il est masqué si le modèle n'a pas de shopify_url
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 07-01-PLAN.md — Type VisualWithFabricAndImage + Promise.all fetch + props drilling + tests
 **UI hint**: yes
 
 ### Phase 9: Navigation angles
@@ -69,7 +73,9 @@
   1. Le client voit les thumbnails des angles disponibles pour le tissu actuellement sélectionné (uniquement les angles ayant un rendu publié)
   2. Cliquer un thumbnail change l'image principale sans saut de layout (aspect-ratio fixe 4/3 maintenu)
   3. L'angle actif est visuellement distinct parmi les thumbnails
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 07-01-PLAN.md — Type VisualWithFabricAndImage + Promise.all fetch + props drilling + tests
 **UI hint**: yes
 
 ## Progress
@@ -82,7 +88,7 @@
 | 4. Prerequis + Catalogue core | v8.0 | 2/2 | Complete | 2026-03-28 |
 | 5. Recherche et états interactifs | v8.0 | 2/2 | Complete | 2026-03-29 |
 | 6. Modal configurateur placeholder | v8.0 | 1/1 | Complete | 2026-03-29 |
-| 7. Fetch données + câblage props | v9.0 | 0/? | Not started | - |
+| 7. Fetch données + câblage props | v9.0 | 0/1 | Planning | - |
 | 8. Configurateur core | v9.0 | 0/? | Not started | - |
 | 9. Navigation angles | v9.0 | 0/? | Not started | - |
 

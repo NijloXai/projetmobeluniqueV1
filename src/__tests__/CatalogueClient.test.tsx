@@ -138,6 +138,41 @@ describe('CatalogueClient — recherche et filtrage', () => {
   })
 })
 
+describe('CatalogueClient — integration modal configurateur', () => {
+  it('cliquer "Configurer ce modele" ouvre le modal avec le bon modele', async () => {
+    const user = userEvent.setup()
+    render(<CatalogueClient models={mockModels} />)
+    const cta = screen.getByRole('button', { name: /configurer le modele milano/i })
+    await user.click(cta)
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: /milano/i })).toBeInTheDocument()
+  })
+
+  it('le modal affiche le prix du modele selectionne', async () => {
+    const user = userEvent.setup()
+    render(<CatalogueClient models={mockModels} />)
+    await user.click(screen.getByRole('button', { name: /configurer le modele oslo/i }))
+    const dialog = screen.getByRole('dialog')
+    expect(dialog.textContent).toMatch(/1\s?490/)
+  })
+
+  it('cliquer le bouton X ferme le modal', async () => {
+    const user = userEvent.setup()
+    render(<CatalogueClient models={mockModels} />)
+    await user.click(screen.getByRole('button', { name: /configurer le modele milano/i }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    await user.click(screen.getByLabelText('Fermer le configurateur'))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('le modal affiche le placeholder "Configurateur a venir"', async () => {
+    const user = userEvent.setup()
+    render(<CatalogueClient models={mockModels} />)
+    await user.click(screen.getByRole('button', { name: /configurer le modele milano/i }))
+    expect(screen.getByText(/configurateur a venir/i)).toBeInTheDocument()
+  })
+})
+
 describe('CatalogueClient — edge cases recherche', () => {
   it('bouton clear X visible quand query non vide', async () => {
     const user = userEvent.setup()

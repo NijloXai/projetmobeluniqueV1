@@ -1,9 +1,9 @@
 ---
 phase: 9
 slug: navigation-angles
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-30
 ---
 
@@ -36,26 +36,39 @@ created: 2026-03-30
 
 ## Per-Task Verification Map
 
-| Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 09-01-01 | 01 | 1 | CONF-06 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ✅ (a enrichir) | ⬜ pending |
-| 09-01-02 | 01 | 1 | CONF-06 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ✅ (a enrichir) | ⬜ pending |
-| 09-01-03 | 01 | 1 | CONF-06 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ✅ (a enrichir) | ⬜ pending |
-| 09-01-04 | 01 | 1 | CONF-04 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ✅ (a enrichir) | ⬜ pending |
-| 09-01-05 | 01 | 1 | CONF-06 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ✅ (a enrichir) | ⬜ pending |
-| 09-01-06 | 01 | 1 | CONF-06 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ✅ (a enrichir) | ⬜ pending |
-| 09-01-07 | 01 | 1 | D-07 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ✅ (a enrichir) | ⬜ pending |
+| Task ID | Plan | Wave | Requirement | Test Type | Automated Command | Test ID | Status |
+|---------|------|------|-------------|-----------|-------------------|---------|--------|
+| 09-01-01 | 01 | 1 | CONF-06 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | CONF-06a | ✅ green |
+| 09-01-02 | 01 | 1 | CONF-06 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | CONF-06b | ✅ green |
+| 09-01-03 | 01 | 1 | CONF-06 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | CONF-06c | ✅ green |
+| 09-01-04 | 01 | 1 | CONF-04 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | CONF-04 | ✅ green |
+| 09-01-05 | 01 | 1 | CONF-06 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | CONF-06d, CONF-06e | ✅ green |
+| 09-01-06 | 01 | 1 | CONF-06 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | D-11, D-12, D-16 | ✅ green |
+| 09-01-07 | 01 | 1 | D-07 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | D-07 | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
 ---
 
+## Requirement Coverage
+
+| Requirement | Test IDs | Status |
+|-------------|----------|--------|
+| CONF-04 | CONF-04 | COVERED |
+| CONF-06 | CONF-06a, CONF-06b, CONF-06c, CONF-06d, CONF-06e | COVERED |
+| D-07 | D-07 | COVERED |
+| D-11 | D-11 | COVERED |
+| D-12 | D-12 | COVERED |
+| D-16 | D-16 | COVERED |
+
+---
+
 ## Wave 0 Requirements
 
-- [ ] Ajouter `describe('Phase 9 — navigation angles', ...)` dans `src/__tests__/ConfiguratorModal.test.tsx` avec fixtures multi-angles
-- [ ] Ajouter fixtures: `mockModelMultiAngle` (3 model_images : 3/4, face, profil) + visuals correspondants
+- [x] `describe('Phase 9 — navigation angles', ...)` dans `src/__tests__/ConfiguratorModal.test.tsx`
+- [x] Fixtures: `mockModelMultiAngle` (3 model_images : 3/4, face, profil) + visuals correspondants
 
-*Existing infrastructure covers framework — only test stubs needed.*
+*Wave 0 complete — all test stubs created during execution.*
 
 ---
 
@@ -71,11 +84,24 @@ created: 2026-03-30
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 2s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 2s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-30
+
+---
+
+## Validation Audit 2026-03-30
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+| Manual-only | 3 |
+| Total tests | 10 (Phase 9 describe) |
+| Suite total | 45 (all phases) |

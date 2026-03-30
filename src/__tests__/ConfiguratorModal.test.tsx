@@ -676,3 +676,425 @@ describe('formatPrice — formatage prix FR', () => {
     expect(formatPrice(15000)).toBe('a partir de 15\u202f000 \u20ac')
   })
 })
+
+// === Phase 9 fixtures — multi-angles ===
+const mockModelMultiAngle: ModelWithImages = {
+  id: 'model-multi-angle',
+  name: 'Canape Milano',
+  slug: 'canape-milano',
+  price: 1890,
+  description: 'Canape modulable design',
+  dimensions: '280x95x80',
+  is_active: true,
+  shopify_url: 'https://www.mobelunique.fr/products/canape-milano',
+  created_at: '2026-01-01T00:00:00Z',
+  model_images: [
+    { id: 'img-34', model_id: 'model-multi-angle', image_url: 'https://test.supabase.co/model-photos/milano-34.jpg', view_type: '3/4', sort_order: 0 },
+    { id: 'img-face', model_id: 'model-multi-angle', image_url: 'https://test.supabase.co/model-photos/milano-face.jpg', view_type: 'face', sort_order: 1 },
+    { id: 'img-profil', model_id: 'model-multi-angle', image_url: 'https://test.supabase.co/model-photos/milano-profil.jpg', view_type: 'profil', sort_order: 2 },
+  ],
+}
+
+// Fabric fixtures pour Phase 9
+const fabricVeloursEmeraude: Fabric = {
+  id: 'fabric-modal-001',
+  name: 'Velours Emeraude',
+  slug: 'velours-emeraude',
+  category: 'velours',
+  is_active: true,
+  is_premium: false,
+  swatch_url: 'https://test.supabase.co/storage/v1/object/public/fabric-swatches/velours-emeraude.jpg',
+  reference_image_url: null,
+  created_at: '2026-01-01T00:00:00Z',
+}
+
+const fabricCuirNappa: Fabric = {
+  id: 'fabric-modal-002',
+  name: 'Cuir Nappa',
+  slug: 'cuir-nappa',
+  category: 'cuir',
+  is_active: true,
+  is_premium: true,
+  swatch_url: 'https://test.supabase.co/storage/v1/object/public/fabric-swatches/cuir-nappa.jpg',
+  reference_image_url: null,
+  created_at: '2026-01-01T00:00:00Z',
+}
+
+const fabricSingleAngle: Fabric = {
+  id: 'fabric-single-angle',
+  name: 'Soie Bleue',
+  slug: 'soie-bleue',
+  category: 'soie',
+  is_active: true,
+  is_premium: false,
+  swatch_url: 'https://test.supabase.co/storage/v1/object/public/fabric-swatches/soie-bleue.jpg',
+  reference_image_url: null,
+  created_at: '2026-01-01T00:00:00Z',
+}
+
+// 3 visuals publies pour Velours Emeraude — un par angle
+const mockVisualsMultiAngle: VisualWithFabricAndImage[] = [
+  {
+    id: 'visual-ma-34',
+    model_id: 'model-multi-angle',
+    model_image_id: 'img-34',
+    fabric_id: 'fabric-modal-001',
+    generated_image_url: 'https://test.supabase.co/generated-visuals/milano-velours-34.jpg',
+    is_validated: true,
+    is_published: true,
+    created_at: '2026-01-03T00:00:00Z',
+    fabric: fabricVeloursEmeraude,
+    model_image: { id: 'img-34', model_id: 'model-multi-angle', image_url: 'https://test.supabase.co/model-photos/milano-34.jpg', view_type: '3/4', sort_order: 0 },
+  },
+  {
+    id: 'visual-ma-face',
+    model_id: 'model-multi-angle',
+    model_image_id: 'img-face',
+    fabric_id: 'fabric-modal-001',
+    generated_image_url: 'https://test.supabase.co/generated-visuals/milano-velours-face.jpg',
+    is_validated: true,
+    is_published: true,
+    created_at: '2026-01-03T00:00:00Z',
+    fabric: fabricVeloursEmeraude,
+    model_image: { id: 'img-face', model_id: 'model-multi-angle', image_url: 'https://test.supabase.co/model-photos/milano-face.jpg', view_type: 'face', sort_order: 1 },
+  },
+  {
+    id: 'visual-ma-profil',
+    model_id: 'model-multi-angle',
+    model_image_id: 'img-profil',
+    fabric_id: 'fabric-modal-001',
+    generated_image_url: 'https://test.supabase.co/generated-visuals/milano-velours-profil.jpg',
+    is_validated: true,
+    is_published: true,
+    created_at: '2026-01-03T00:00:00Z',
+    fabric: fabricVeloursEmeraude,
+    model_image: { id: 'img-profil', model_id: 'model-multi-angle', image_url: 'https://test.supabase.co/model-photos/milano-profil.jpg', view_type: 'profil', sort_order: 2 },
+  },
+]
+
+// 2 visuals publies pour Cuir Nappa — angles 3/4 + face seulement (profil ABSENT)
+const mockVisualsPartialAngles: VisualWithFabricAndImage[] = [
+  {
+    id: 'visual-pa-34',
+    model_id: 'model-multi-angle',
+    model_image_id: 'img-34',
+    fabric_id: 'fabric-modal-002',
+    generated_image_url: 'https://test.supabase.co/generated-visuals/milano-cuir-34.jpg',
+    is_validated: true,
+    is_published: true,
+    created_at: '2026-01-03T00:00:00Z',
+    fabric: fabricCuirNappa,
+    model_image: { id: 'img-34', model_id: 'model-multi-angle', image_url: 'https://test.supabase.co/model-photos/milano-34.jpg', view_type: '3/4', sort_order: 0 },
+  },
+  {
+    id: 'visual-pa-face',
+    model_id: 'model-multi-angle',
+    model_image_id: 'img-face',
+    fabric_id: 'fabric-modal-002',
+    generated_image_url: 'https://test.supabase.co/generated-visuals/milano-cuir-face.jpg',
+    is_validated: true,
+    is_published: true,
+    created_at: '2026-01-03T00:00:00Z',
+    fabric: fabricCuirNappa,
+    model_image: { id: 'img-face', model_id: 'model-multi-angle', image_url: 'https://test.supabase.co/model-photos/milano-face.jpg', view_type: 'face', sort_order: 1 },
+  },
+]
+
+// 1 seul visual publie pour Soie Bleue — angle 3/4 seulement (pour tester D-11)
+const mockVisualsSingleAngle: VisualWithFabricAndImage[] = [
+  {
+    id: 'visual-sa-34',
+    model_id: 'model-multi-angle',
+    model_image_id: 'img-34',
+    fabric_id: 'fabric-single-angle',
+    generated_image_url: 'https://test.supabase.co/generated-visuals/milano-soie-34.jpg',
+    is_validated: true,
+    is_published: true,
+    created_at: '2026-01-03T00:00:00Z',
+    fabric: fabricSingleAngle,
+    model_image: { id: 'img-34', model_id: 'model-multi-angle', image_url: 'https://test.supabase.co/model-photos/milano-34.jpg', view_type: '3/4', sort_order: 0 },
+  },
+]
+
+// Combinaison de tous les fabrics et visuals Phase 9
+const allFabricsPhase9 = [fabricVeloursEmeraude, fabricCuirNappa, fabricSingleAngle]
+const allVisualsPhase9 = [...mockVisualsMultiAngle, ...mockVisualsPartialAngles, ...mockVisualsSingleAngle]
+
+describe('Phase 9 — navigation angles', () => {
+  let onCloseMock: ReturnType<typeof vi.fn>
+
+  beforeEach(() => {
+    onCloseMock = vi.fn()
+    vi.clearAllMocks()
+  })
+
+  it('CONF-06a: affiche les thumbnails de tous les angles quand aucun tissu selectionne', () => {
+    render(
+      <ConfiguratorModal
+        model={mockModelMultiAngle}
+        onClose={onCloseMock}
+        fabrics={allFabricsPhase9}
+        visuals={allVisualsPhase9}
+      />
+    )
+
+    const angleRadiogroup = screen.getByRole('radiogroup', { name: "Choisir l'angle de vue" })
+    expect(angleRadiogroup).toBeInTheDocument()
+
+    const angleRadios = angleRadiogroup.querySelectorAll('[role="radio"]')
+    expect(angleRadios).toHaveLength(3)
+  })
+
+  it('CONF-06b: cliquer un thumbnail change limage principale', async () => {
+    const user = userEvent.setup()
+    render(
+      <ConfiguratorModal
+        model={mockModelMultiAngle}
+        onClose={onCloseMock}
+        fabrics={allFabricsPhase9}
+        visuals={allVisualsPhase9}
+      />
+    )
+
+    // Selectionner Velours Emeraude
+    const swatchRadiogroup = screen.getByRole('radiogroup', { name: 'Choisissez votre tissu' })
+    const swatches = swatchRadiogroup.querySelectorAll('[role="radio"]')
+    await user.click(swatches[0] as HTMLElement) // Velours Emeraude
+
+    // Cliquer le thumbnail "Vue face"
+    const angleRadiogroup = screen.getByRole('radiogroup', { name: "Choisir l'angle de vue" })
+    const faceThumbnail = angleRadiogroup.querySelector('[aria-label="Vue face"]') as HTMLElement
+    await user.click(faceThumbnail)
+
+    // L'image principale doit afficher le rendu IA face
+    const mainImg = screen.getByAltText(/Canape Milano/)
+    expect(mainImg.getAttribute('src')).toContain('milano-velours-face.jpg')
+  })
+
+  it('CONF-06c: le thumbnail actif a aria-checked true', async () => {
+    const user = userEvent.setup()
+    render(
+      <ConfiguratorModal
+        model={mockModelMultiAngle}
+        onClose={onCloseMock}
+        fabrics={allFabricsPhase9}
+        visuals={allVisualsPhase9}
+      />
+    )
+
+    const angleRadiogroup = screen.getByRole('radiogroup', { name: "Choisir l'angle de vue" })
+
+    // Le thumbnail 3/4 doit etre actif par defaut
+    const thumbnail34 = angleRadiogroup.querySelector('[aria-label="Vue 3/4"]')
+    expect(thumbnail34?.getAttribute('aria-checked')).toBe('true')
+
+    // Cliquer "Vue profil"
+    const thumbnailProfil = angleRadiogroup.querySelector('[aria-label="Vue profil"]') as HTMLElement
+    await user.click(thumbnailProfil)
+
+    // Profil doit etre actif, 3/4 non
+    expect(thumbnailProfil.getAttribute('aria-checked')).toBe('true')
+    expect(thumbnail34?.getAttribute('aria-checked')).toBe('false')
+  })
+
+  it('CONF-06d: avec tissu selectionne, seuls les angles avec rendu publie sont affiches', async () => {
+    const user = userEvent.setup()
+    render(
+      <ConfiguratorModal
+        model={mockModelMultiAngle}
+        onClose={onCloseMock}
+        fabrics={allFabricsPhase9}
+        visuals={allVisualsPhase9}
+      />
+    )
+
+    // Selectionner Cuir Nappa (2 angles publies : 3/4 + face, pas profil)
+    const swatchRadiogroup = screen.getByRole('radiogroup', { name: 'Choisissez votre tissu' })
+    const cuirNappaSwatch = swatchRadiogroup.querySelector('[aria-label*="Cuir Nappa"]') as HTMLElement
+    await user.click(cuirNappaSwatch)
+
+    // Seulement 2 radios dans le radiogroup angles
+    const angleRadiogroup = screen.getByRole('radiogroup', { name: "Choisir l'angle de vue" })
+    const angleRadios = angleRadiogroup.querySelectorAll('[role="radio"]')
+    expect(angleRadios).toHaveLength(2)
+
+    // Le thumbnail profil est absent
+    expect(angleRadiogroup.querySelector('[aria-label="Vue profil"]')).toBeNull()
+  })
+
+  it('D-11: rangee thumbnails masquee si un seul angle publie', async () => {
+    const user = userEvent.setup()
+    render(
+      <ConfiguratorModal
+        model={mockModelMultiAngle}
+        onClose={onCloseMock}
+        fabrics={allFabricsPhase9}
+        visuals={allVisualsPhase9}
+      />
+    )
+
+    // Selectionner Soie Bleue (1 seul angle publie)
+    const swatchRadiogroup = screen.getByRole('radiogroup', { name: 'Choisissez votre tissu' })
+    const soieBleueRadio = swatchRadiogroup.querySelector('[aria-label*="Soie Bleue"]') as HTMLElement
+    await user.click(soieBleueRadio)
+
+    // Le radiogroup angles doit etre absent (un seul angle)
+    expect(screen.queryByRole('radiogroup', { name: "Choisir l'angle de vue" })).toBeNull()
+  })
+
+  it('CONF-06e: sans tissu, thumbnails montrent photos originales de tous les angles', () => {
+    render(
+      <ConfiguratorModal
+        model={mockModelMultiAngle}
+        onClose={onCloseMock}
+        fabrics={allFabricsPhase9}
+        visuals={allVisualsPhase9}
+      />
+    )
+
+    const angleRadiogroup = screen.getByRole('radiogroup', { name: "Choisir l'angle de vue" })
+    expect(angleRadiogroup).toBeInTheDocument()
+
+    // 3 thumbnails correspondant aux 3 model_images
+    const angleRadios = angleRadiogroup.querySelectorAll('[role="radio"]')
+    expect(angleRadios).toHaveLength(3)
+
+    // Les images dans les thumbnails doivent utiliser les image_url originales (pas generated_image_url)
+    const thumbnailImgs = angleRadiogroup.querySelectorAll('img')
+    const srcs = Array.from(thumbnailImgs).map((img) => img.getAttribute('src'))
+    expect(srcs.some((src) => src?.includes('milano-34.jpg'))).toBe(true)
+    expect(srcs.some((src) => src?.includes('milano-face.jpg'))).toBe(true)
+    expect(srcs.some((src) => src?.includes('milano-profil.jpg'))).toBe(true)
+    // Aucune src ne doit pointer vers generated-visuals
+    expect(srcs.some((src) => src?.includes('generated-visuals'))).toBe(false)
+  })
+
+  it('D-12: changement de tissu preserve langle si rendu existe, sinon reset', async () => {
+    const user = userEvent.setup()
+    render(
+      <ConfiguratorModal
+        model={mockModelMultiAngle}
+        onClose={onCloseMock}
+        fabrics={allFabricsPhase9}
+        visuals={allVisualsPhase9}
+      />
+    )
+
+    // Selectionner Velours Emeraude (3 angles disponibles)
+    const swatchRadiogroup = screen.getByRole('radiogroup', { name: 'Choisissez votre tissu' })
+    const veloursRadio = swatchRadiogroup.querySelector('[aria-label*="Velours Emeraude"]') as HTMLElement
+    await user.click(veloursRadio)
+
+    // Cliquer thumbnail "Vue profil"
+    const angleRadiogroup = screen.getByRole('radiogroup', { name: "Choisir l'angle de vue" })
+    const profilThumbnail = angleRadiogroup.querySelector('[aria-label="Vue profil"]') as HTMLElement
+    await user.click(profilThumbnail)
+    expect(profilThumbnail.getAttribute('aria-checked')).toBe('true')
+
+    // Changer pour Cuir Nappa (pas de rendu profil)
+    const cuirNappaRadio = swatchRadiogroup.querySelector('[aria-label*="Cuir Nappa"]') as HTMLElement
+    await user.click(cuirNappaRadio)
+
+    // L'angle profil doit avoir ete reset (thumbnail profil disparu car absent de Cuir Nappa)
+    const newAngleRadiogroup = screen.getByRole('radiogroup', { name: "Choisir l'angle de vue" })
+    expect(newAngleRadiogroup.querySelector('[aria-label="Vue profil"]')).toBeNull()
+
+    // Un angle doit etre selectionne (3/4 ou face)
+    const remainingRadios = newAngleRadiogroup.querySelectorAll('[role="radio"]')
+    const activeRadio = Array.from(remainingRadios).find(
+      (r) => r.getAttribute('aria-checked') === 'true'
+    )
+    expect(activeRadio).toBeTruthy()
+  })
+
+  it('D-16: changement de modele reset langle au 3/4', async () => {
+    const user = userEvent.setup()
+    const { rerender } = render(
+      <ConfiguratorModal
+        model={mockModelMultiAngle}
+        onClose={onCloseMock}
+        fabrics={allFabricsPhase9}
+        visuals={allVisualsPhase9}
+      />
+    )
+
+    // Cliquer thumbnail "Vue profil"
+    const angleRadiogroup = screen.getByRole('radiogroup', { name: "Choisir l'angle de vue" })
+    const profilThumbnail = angleRadiogroup.querySelector('[aria-label="Vue profil"]') as HTMLElement
+    await user.click(profilThumbnail)
+    expect(profilThumbnail.getAttribute('aria-checked')).toBe('true')
+
+    // Simuler changement de modele
+    const newModel: ModelWithImages = {
+      ...mockModelMultiAngle,
+      id: 'model-other',
+      name: 'Canape Roma',
+      slug: 'canape-roma',
+    }
+    rerender(
+      <ConfiguratorModal
+        model={newModel}
+        onClose={onCloseMock}
+        fabrics={allFabricsPhase9}
+        visuals={allVisualsPhase9}
+      />
+    )
+
+    // Le thumbnail 3/4 du nouveau modele doit etre actif
+    const newAngleRadiogroup = screen.getByRole('radiogroup', { name: "Choisir l'angle de vue" })
+    const thumbnail34 = newAngleRadiogroup.querySelector('[aria-label="Vue 3/4"]')
+    expect(thumbnail34?.getAttribute('aria-checked')).toBe('true')
+  })
+
+  it('D-07: alt text inclut le nom de langle quand tissu selectionne', async () => {
+    const user = userEvent.setup()
+    render(
+      <ConfiguratorModal
+        model={mockModelMultiAngle}
+        onClose={onCloseMock}
+        fabrics={allFabricsPhase9}
+        visuals={allVisualsPhase9}
+      />
+    )
+
+    // Selectionner Velours Emeraude
+    const swatchRadiogroup = screen.getByRole('radiogroup', { name: 'Choisissez votre tissu' })
+    const veloursRadio = swatchRadiogroup.querySelector('[aria-label*="Velours Emeraude"]') as HTMLElement
+    await user.click(veloursRadio)
+
+    // Cliquer thumbnail "Vue face"
+    const angleRadiogroup = screen.getByRole('radiogroup', { name: "Choisir l'angle de vue" })
+    const faceThumbnail = angleRadiogroup.querySelector('[aria-label="Vue face"]') as HTMLElement
+    await user.click(faceThumbnail)
+
+    // L'image principale doit avoir un alt contenant "vue face"
+    const mainImg = screen.getByAltText(/vue face/i)
+    expect(mainImg).toBeInTheDocument()
+  })
+
+  it('CONF-04: limage principale affiche le rendu IA pour le tissu et angle selectionnes', async () => {
+    const user = userEvent.setup()
+    render(
+      <ConfiguratorModal
+        model={mockModelMultiAngle}
+        onClose={onCloseMock}
+        fabrics={allFabricsPhase9}
+        visuals={allVisualsPhase9}
+      />
+    )
+
+    // Selectionner Velours Emeraude
+    const swatchRadiogroup = screen.getByRole('radiogroup', { name: 'Choisissez votre tissu' })
+    const veloursRadio = swatchRadiogroup.querySelector('[aria-label*="Velours Emeraude"]') as HTMLElement
+    await user.click(veloursRadio)
+
+    // Cliquer "Vue profil"
+    const angleRadiogroup = screen.getByRole('radiogroup', { name: "Choisir l'angle de vue" })
+    const profilThumbnail = angleRadiogroup.querySelector('[aria-label="Vue profil"]') as HTMLElement
+    await user.click(profilThumbnail)
+
+    // L'image principale doit afficher le rendu IA profil + Velours
+    const mainImg = screen.getByAltText(/Canape Milano/)
+    expect(mainImg.getAttribute('src')).toContain('milano-velours-profil.jpg')
+  })
+})

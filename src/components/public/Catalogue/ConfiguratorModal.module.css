@@ -229,6 +229,61 @@
   color: var(--color-background);
 }
 
+/* === Phase 9 — Navigation angles === */
+
+.leftColumn {
+  display: flex;
+  flex-direction: column;
+}
+
+.thumbnailRow {
+  display: flex;
+  flex-direction: row;
+  gap: var(--spacing-xs);          /* 4px */
+  margin-top: var(--spacing-sm);   /* 8px */
+  overflow-x: auto;
+  scrollbar-width: none;           /* Firefox */
+  padding: 0 var(--spacing-sm);
+}
+
+.thumbnailRow::-webkit-scrollbar {
+  display: none;                   /* Chrome/Safari */
+}
+
+.thumbnail {
+  position: relative;
+  flex-shrink: 0;
+  width: 72px;
+  height: 54px;
+  border-radius: var(--radius-sm); /* 4px */
+  overflow: hidden;
+  border: 3px solid transparent;
+  cursor: pointer;
+  background: none;
+  padding: 0;
+  transition: box-shadow var(--transition-fast);
+}
+
+.thumbnail:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.thumbnailActive {
+  border-color: var(--color-primary);
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Crossfade 200ms — NE PAS utiliser --transition-fast (300ms) */
+.imageMain {
+  animation: imageFadeIn 200ms ease;
+}
+
+@keyframes imageFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 /* === Responsive === */
 
 /* Desktop >= 640px : layout 2 colonnes image + body */
@@ -237,12 +292,17 @@
     flex-direction: row;
   }
 
-  .imageWrapper {
+  .leftColumn {
     width: 50%;
+    flex-shrink: 0;
+  }
+
+  .imageWrapper {
+    width: 100%;  /* dans leftColumn qui fait 50% */
     max-height: none;
     aspect-ratio: auto;
     min-height: 300px;
-    border-radius: var(--radius-xl) 0 0 var(--radius-xl); /* arrondi gauche */
+    border-radius: var(--radius-xl) 0 0 0; /* arrondi haut gauche seulement */
     flex-shrink: 0;
   }
 
@@ -275,5 +335,9 @@
   .imageWrapper {
     border-radius: 0;
     max-height: 240px;
+  }
+
+  .thumbnailRow {
+    padding: 0 var(--spacing-sm);
   }
 }

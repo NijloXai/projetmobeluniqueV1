@@ -14,6 +14,13 @@ export function getPrimaryImage(model_images: ModelImage[]): string | null {
   return model_images[0].image_url
 }
 
+export function getPrimaryImageId(model_images: ModelImage[]): string | null {
+  if (model_images.length === 0) return null
+  const image34 = model_images.find((img) => img.view_type === '3/4')
+  if (image34) return image34.id
+  return model_images[0]?.id ?? null
+}
+
 export function formatPrice(price: number): string {
   return 'a partir de ' + new Intl.NumberFormat('fr-FR').format(price) + ' \u20ac'
 }
@@ -69,13 +76,34 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
   // State selection tissu — null = aucun tissu selectionne (etat initial)
   const [selectedFabricId, setSelectedFabricId] = useState<string | null>(null)
 
-  // Reset selection quand le modele change (RESEARCH.md Pattern 2)
+  // State selection angle — initialise au 3/4 ou premier angle disponible
+  const [selectedAngle, setSelectedAngle] = useState<string | null>(null)
+
+  // Reset selection quand le modele change (RESEARCH.md Pattern 2) — Phase 8 + Phase 9 (D-16)
   useEffect(() => {
     setSelectedFabricId(null)
+    if (model) {
+      setSelectedAngle(getPrimaryImageId(model.model_images))
+    } else {
+      setSelectedAngle(null)
+    }
   }, [model?.id])
 
   // IMPORTANT : return null APRES tous les hooks (React rules of hooks)
   if (!model) return null
+
+  // Phase 9 — angles disponibles : tous (sans tissu) ou filtres par rendu publie (avec tissu)
+  const availableAngles: ModelImage[] = selectedFabricId
+    ? model.model_images.filter((img) =>
+        visuals.some(
+          (v) =>
+            v.model_id === model.id &&
+            v.model_image_id === img.id &&
+            v.fabric_id === selectedFabricId &&
+            v.is_published
+        )
+      )
+    : model.model_images
 
   // D-01: Filtrage tissus eligibles (ayant au moins un rendu publie pour ce modele)
   const eligibleFabricIds = new Set(
@@ -93,18 +121,60 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
     ? eligibleFabrics.find(f => f.id === selectedFabricId) ?? null
     : null
 
-  const currentVisual = selectedFabricId
+  // Phase 9 — currentVisual filtre aussi par angle selectionne
+  const currentVisual = selectedFabricId && selectedAngle
     ? visuals.find(
-        v => v.model_id === model.id &&
-             v.fabric_id === selectedFabricId &&
-             v.is_published
+        (v) =>
+          v.model_id === model.id &&
+          v.fabric_id === selectedFabricId &&
+          v.model_image_id === selectedAngle &&
+          v.is_published
       ) ?? null
     : null
 
-  // Image a afficher : rendu IA si disponible, sinon photo originale
-  const originalImageUrl = getPrimaryImage(model.model_images)
-  const displayImageUrl = currentVisual?.generated_image_url ?? originalImageUrl
+  // Image a afficher : rendu IA si disponible, sinon photo de l'angle selectionne
+  const selectedAngleImage = model.model_images.find((img) => img.id === selectedAngle)
+  const displayImageUrl =
+    currentVisual?.generated_image_url ??
+    selectedAngleImage?.image_url ??
+    getPrimaryImage(model.model_images)
   const isOriginalFallback = selectedFabricId !== null && currentVisual === null
+
+  // Alt text dynamique avec angle (D-07)
+  const angleLabel = selectedAngleImage?.view_type ?? ''
+  const imageAlt =
+    currentVisual && selectedFabric
+      ? `Canape ${model.name} en tissu ${selectedFabric.name}${angleLabel ? ` \u2014 vue ${angleLabel}` : ''}`
+      : selectedAngleImage
+        ? `Canape ${model.name} \u2014 vue ${selectedAngleImage.view_type}`
+        : `Canape ${model.name}`
+
+  // Handler selection tissu avec preservation angle (D-12)
+  const handleFabricSelect = (fabricId: string) => {
+    setSelectedFabricId(fabricId)
+    const hasRenderForCurrentAngle =
+      selectedAngle !== null &&
+      visuals.some(
+        (v) =>
+          v.model_id === model.id &&
+          v.fabric_id === fabricId &&
+          v.model_image_id === selectedAngle &&
+          v.is_published
+      )
+    if (!hasRenderForCurrentAngle) {
+      const anglesForFabric = model.model_images.filter((img) =>
+        visuals.some(
+          (v) =>
+            v.model_id === model.id &&
+            v.model_image_id === img.id &&
+            v.fabric_id === fabricId &&
+            v.is_published
+        )
+      )
+      const default34 = anglesForFabric.find((img) => img.view_type === '3/4')
+      setSelectedAngle(default34?.id ?? anglesForFabric[0]?.id ?? null)
+    }
+  }
 
   return (
     <dialog
@@ -128,24 +198,53 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
         </button>
 
         <div className={styles.inner}>
-          {displayImageUrl && (
-            <div className={styles.imageWrapper}>
-              <Image
-                src={displayImageUrl}
-                alt={
-                  currentVisual && selectedFabric
-                    ? `Canape ${model.name} en tissu ${selectedFabric.name}`
-                    : `Canape ${model.name}`
-                }
-                fill
-                style={{ objectFit: 'cover' }}
-                sizes="(max-width: 640px) 100vw, 50vw"
-              />
-              {isOriginalFallback && (
-                <span className={styles.badgeOriginalPhoto}>Photo originale</span>
-              )}
-            </div>
-          )}
+          <div className={styles.leftColumn}>
+            {displayImageUrl && (
+              <div className={styles.imageWrapper}>
+                <Image
+                  key={displayImageUrl}
+                  src={displayImageUrl}
+                  alt={imageAlt}
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  sizes="(max-width: 640px) 100vw, 50vw"
+                  className={styles.imageMain}
+                />
+                {isOriginalFallback && (
+                  <span className={styles.badgeOriginalPhoto}>Photo originale</span>
+                )}
+              </div>
+            )}
+
+            {/* Phase 9 — Rangee thumbnails angles (D-11 : masquee si <= 1 angle disponible) */}
+            {availableAngles.length > 1 && (
+              <div
+                className={styles.thumbnailRow}
+                role="radiogroup"
+                aria-label="Choisir l'angle de vue"
+              >
+                {availableAngles.map((img) => (
+                  <button
+                    key={img.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={selectedAngle === img.id}
+                    aria-label={`Vue ${img.view_type}`}
+                    className={`${styles.thumbnail} ${selectedAngle === img.id ? styles.thumbnailActive : ''}`}
+                    onClick={() => setSelectedAngle(img.id)}
+                  >
+                    <Image
+                      src={img.image_url}
+                      alt=""
+                      fill
+                      style={{ objectFit: 'cover' }}
+                      sizes="72px"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div className={styles.body}>
             <h2 id="modal-title" className={styles.modelName}>{model.name}</h2>
@@ -188,7 +287,7 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
                       aria-checked={selectedFabricId === fabric.id}
                       aria-label={`${fabric.name}${fabric.is_premium ? ' \u2014 Premium' : ''}`}
                       className={`${styles.swatch} ${selectedFabricId === fabric.id ? styles.swatchSelected : ''}`}
-                      onClick={() => setSelectedFabricId(fabric.id)}
+                      onClick={() => handleFabricSelect(fabric.id)}
                     >
                       <Image
                         src={fabric.swatch_url!}

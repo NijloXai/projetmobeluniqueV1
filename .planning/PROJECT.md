@@ -34,13 +34,13 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 - [x] **MODAL-01**: CTA "Configurer ce modele" ouvre modal large 90vw/plein ecran mobile -- Validated in Phase 06
 - [x] **MODAL-02**: Modal accessible (focus trap, fermeture Escape/X/backdrop, retour focus) -- Validated in Phase 06
 - [x] **MODAL-03**: Modal affiche placeholder "Configurateur a venir" avec nom/prix/image du canape -- Validated in Phase 06
+- [x] **CONF-01**: Selection tissu avec swatches cliquables dans le modal configurateur -- Validated in Phase 08
+- [x] **CONF-02**: Affichage rendu IA publie par angle quand un tissu est selectionne -- Validated in Phase 09
+- [x] **CONF-03**: Prix dynamique avec supplement premium (+80 EUR si applicable) -- Validated in Phase 08
+- [x] **CONF-04**: CTA "Acheter sur Shopify" avec lien vers le produit -- Validated in Phase 08
 
 ### Active
 
-- [ ] **CONF-01**: Selection tissu avec swatches cliquables dans le modal configurateur
-- [ ] **CONF-02**: Affichage rendu IA publie par angle quand un tissu est selectionne
-- [ ] **CONF-03**: Prix dynamique avec supplement premium (+80 EUR si applicable)
-- [ ] **CONF-04**: CTA "Acheter sur Shopify" avec lien vers le produit
 - [ ] **SIM-01**: Upload photo salon et simulation IA
 
 ### Out of Scope
@@ -55,7 +55,7 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 ## Context
 
 - Backend complet (~5350 lignes, M001-M006)
-- Frontend v7.0 + v8.0 + Phase 7 complets : Header + Hero + HowItWorks + Catalogue + Modal configurateur + fetch donnees (fabrics/visuals server-side) — 7 phases, 9 plans, 79 tests
+- Frontend v7.0 + v8.0 + v9.0 complets : Header + Hero + HowItWorks + Catalogue + Modal configurateur + fetch donnees + configurateur tissu + navigation angles — 9 phases, 11 plans, 45+ tests configurateur
 - Brand assets client integres depuis `fichier-mobelunique/` (logos, favicon, app icons)
 - URL Shopify reelle : https://www.mobelunique.fr/
 - Maquette Stitch "Mobel Unique -- SPA Desktop" (project ID: 16534774796210155266)
@@ -125,4 +125,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-29 after Phase 7 completion*
+*Last updated: 2026-03-30 after Phase 9 completion (v9.0 Configurateur Tissu complete)*

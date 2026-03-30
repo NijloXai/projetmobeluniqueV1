@@ -93,6 +93,19 @@ Plans:
 | 9. Navigation angles | v9.0 | 1/1 | Complete   | 2026-03-30 |
 
 ---
+
+## Backlog
+
+### Phase 999.1: Dette technique v9.0 (BACKLOG)
+
+**Goal:** Corriger la dette technique accumulee pendant v9.0 : 1) Ajouter VERIFICATION.md manquant Phase 8 (7 requirements sans verification formelle). 2) Ajouter test unitaire pour le fix D-15 useRef previousModelIdRef. 3) Rendre ProductCard.onConfigure required au lieu d'optionnel pour enforcement compile-time.
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
+
+---
 *Roadmap created: 2026-03-26*
 *v7.0 shipped: 2026-03-27*
 *v8.0 shipped: 2026-03-29*

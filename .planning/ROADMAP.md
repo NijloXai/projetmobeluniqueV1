@@ -32,7 +32,7 @@
 
 - [x] **Phase 7: Fetch données + câblage props** - Co-fetch server-side fabrics/visuals et forwarding props jusqu'à ConfiguratorModal (completed 2026-03-29)
 - [x] **Phase 8: Configurateur core** - Swatches tissu, rendu IA avec fallback, prix dynamique, CTA Shopify (completed 2026-03-29)
-- [ ] **Phase 9: Navigation angles** - Thumbnails angles disponibles et sélection angle actif
+- [x] **Phase 9: Navigation angles** - Thumbnails angles disponibles et sélection angle actif (completed 2026-03-30)
 
 ## Phase Details
 
@@ -75,7 +75,7 @@ Plans:
   3. L'angle actif est visuellement distinct parmi les thumbnails
 **Plans**: 1 plan
 Plans:
-- [ ] 09-01-PLAN.md — Thumbnails angles + selection angle actif
+- [x] 09-01-PLAN.md — Thumbnails angles + selection angle actif
 **UI hint**: yes
 
 ## Progress
@@ -90,7 +90,7 @@ Plans:
 | 6. Modal configurateur placeholder | v8.0 | 1/1 | Complete | 2026-03-29 |
 | 7. Fetch données + câblage props | v9.0 | 1/1 | Complete   | 2026-03-29 |
 | 8. Configurateur core | v9.0 | 1/1 | Complete   | 2026-03-29 |
-| 9. Navigation angles | v9.0 | 0/? | Not started | - |
+| 9. Navigation angles | v9.0 | 1/1 | Complete   | 2026-03-30 |
 
 ---
 *Roadmap created: 2026-03-26*

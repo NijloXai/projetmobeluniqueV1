@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v9.0
 milestone_name: Configurateur Tissu
 status: verifying
-stopped_at: Phase 9 plans verified
-last_updated: "2026-03-30T00:55:59.961Z"
-last_activity: 2026-03-29
+stopped_at: Completed 09-01-PLAN.md
+last_updated: "2026-03-30T01:07:11.118Z"
+last_activity: 2026-03-30
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-29)
 
 **Core value:** Le client peut visualiser un canapé dans le tissu de son choix et le simuler dans son salon avant d'acheter.
-**Current focus:** Phase 08 — configurateur-core
+**Current focus:** Phase 09 — navigation-angles
 
 ## Current Position
 
-Phase: 08 (configurateur-core) — EXECUTING
+Phase: 09 (navigation-angles) — EXECUTING
 Plan: 1 of 1
 Status: Phase complete — ready for verification
-Last activity: 2026-03-29
+Last activity: 2026-03-30
 
 Progress: [░░░░░░░░░░] 0% (v9.0)
 
@@ -61,6 +61,9 @@ Décisions clés v9.0 :
 - [Phase 08]: alias import formatPriceUtil — conserve formatPrice locale exportee, evite conflit de noms
 - [Phase 08]: eligibleFabrics filtre swatch_url !== null — seuls tissus avec swatch affiches dans grille
 - [Phase 08]: isOriginalFallback = selectedFabricId !== null && currentVisual === null — badge uniquement en fallback
+- [Phase 09]: key={displayImageUrl} sur Image principale — crossfade gratuit via remount React sans state opacity
+- [Phase 09]: leftColumn div wrapper — isole imageWrapper + thumbnailRow pour layout desktop sans casser responsive existant
+- [Phase 09]: handleFabricSelect encapsule preservation angle D-12 — remplace setSelectedFabricId direct
 
 ### Pending Todos
 
@@ -73,6 +76,6 @@ Décisions clés v9.0 :
 
 ## Session Continuity
 
-Last session: 2026-03-30T00:55:59.959Z
-Stopped at: Phase 9 plans verified
-Resume file: .planning/phases/09-navigation-angles/09-01-PLAN.md
+Last session: 2026-03-30T01:07:11.116Z
+Stopped at: Completed 09-01-PLAN.md
+Resume file: None

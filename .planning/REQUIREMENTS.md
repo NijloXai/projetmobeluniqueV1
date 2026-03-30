@@ -11,13 +11,13 @@ Requirements pour le configurateur tissu. Chaque requirement mappe a une phase d
 
 - [x] **CONF-01**: Le client voit les swatches des tissus disponibles (ayant au moins un rendu publie pour ce modele)
 - [x] **CONF-02**: Le client peut cliquer un swatch pour selectionner un tissu — le swatch actif est visuellement distinct
-- [ ] **CONF-03**: Les tissus premium affichent un badge "Premium" sur leur swatch
+- [x] **CONF-03**: Les tissus premium affichent un badge "Premium" sur leur swatch
 
 ### Rendu IA
 
 - [x] **CONF-04**: Le modal affiche le rendu IA publie du canape dans le tissu selectionne
 - [x] **CONF-05**: Si aucun rendu n'existe pour le tissu/angle, la photo originale du modele s'affiche en fallback
-- [ ] **CONF-06**: Le client peut naviguer entre les angles disponibles via des thumbnails
+- [x] **CONF-06**: Le client peut naviguer entre les angles disponibles via des thumbnails
 
 ### Prix
 
@@ -67,10 +67,10 @@ Requirements pour le configurateur tissu. Chaque requirement mappe a une phase d
 |-------------|-------|--------|
 | CONF-01 | Phase 7 + Phase 8 | Complete |
 | CONF-02 | Phase 8 | Complete |
-| CONF-03 | Phase 8 | Pending |
+| CONF-03 | Phase 8 | Complete |
 | CONF-04 | Phase 9 | Complete |
 | CONF-05 | Phase 8 | Complete |
-| CONF-06 | Phase 9 | Pending |
+| CONF-06 | Phase 9 | Complete |
 | CONF-07 | Phase 8 | Complete |
 | CONF-08 | Phase 8 | Complete |
 | CONF-09 | Phase 8 | Complete |

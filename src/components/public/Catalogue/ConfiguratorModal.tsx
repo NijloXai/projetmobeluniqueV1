@@ -79,14 +79,30 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
   // State selection angle — initialise au 3/4 ou premier angle disponible
   const [selectedAngle, setSelectedAngle] = useState<string | null>(null)
 
+  // Track previous model ID to distinguish reopen (null→sameID) from model change (D-15 vs D-16)
+  const previousModelIdRef = useRef<string | undefined>(undefined)
+
   // Reset selection quand le modele change (RESEARCH.md Pattern 2) — Phase 8 + Phase 9 (D-16)
   useEffect(() => {
+    const currentId = model?.id
+    const previousId = previousModelIdRef.current
+
+    // Always reset fabric on open (Phase 8 D-09)
     setSelectedFabricId(null)
-    if (model) {
+
+    // Only reset angle if model actually changed (D-16), not on reopen of same model (D-15)
+    if (currentId !== previousId && previousId !== undefined) {
+      if (model) {
+        setSelectedAngle(getPrimaryImageId(model.model_images))
+      } else {
+        setSelectedAngle(null)
+      }
+    } else if (previousId === undefined && model) {
+      // First open ever — initialize angle
       setSelectedAngle(getPrimaryImageId(model.model_images))
-    } else {
-      setSelectedAngle(null)
     }
+
+    previousModelIdRef.current = currentId
   }, [model?.id])
 
   // IMPORTANT : return null APRES tous les hooks (React rules of hooks)

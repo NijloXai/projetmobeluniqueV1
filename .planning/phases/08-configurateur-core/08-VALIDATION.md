@@ -1,9 +1,9 @@
 ---
 phase: 8
 slug: configurateur-core
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-29
 ---
 
@@ -22,7 +22,7 @@ created: 2026-03-29
 | **Setup file** | `src/__tests__/setup.ts` |
 | **Quick run command** | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` |
 | **Full suite command** | `npm test` |
-| **Estimated runtime** | ~5 seconds |
+| **Estimated runtime** | ~1 second |
 
 ---
 
@@ -39,13 +39,13 @@ created: 2026-03-29
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 08-01-01 | 01 | 0 | CONF-02, CONF-03, CONF-05, CONF-07, CONF-08, CONF-09, CONF-10 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ❌ W0 | ⬜ pending |
-| 08-01-02 | 01 | 1 | CONF-01 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ✅ (enrichir) | ⬜ pending |
-| 08-01-03 | 01 | 1 | CONF-02 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ❌ W0 | ⬜ pending |
-| 08-01-04 | 01 | 1 | CONF-03 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ❌ W0 | ⬜ pending |
-| 08-01-05 | 01 | 1 | CONF-05 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ❌ W0 | ⬜ pending |
-| 08-01-06 | 01 | 1 | CONF-07, CONF-08 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ❌ W0 | ⬜ pending |
-| 08-01-07 | 01 | 1 | CONF-09, CONF-10 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ❌ W0 | ⬜ pending |
+| 08-01-01 | 01 | 0 | CONF-02, CONF-03, CONF-05, CONF-07, CONF-08, CONF-09, CONF-10 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ✅ | ✅ green |
+| 08-01-02 | 01 | 1 | CONF-01 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ✅ | ✅ green |
+| 08-01-03 | 01 | 1 | CONF-02 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ✅ | ✅ green |
+| 08-01-04 | 01 | 1 | CONF-03 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ✅ | ✅ green |
+| 08-01-05 | 01 | 1 | CONF-05 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ✅ | ✅ green |
+| 08-01-06 | 01 | 1 | CONF-07, CONF-08 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ✅ | ✅ green |
+| 08-01-07 | 01 | 1 | CONF-09, CONF-10 | unit | `npx vitest run src/__tests__/ConfiguratorModal.test.tsx` | ✅ | ✅ green |
 
 *Status: ⬜ pending / ✅ green / ❌ red / ⚠️ flaky*
 
@@ -53,8 +53,8 @@ created: 2026-03-29
 
 ## Wave 0 Requirements
 
-- [ ] `src/__tests__/ConfiguratorModal.test.tsx` — ajouter describe "Phase 8 — configurateur" avec stubs pour CONF-02, CONF-03, CONF-05, CONF-07, CONF-08, CONF-09, CONF-10
-- [ ] Mettre a jour les tests placeholder existants (MODAL-03) qui seront remplaces
+- [x] `src/__tests__/ConfiguratorModal.test.tsx` — describe "Phase 8 — configurateur" avec tests CONF-01 a CONF-10
+- [x] Tests placeholder MODAL-03 remplaces par tests configurateur reel
 
 *Existing infrastructure (Vitest + testing-library) covers framework needs.*
 
@@ -73,11 +73,27 @@ created: 2026-03-29
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-30
+
+---
+
+## Validation Audit 2026-03-30
+
+| Metric | Count |
+|--------|-------|
+| Requirements | 8 |
+| Covered (automated) | 8 |
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+| Edge case tests | 6 |
+| Total tests | 35 |
+
+Test suite: 35/35 green, 106/106 full suite green.

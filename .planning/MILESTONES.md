@@ -1,5 +1,17 @@
 # Milestones
 
+## v9.0 Configurateur Tissu (Shipped: 2026-03-30)
+
+**Phases completed:** 3 phases, 3 plans, 6 tasks
+
+**Key accomplishments:**
+
+- Pipeline server-side enrichi avec Promise.all (models + fabrics + visuals publies) et props drilling jusqu'a ConfiguratorModal sans fetch client
+- Configurateur tissu complet dans ConfiguratorModal — swatches cliquables filtrés par visuals publiés, rendu IA avec fallback photo originale, prix dynamique avec détail premium +80 EUR, CTA Shopify conditionnel
+- Thumbnails angles cliquables sous l'image principale avec crossfade 200ms, filtrage par tissu selectionne et preservation de l'angle au changement de tissu
+
+---
+
 ## v8.0 Catalogue Produits (Shipped: 2026-03-29)
 
 **Phases completed:** 3 phases, 5 plans, 7 tasks

@@ -55,7 +55,7 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 ## Context
 
 - Backend complet (~5350 lignes, M001-M006)
-- Frontend v7.0 + v8.0 + v9.0 complets : Header + Hero + HowItWorks + Catalogue + Modal configurateur + fetch donnees + configurateur tissu + navigation angles — 9 phases, 11 plans, 45+ tests configurateur
+- Frontend v7.0 + v8.0 + v9.0 complets (shipped) : Header + Hero + HowItWorks + Catalogue + Configurateur tissu complet (swatches, rendus IA, prix dynamique, navigation angles, CTA Shopify) — 9 phases, 11 plans, 45 tests
 - Brand assets client integres depuis `fichier-mobelunique/` (logos, favicon, app icons)
 - URL Shopify reelle : https://www.mobelunique.fr/
 - Maquette Stitch "Mobel Unique -- SPA Desktop" (project ID: 16534774796210155266)
@@ -95,17 +95,13 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 
 - **v7.0** Header + Hero + Comment ca marche (shipped 2026-03-27)
 - **v8.0** Catalogue Produits (shipped 2026-03-29)
+- **v9.0** Configurateur Tissu (shipped 2026-03-30)
 
-## Current Milestone: v9.0 Configurateur Tissu
+## Next Milestone
 
-**Goal:** Le client peut choisir un tissu et voir le rendu IA du canape dans ce tissu, avec prix mis a jour et lien achat Shopify.
-
-**Target features:**
-- Swatches tissu dans le modal (miniatures cliquables des tissus actifs)
-- Affichage du rendu IA pre-publie (par angle) quand un tissu est selectionne
-- Prix dynamique (base + 80 EUR premium si applicable)
-- CTA "Acheter sur Shopify" avec lien vers le produit
-- Remplacement du placeholder "Configurateur a venir" par le contenu reel
+A definir via `/gsd:new-milestone`. Candidats :
+- v10.0 Simulation IA salon (SIM-01 a SIM-03)
+- v11.0 Polish (produits similaires, footer, sticky bar, deep link)
 
 ## Evolution
 
@@ -125,4 +121,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-30 after Phase 9 completion (v9.0 Configurateur Tissu complete)*
+*Last updated: 2026-03-30 after v9.0 Configurateur Tissu milestone shipped*

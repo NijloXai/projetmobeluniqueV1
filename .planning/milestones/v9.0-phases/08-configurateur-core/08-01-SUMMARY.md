@@ -136,6 +136,15 @@ None — aucune configuration de service externe requise.
 
 Aucun stub — toutes les données sont filées depuis les props réelles (fabrics/visuals depuis Supabase via CatalogueSection).
 
+## Self-Check: PASSED
+
+- ConfiguratorModal.tsx : FOUND
+- ConfiguratorModal.module.css : FOUND
+- ConfiguratorModal.test.tsx : FOUND
+- 08-01-SUMMARY.md : FOUND
+- Commit b58b818 (test RED) : FOUND
+- Commit c3a1c18 (feat GREEN) : FOUND
+
 ---
 *Phase: 08-configurateur-core*
 *Completed: 2026-03-29*

@@ -9,6 +9,10 @@ import styles from './ConfiguratorModal.module.css'
 
 type SimulationState = 'idle' | 'preview' | 'generating' | 'done' | 'error'
 
+// Module-level constants (IN-01 code review)
+const ACCEPTED_TYPES = new Set(['image/jpeg', 'image/png', 'image/heic', 'image/heif'])
+const MAX_SIZE_BYTES = 15 * 1024 * 1024
+
 interface ConfiguratorModalProps {
   model: ModelWithImages | null
   onClose: () => void
@@ -114,108 +118,7 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
     previousModelIdRef.current = currentId
   }, [model?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Phase 11 — Cleanup Object URLs et timers au unmount
-  useEffect(() => {
-    return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl)
-      if (resultBlobUrl) URL.revokeObjectURL(resultBlobUrl)
-      if (progressTimerRef.current) clearInterval(progressTimerRef.current)
-      if (progressPhase2TimerRef.current) clearInterval(progressPhase2TimerRef.current)
-      if (abortControllerRef.current) abortControllerRef.current.abort()
-    }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // IMPORTANT : return null APRES tous les hooks (React rules of hooks)
-  if (!model) return null
-
-  // Phase 9 — angles disponibles : tous (sans tissu) ou filtres par rendu publie (avec tissu)
-  const availableAngles: ModelImage[] = selectedFabricId
-    ? model.model_images.filter((img) =>
-        visuals.some(
-          (v) =>
-            v.model_id === model.id &&
-            v.model_image_id === img.id &&
-            v.fabric_id === selectedFabricId &&
-            v.is_published
-        )
-      )
-    : model.model_images
-
-  // D-01: Filtrage tissus eligibles (ayant au moins un rendu publie pour ce modele)
-  const eligibleFabricIds = new Set(
-    visuals
-      .filter(v => v.model_id === model.id && v.is_published)
-      .map(v => v.fabric_id)
-  )
-
-  const eligibleFabrics = fabrics.filter(
-    f => eligibleFabricIds.has(f.id) && f.swatch_url !== null
-  )
-
-  // Lookup du tissu et visual selectionnes
-  const selectedFabric = selectedFabricId
-    ? eligibleFabrics.find(f => f.id === selectedFabricId) ?? null
-    : null
-
-  // Phase 9 — currentVisual filtre aussi par angle selectionne
-  const currentVisual = selectedFabricId && selectedAngle
-    ? visuals.find(
-        (v) =>
-          v.model_id === model.id &&
-          v.fabric_id === selectedFabricId &&
-          v.model_image_id === selectedAngle &&
-          v.is_published
-      ) ?? null
-    : null
-
-  // Image a afficher : rendu IA si disponible, sinon photo de l'angle selectionne
-  const selectedAngleImage = model.model_images.find((img) => img.id === selectedAngle)
-  const displayImageUrl =
-    currentVisual?.generated_image_url ??
-    selectedAngleImage?.image_url ??
-    getPrimaryImage(model.model_images)
-  const isOriginalFallback = selectedFabricId !== null && currentVisual === null
-
-  // Alt text dynamique avec angle (D-07)
-  const angleLabel = selectedAngleImage?.view_type ?? ''
-  const imageAlt =
-    currentVisual && selectedFabric
-      ? `Canape ${model.name} en tissu ${selectedFabric.name}${angleLabel ? ` \u2014 vue ${angleLabel}` : ''}`
-      : selectedAngleImage
-        ? `Canape ${model.name} \u2014 vue ${selectedAngleImage.view_type}`
-        : `Canape ${model.name}`
-
-  // Handler selection tissu avec preservation angle (D-12)
-  const handleFabricSelect = (fabricId: string) => {
-    setSelectedFabricId(fabricId)
-    const hasRenderForCurrentAngle =
-      selectedAngle !== null &&
-      visuals.some(
-        (v) =>
-          v.model_id === model.id &&
-          v.fabric_id === fabricId &&
-          v.model_image_id === selectedAngle &&
-          v.is_published
-      )
-    if (!hasRenderForCurrentAngle) {
-      const anglesForFabric = model.model_images.filter((img) =>
-        visuals.some(
-          (v) =>
-            v.model_id === model.id &&
-            v.model_image_id === img.id &&
-            v.fabric_id === fabricId &&
-            v.is_published
-        )
-      )
-      const default34 = anglesForFabric.find((img) => img.view_type === '3/4')
-      setSelectedAngle(default34?.id ?? anglesForFabric[0]?.id ?? null)
-    }
-  }
-
   // Phase 11 — Validation fichier (D-10, D-11)
-  const ACCEPTED_TYPES = new Set(['image/jpeg', 'image/png', 'image/heic', 'image/heif'])
-  const MAX_SIZE_BYTES = 15 * 1024 * 1024
-
   const validateFile = useCallback((file: File): string | null => {
     if (file.size > MAX_SIZE_BYTES) {
       return 'Ce fichier depasse 15 Mo. Choisissez une photo plus legere.'
@@ -387,6 +290,104 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
     setProgressStage(0)
     setErrorMessage(null)
   }, [stopProgressTimer, selectedFile])
+
+  // Phase 11 — Cleanup Object URLs et timers au unmount
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl)
+      if (resultBlobUrl) URL.revokeObjectURL(resultBlobUrl)
+      if (progressTimerRef.current) clearInterval(progressTimerRef.current)
+      if (progressPhase2TimerRef.current) clearInterval(progressPhase2TimerRef.current)
+      if (abortControllerRef.current) abortControllerRef.current.abort()
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // IMPORTANT : return null APRES tous les hooks (React rules of hooks)
+  if (!model) return null
+
+  // Phase 9 — angles disponibles : tous (sans tissu) ou filtres par rendu publie (avec tissu)
+  const availableAngles: ModelImage[] = selectedFabricId
+    ? model.model_images.filter((img) =>
+        visuals.some(
+          (v) =>
+            v.model_id === model.id &&
+            v.model_image_id === img.id &&
+            v.fabric_id === selectedFabricId &&
+            v.is_published
+        )
+      )
+    : model.model_images
+
+  // D-01: Filtrage tissus eligibles (ayant au moins un rendu publie pour ce modele)
+  const eligibleFabricIds = new Set(
+    visuals
+      .filter(v => v.model_id === model.id && v.is_published)
+      .map(v => v.fabric_id)
+  )
+
+  const eligibleFabrics = fabrics.filter(
+    f => eligibleFabricIds.has(f.id) && f.swatch_url !== null
+  )
+
+  // Lookup du tissu et visual selectionnes
+  const selectedFabric = selectedFabricId
+    ? eligibleFabrics.find(f => f.id === selectedFabricId) ?? null
+    : null
+
+  // Phase 9 — currentVisual filtre aussi par angle selectionne
+  const currentVisual = selectedFabricId && selectedAngle
+    ? visuals.find(
+        (v) =>
+          v.model_id === model.id &&
+          v.fabric_id === selectedFabricId &&
+          v.model_image_id === selectedAngle &&
+          v.is_published
+      ) ?? null
+    : null
+
+  // Image a afficher : rendu IA si disponible, sinon photo de l'angle selectionne
+  const selectedAngleImage = model.model_images.find((img) => img.id === selectedAngle)
+  const displayImageUrl =
+    currentVisual?.generated_image_url ??
+    selectedAngleImage?.image_url ??
+    getPrimaryImage(model.model_images)
+  const isOriginalFallback = selectedFabricId !== null && currentVisual === null
+
+  // Alt text dynamique avec angle (D-07)
+  const angleLabel = selectedAngleImage?.view_type ?? ''
+  const imageAlt =
+    currentVisual && selectedFabric
+      ? `Canape ${model.name} en tissu ${selectedFabric.name}${angleLabel ? ` \u2014 vue ${angleLabel}` : ''}`
+      : selectedAngleImage
+        ? `Canape ${model.name} \u2014 vue ${selectedAngleImage.view_type}`
+        : `Canape ${model.name}`
+
+  // Handler selection tissu avec preservation angle (D-12)
+  const handleFabricSelect = (fabricId: string) => {
+    setSelectedFabricId(fabricId)
+    const hasRenderForCurrentAngle =
+      selectedAngle !== null &&
+      visuals.some(
+        (v) =>
+          v.model_id === model.id &&
+          v.fabric_id === fabricId &&
+          v.model_image_id === selectedAngle &&
+          v.is_published
+      )
+    if (!hasRenderForCurrentAngle) {
+      const anglesForFabric = model.model_images.filter((img) =>
+        visuals.some(
+          (v) =>
+            v.model_id === model.id &&
+            v.model_image_id === img.id &&
+            v.fabric_id === fabricId &&
+            v.is_published
+        )
+      )
+      const default34 = anglesForFabric.find((img) => img.view_type === '3/4')
+      setSelectedAngle(default34?.id ?? anglesForFabric[0]?.id ?? null)
+    }
+  }
 
   // Phase 11 — SVG inline icons (pas de nouvelle dependance)
   const UploadIcon = (

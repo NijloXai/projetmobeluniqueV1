@@ -55,7 +55,8 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 ## Context
 
 - Backend complet (~5350 lignes, M001-M006)
-- Frontend v7.0 + v8.0 + v9.0 complets (shipped) : Header + Hero + HowItWorks + Catalogue + Configurateur tissu complet (swatches, rendus IA, prix dynamique, navigation angles, CTA Shopify) — 9 phases, 11 plans, 45 tests
+- Frontend v7.0 + v8.0 + v9.0 complets (shipped) : Header + Hero + HowItWorks + Catalogue + Configurateur tissu complet (swatches, rendus IA, prix dynamique, navigation angles, CTA Shopify) — 9 phases, 9 plans
+- v10.0 en cours : Phase 10 (dette technique) + Phase 11 (upload simulation) completes, Phase 12 (affichage resultat) a venir
 - Brand assets client integres depuis `fichier-mobelunique/` (logos, favicon, app icons)
 - URL Shopify reelle : https://www.mobelunique.fr/
 - Maquette Stitch "Mobel Unique -- SPA Desktop" (project ID: 16534774796210155266)
@@ -99,9 +100,12 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 
 ## Next Milestone
 
-A definir via `/gsd:new-milestone`. Candidats :
-- v10.0 Simulation IA salon (SIM-01 a SIM-03)
-- v11.0 Polish (produits similaires, footer, sticky bar, deep link)
+**v10.0 Simulation IA Salon** — Phases 10-12 (started 2026-04-07)
+- Phase 10: Dette technique v9.0 (promoted from backlog 999.1)
+- Phase 11: Simulation IA — Upload et traitement
+- Phase 12: Simulation IA — Affichage résultat et partage
+
+Candidat suivant : v11.0 Polish (produits similaires, footer, sticky bar, deep link)
 
 ## Evolution
 
@@ -121,4 +125,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-30 after v9.0 Configurateur Tissu milestone shipped*
+*Last updated: 2026-04-07 after Phase 11 Simulation IA Upload et traitement complete*

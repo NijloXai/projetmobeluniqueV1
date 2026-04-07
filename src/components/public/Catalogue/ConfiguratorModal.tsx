@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Image from 'next/image'
-import { X } from 'lucide-react'
+import { X, Download, Share2, ExternalLink, RefreshCw } from 'lucide-react'
 import type { ModelWithImages, ModelImage, Fabric, VisualWithFabricAndImage } from '@/types/database'
 import { getPrimaryImage, getPrimaryImageId, formatStartingPrice, calculatePrice, formatPrice } from '@/lib/utils'
 import styles from './ConfiguratorModal.module.css'
@@ -273,6 +273,62 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
   const handleReessayer = useCallback(() => {
     handleLancerSimulation()
   }, [handleLancerSimulation])
+
+  // Phase 12 — Download resultat JPEG (D-06)
+  const handleDownload = useCallback(() => {
+    if (!resultBlobUrl) return
+    const a = document.createElement('a')
+    a.href = resultBlobUrl
+    a.download = 'mobel-unique-simulation.jpg'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }, [resultBlobUrl])
+
+  // Phase 12 — Partage Web Share API avec fallback WhatsApp (D-07)
+  const handlePartager = useCallback(async () => {
+    if (!resultBlobUrl || !model) return
+
+    const shopifyUrl = model.shopify_url ?? 'https://mobelunique.fr'
+    const message = `Regardez comment ce canape s'integre dans mon salon ! Visualise avec Mobel Unique \u2014 ${shopifyUrl}`
+
+    // Tenter Web Share API avec fichier (mobile)
+    if (typeof navigator?.canShare === 'function') {
+      try {
+        const response = await fetch(resultBlobUrl)
+        const blob = await response.blob()
+        const file = new File([blob], 'mobel-unique-simulation.jpg', { type: 'image/jpeg' })
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: 'Ma simulation M\u00f6bel Unique' })
+          return
+        }
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') return
+        // Fall through to WhatsApp
+      }
+    }
+
+    // Fallback WhatsApp (desktop ou navigateur sans support fichiers)
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent(message)}`,
+      '_blank',
+      'noopener,noreferrer'
+    )
+  }, [resultBlobUrl, model])
+
+  // Phase 12 — Reset vers idle pour essayer une autre photo (D-09)
+  const handleEssayerAutrePhoto = useCallback(() => {
+    if (resultBlobUrl) URL.revokeObjectURL(resultBlobUrl)
+    setResultBlobUrl(null)
+    setSelectedFile(null)
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
+    setPreviewUrl(null)
+    setSimulationState('idle')
+    setProgress(0)
+    setProgressStage(0)
+    setErrorMessage(null)
+    // selectedFabricId et selectedAngle intentionnellement preserves (D-09)
+  }, [resultBlobUrl, previewUrl])
 
   // Phase 11 — Step switching (D-01, D-02, D-03)
   const handleGoToSimulation = useCallback(() => {
@@ -678,6 +734,47 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
                   </div>
                 )}
 
+                {/* Phase 12 — Etat done : resultat simulation (D-01) */}
+                {simulationState === 'done' && resultBlobUrl && (
+                  <>
+                    <div
+                      className={styles.resultContainer}
+                      aria-live="polite"
+                      aria-label="Simulation generee"
+                    >
+                      <img
+                        src={resultBlobUrl}
+                        alt={`Simulation IA de votre salon avec le canape ${model.name}`}
+                        className={styles.resultImage}
+                      />
+                    </div>
+                    <p className={styles.resultDisclaimer}>
+                      Apercu genere par IA &mdash; le rendu reel peut varier
+                    </p>
+                    {/* Boutons d'action mobile uniquement (< 640px) — D-08 */}
+                    <div className={styles.actionButtonsMobile} aria-hidden="false">
+                      <button type="button" className={styles.downloadButton} onClick={handleDownload} aria-label="Telecharger la simulation en JPEG">
+                        <Download size={16} aria-hidden="true" />
+                        Telecharger
+                      </button>
+                      <button type="button" className={styles.shareButton} onClick={handlePartager} aria-label="Partager l'image">
+                        <Share2 size={16} aria-hidden="true" />
+                        Partager
+                      </button>
+                      {model.shopify_url && (
+                        <a href={model.shopify_url} target="_blank" rel="noopener noreferrer" className={styles.orderButton} aria-label={`Commander le canape ${model.name} sur Shopify`}>
+                          <ExternalLink size={16} aria-hidden="true" />
+                          Commander sur Shopify
+                        </a>
+                      )}
+                      <button type="button" className={styles.retryPhotoButton} onClick={handleEssayerAutrePhoto} aria-label="Essayer avec une autre photo de salon">
+                        <RefreshCw size={14} aria-hidden="true" />
+                        Essayer une autre photo
+                      </button>
+                    </div>
+                  </>
+                )}
+
               </div>
 
               {/* Colonne droite simulation */}
@@ -686,26 +783,61 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
                   &larr; Modifier la configuration
                 </button>
 
-                <h2 id="modal-title" className={styles.simulationTitle}>Simulation</h2>
+                {simulationState === 'done' ? (
+                  <>
+                    <h2 id="modal-title" className={styles.simulationTitle}>Votre simulation</h2>
+                    <p className={styles.resultSubtitle}>
+                      {selectedFabric
+                        ? `${model.name} \u00d7 ${selectedFabric.name} dans votre salon`
+                        : 'Canape original dans votre salon'}
+                    </p>
 
-                <p className={styles.uploadExplainer}>
-                  Prenez votre salon en photo, on y place votre canap&eacute;
-                </p>
+                    {/* Boutons d'action desktop uniquement (>= 640px) */}
+                    <div className={styles.actionButtonsDesktop} aria-hidden="false">
+                      <button type="button" className={styles.downloadButton} onClick={handleDownload} aria-label="Telecharger la simulation en JPEG">
+                        <Download size={16} aria-hidden="true" />
+                        Telecharger
+                      </button>
+                      <button type="button" className={styles.shareButton} onClick={handlePartager} aria-label="Partager l'image">
+                        <Share2 size={16} aria-hidden="true" />
+                        Partager
+                      </button>
+                      {model.shopify_url && (
+                        <a href={model.shopify_url} target="_blank" rel="noopener noreferrer" className={styles.orderButton} aria-label={`Commander le canape ${model.name} sur Shopify`}>
+                          <ExternalLink size={16} aria-hidden="true" />
+                          Commander sur Shopify
+                        </a>
+                      )}
+                      <button type="button" className={styles.retryPhotoButton} onClick={handleEssayerAutrePhoto} aria-label="Essayer avec une autre photo de salon">
+                        <RefreshCw size={14} aria-hidden="true" />
+                        Essayer une autre photo
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h2 id="modal-title" className={styles.simulationTitle}>Simulation</h2>
 
-                {/* Bandeau rappel config (D-05) */}
-                <div className={styles.configRecap}>
-                  {selectedFabric?.swatch_url ? (
-                    <img src={selectedFabric.swatch_url} alt="" className={styles.configRecapSwatch} />
-                  ) : (
-                    <div className={styles.configRecapSwatch} style={{ background: 'var(--surface-container)' }} />
-                  )}
-                  <span className={styles.configRecapText}>
-                    {selectedFabric ? `${model.name} \u00d7 ${selectedFabric.name}` : `Canap\u00e9 original \u00b7 Aucun tissu s\u00e9lectionn\u00e9`}
-                  </span>
-                  <button type="button" className={styles.configRecapLink} onClick={handleBackToConfigurator}>
-                    Modifier
-                  </button>
-                </div>
+                    <p className={styles.uploadExplainer}>
+                      Prenez votre salon en photo, on y place votre canap&eacute;
+                    </p>
+
+                    {/* Bandeau rappel config (D-05) */}
+                    <div className={styles.configRecap}>
+                      {selectedFabric?.swatch_url ? (
+                        <img src={selectedFabric.swatch_url} alt="" className={styles.configRecapSwatch} />
+                      ) : (
+                        <div className={styles.configRecapSwatch} style={{ background: 'var(--surface-container)' }} />
+                      )}
+                      <span className={styles.configRecapText}>
+                        {selectedFabric ? `${model.name} \u00d7 ${selectedFabric.name}` : `Canap\u00e9 original \u00b7 Aucun tissu s\u00e9lectionn\u00e9`}
+                      </span>
+                      <button type="button" className={styles.configRecapLink} onClick={handleBackToConfigurator}>
+                        Modifier
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}

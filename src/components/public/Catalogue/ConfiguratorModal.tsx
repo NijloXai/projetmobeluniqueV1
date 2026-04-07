@@ -4,26 +4,8 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import { X } from 'lucide-react'
 import type { ModelWithImages, ModelImage, Fabric, VisualWithFabricAndImage } from '@/types/database'
-import { calculatePrice, formatPrice as formatPriceUtil } from '@/lib/utils'
+import { getPrimaryImage, getPrimaryImageId, formatStartingPrice, calculatePrice, formatPrice } from '@/lib/utils'
 import styles from './ConfiguratorModal.module.css'
-
-export function getPrimaryImage(model_images: ModelImage[]): string | null {
-  if (model_images.length === 0) return null
-  const image34 = model_images.find((img) => img.view_type === '3/4')
-  if (image34) return image34.image_url
-  return model_images[0].image_url
-}
-
-export function getPrimaryImageId(model_images: ModelImage[]): string | null {
-  if (model_images.length === 0) return null
-  const image34 = model_images.find((img) => img.view_type === '3/4')
-  if (image34) return image34.id
-  return model_images[0]?.id ?? null
-}
-
-export function formatPrice(price: number): string {
-  return 'a partir de ' + new Intl.NumberFormat('fr-FR').format(price) + ' \u20ac'
-}
 
 interface ConfiguratorModalProps {
   model: ModelWithImages | null
@@ -84,23 +66,19 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
 
   // Reset selection quand le modele change (RESEARCH.md Pattern 2) — Phase 8 + Phase 9 (D-16)
   useEffect(() => {
-    const currentId = model?.id
-    const previousId = previousModelIdRef.current
+    if (!model) return // Fermeture modal — ne rien toucher (D-15)
 
     // Always reset fabric on open (Phase 8 D-09)
     setSelectedFabricId(null)
 
-    // Only reset angle if model actually changed (D-16), not on reopen of same model (D-15)
-    if (currentId !== previousId && previousId !== undefined) {
-      if (model) {
-        setSelectedAngle(getPrimaryImageId(model.model_images))
-      } else {
-        setSelectedAngle(null)
-      }
-    } else if (previousId === undefined && model) {
-      // First open ever — initialize angle
+    const currentId = model.id
+    const previousId = previousModelIdRef.current
+
+    // Reset angle uniquement si modele different ou premier open (D-16)
+    if (currentId !== previousId) {
       setSelectedAngle(getPrimaryImageId(model.model_images))
     }
+    // Meme modele reouvert — angle preserve (D-15)
 
     previousModelIdRef.current = currentId
   }, [model?.id])
@@ -269,14 +247,14 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
             {selectedFabric ? (
               <div className={styles.priceBlock}>
                 <p className={styles.price}>
-                  {formatPriceUtil(calculatePrice(model.price, selectedFabric.is_premium))}
+                  {formatPrice(calculatePrice(model.price, selectedFabric.is_premium))}
                 </p>
                 {selectedFabric.is_premium && (
                   <p className={styles.priceSupplement}>+ 80&nbsp;EUR &middot; tissu premium</p>
                 )}
               </div>
             ) : (
-              <p className={styles.price}>{formatPrice(model.price)}</p>
+              <p className={styles.price}>{formatStartingPrice(model.price)}</p>
             )}
 
             {model.description && (

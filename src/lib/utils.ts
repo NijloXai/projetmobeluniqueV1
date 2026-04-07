@@ -1,3 +1,32 @@
+import type { ModelImage } from '@/types/database'
+
+/**
+ * Retourne l'URL de l'image principale (3/4 prioritaire, sinon première)
+ */
+export function getPrimaryImage(model_images: ModelImage[]): string | null {
+  if (model_images.length === 0) return null
+  const image34 = model_images.find((img) => img.view_type === '3/4')
+  if (image34) return image34.image_url
+  return model_images[0].image_url
+}
+
+/**
+ * Retourne l'ID de l'image principale (3/4 prioritaire, sinon première)
+ */
+export function getPrimaryImageId(model_images: ModelImage[]): string | null {
+  if (model_images.length === 0) return null
+  const image34 = model_images.find((img) => img.view_type === '3/4')
+  if (image34) return image34.id
+  return model_images[0]?.id ?? null
+}
+
+/**
+ * Formate un prix avec préfixe "a partir de" (ex: "a partir de 1 290 €")
+ */
+export function formatStartingPrice(price: number): string {
+  return 'a partir de ' + new Intl.NumberFormat('fr-FR').format(price) + ' \u20ac'
+}
+
 /**
  * Génère un slug à partir d'un texte (ex: "Velours Bleu" → "velours-bleu")
  */

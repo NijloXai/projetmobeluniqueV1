@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { ConfiguratorModal, getPrimaryImage, formatPrice } from '@/components/public/Catalogue/ConfiguratorModal'
+import { ConfiguratorModal } from '@/components/public/Catalogue/ConfiguratorModal'
+import { getPrimaryImage, formatStartingPrice } from '@/lib/utils'
 import type { ModelWithImages, Fabric, VisualWithFabricAndImage } from '@/types/database'
 
 // Mock next/image avec le meme pattern que CatalogueClient.test.tsx
@@ -663,17 +664,17 @@ describe('getPrimaryImage — selection image principale', () => {
   })
 })
 
-describe('formatPrice — formatage prix FR', () => {
+describe('formatStartingPrice — formatage prix FR', () => {
   it('formate 1290 en "a partir de 1 290 \u20ac"', () => {
-    expect(formatPrice(1290)).toBe('a partir de 1\u202f290 \u20ac')
+    expect(formatStartingPrice(1290)).toBe('a partir de 1\u202f290 \u20ac')
   })
 
   it('formate 0 en "a partir de 0 \u20ac"', () => {
-    expect(formatPrice(0)).toBe('a partir de 0 \u20ac')
+    expect(formatStartingPrice(0)).toBe('a partir de 0 \u20ac')
   })
 
   it('formate 15000 en "a partir de 15 000 \u20ac"', () => {
-    expect(formatPrice(15000)).toBe('a partir de 15\u202f000 \u20ac')
+    expect(formatStartingPrice(15000)).toBe('a partir de 15\u202f000 \u20ac')
   })
 })
 
@@ -1096,5 +1097,48 @@ describe('Phase 9 — navigation angles', () => {
     // L'image principale doit afficher le rendu IA profil + Velours
     const mainImg = screen.getByAltText(/Canape Milano/)
     expect(mainImg.getAttribute('src')).toContain('milano-velours-profil.jpg')
+  })
+
+  it('D-15: reouverture du meme modele preserve langle selectionne', async () => {
+    const user = userEvent.setup()
+    const { rerender } = render(
+      <ConfiguratorModal
+        model={mockModelMultiAngle}
+        onClose={vi.fn()}
+        fabrics={allFabricsPhase9}
+        visuals={allVisualsPhase9}
+      />
+    )
+
+    // Cliquer thumbnail "Vue profil"
+    const angleRadiogroup = screen.getByRole('radiogroup', { name: "Choisir l'angle de vue" })
+    const profilThumbnail = angleRadiogroup.querySelector('[aria-label="Vue profil"]') as HTMLElement
+    await user.click(profilThumbnail)
+    expect(profilThumbnail.getAttribute('aria-checked')).toBe('true')
+
+    // Fermer la modal (model = null)
+    rerender(
+      <ConfiguratorModal
+        model={null}
+        onClose={vi.fn()}
+        fabrics={allFabricsPhase9}
+        visuals={allVisualsPhase9}
+      />
+    )
+
+    // Rouvrir le MEME modele
+    rerender(
+      <ConfiguratorModal
+        model={mockModelMultiAngle}
+        onClose={vi.fn()}
+        fabrics={allFabricsPhase9}
+        visuals={allVisualsPhase9}
+      />
+    )
+
+    // L'angle profil doit etre preserve (pas reset au 3/4)
+    const reopenedRadiogroup = screen.getByRole('radiogroup', { name: "Choisir l'angle de vue" })
+    const profilAfterReopen = reopenedRadiogroup.querySelector('[aria-label="Vue profil"]')
+    expect(profilAfterReopen?.getAttribute('aria-checked')).toBe('true')
   })
 })

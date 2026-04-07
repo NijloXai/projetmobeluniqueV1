@@ -95,47 +95,49 @@ const mockModelNoDesc: ModelWithImages = {
 }
 
 describe('ProductCard', () => {
+  const noop = vi.fn()
+
   it('affiche le nom du modele en uppercase', () => {
-    render(<ProductCard model={mockModel} />)
+    render(<ProductCard model={mockModel} onConfigure={noop} />)
     expect(screen.getByRole('heading', { level: 3 })).toHaveTextContent('Milano')
   })
 
   it('affiche le prix formate avec prefixe', () => {
-    render(<ProductCard model={mockModel} />)
+    render(<ProductCard model={mockModel} onConfigure={noop} />)
     expect(screen.getByText(/1\s?290\s?€/)).toBeInTheDocument()
     expect(screen.getByText(/partir de/i)).toBeInTheDocument()
   })
 
   it('affiche l image avec alt correct quand model_images non vide', () => {
-    render(<ProductCard model={mockModel} />)
+    render(<ProductCard model={mockModel} onConfigure={noop} />)
     const img = screen.getByAltText('Canape Milano')
     expect(img).toBeInTheDocument()
   })
 
   it('affiche le placeholder Sofa quand aucune image', () => {
-    render(<ProductCard model={mockModelNoImage} />)
+    render(<ProductCard model={mockModelNoImage} onConfigure={noop} />)
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
   })
 
   it('affiche le CTA Configurer ce modele', () => {
-    render(<ProductCard model={mockModel} />)
+    render(<ProductCard model={mockModel} onConfigure={noop} />)
     const btn = screen.getByRole('button', { name: /configurer le modele milano/i })
     expect(btn).toBeInTheDocument()
   })
 
   it('affiche la description si presente', () => {
-    render(<ProductCard model={mockModel} />)
+    render(<ProductCard model={mockModel} onConfigure={noop} />)
     expect(screen.getByText('Canape 3 places design italien')).toBeInTheDocument()
   })
 
   it('selectionne l image 3/4 meme si pas en premiere position', () => {
-    render(<ProductCard model={mockModelMultiImages} />)
+    render(<ProductCard model={mockModelMultiImages} onConfigure={noop} />)
     const img = screen.getByAltText('Canape Berlin')
     expect(img).toHaveAttribute('src', mockModelMultiImages.model_images[1].image_url)
   })
 
   it('fallback sur la premiere image quand aucune 3/4', () => {
-    render(<ProductCard model={mockModelNoThreeQuarter} />)
+    render(<ProductCard model={mockModelNoThreeQuarter} onConfigure={noop} />)
     const img = screen.getByAltText('Canape Stockholm')
     expect(img).toHaveAttribute('src', mockModelNoThreeQuarter.model_images[0].image_url)
   })
@@ -149,7 +151,7 @@ describe('ProductCard', () => {
   })
 
   it('ne rend pas de description quand elle est null', () => {
-    render(<ProductCard model={mockModelNoDesc} />)
+    render(<ProductCard model={mockModelNoDesc} onConfigure={noop} />)
     expect(screen.queryByText('Canape 3 places design italien')).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 3 })).toHaveTextContent('Lisbonne')
   })

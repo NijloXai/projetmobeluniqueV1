@@ -7,6 +7,8 @@ import type { ModelWithImages, ModelImage, Fabric, VisualWithFabricAndImage } fr
 import { getPrimaryImage, getPrimaryImageId, formatStartingPrice, calculatePrice, formatPrice } from '@/lib/utils'
 import styles from './ConfiguratorModal.module.css'
 
+type SimulationState = 'idle' | 'preview' | 'generating' | 'done' | 'error'
+
 interface ConfiguratorModalProps {
   model: ModelWithImages | null
   onClose: () => void
@@ -61,6 +63,23 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
   // State selection angle — initialise au 3/4 ou premier angle disponible
   const [selectedAngle, setSelectedAngle] = useState<string | null>(null)
 
+  // Phase 11 — Simulation state machine
+  const [modalStep, setModalStep] = useState<'configurator' | 'simulation'>('configurator')
+  const [simulationState, setSimulationState] = useState<SimulationState>('idle')
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [progress, setProgress] = useState(0)
+  const [progressStage, setProgressStage] = useState(0)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [resultBlobUrl, setResultBlobUrl] = useState<string | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+
+  const abortControllerRef = useRef<AbortController | null>(null)
+  const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const progressPhase2TimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const dragCounterRef = useRef(0)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   // Track previous model ID to distinguish reopen (null→sameID) from model change (D-15 vs D-16)
   const previousModelIdRef = useRef<string | undefined>(undefined)
 
@@ -70,6 +89,18 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
 
     // Always reset fabric on open (Phase 8 D-09)
     setSelectedFabricId(null)
+
+    // Phase 11 — reset simulation state quand le modele change
+    setModalStep('configurator')
+    setSimulationState('idle')
+    setSelectedFile(null)
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
+    setPreviewUrl(null)
+    if (resultBlobUrl) URL.revokeObjectURL(resultBlobUrl)
+    setResultBlobUrl(null)
+    setProgress(0)
+    setProgressStage(0)
+    setErrorMessage(null)
 
     const currentId = model.id
     const previousId = previousModelIdRef.current
@@ -81,7 +112,18 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
     // Meme modele reouvert — angle preserve (D-15)
 
     previousModelIdRef.current = currentId
-  }, [model?.id])
+  }, [model?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Phase 11 — Cleanup Object URLs et timers au unmount
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl)
+      if (resultBlobUrl) URL.revokeObjectURL(resultBlobUrl)
+      if (progressTimerRef.current) clearInterval(progressTimerRef.current)
+      if (progressPhase2TimerRef.current) clearInterval(progressPhase2TimerRef.current)
+      if (abortControllerRef.current) abortControllerRef.current.abort()
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // IMPORTANT : return null APRES tous les hooks (React rules of hooks)
   if (!model) return null
@@ -170,6 +212,209 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
     }
   }
 
+  // Phase 11 — Validation fichier (D-10, D-11)
+  const ACCEPTED_TYPES = new Set(['image/jpeg', 'image/png', 'image/heic', 'image/heif'])
+  const MAX_SIZE_BYTES = 15 * 1024 * 1024
+
+  const validateFile = useCallback((file: File): string | null => {
+    if (file.size > MAX_SIZE_BYTES) {
+      return 'Ce fichier depasse 15 Mo. Choisissez une photo plus legere.'
+    }
+    const isAcceptedType = ACCEPTED_TYPES.has(file.type)
+    const isHeicByExtension = /\.(heic|heif)$/i.test(file.name)
+    if (!isAcceptedType && !isHeicByExtension) {
+      return 'Format non supporte. Utilisez JPEG, PNG ou HEIC.'
+    }
+    return null
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleFileSelected = useCallback((file: File) => {
+    const error = validateFile(file)
+    if (error) {
+      setErrorMessage(error)
+      setSimulationState('idle')
+      return
+    }
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
+    const url = URL.createObjectURL(file)
+    setSelectedFile(file)
+    setPreviewUrl(url)
+    setSimulationState('preview')
+    setErrorMessage(null)
+  }, [previewUrl, validateFile])
+
+  // Phase 11 — Drag & drop avec compteur anti-flicker (RESEARCH.md Pattern 2)
+  const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    dragCounterRef.current++
+    if (dragCounterRef.current === 1) setIsDragging(true)
+  }, [])
+
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    dragCounterRef.current--
+    if (dragCounterRef.current === 0) setIsDragging(false)
+  }, [])
+
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    dragCounterRef.current = 0
+    setIsDragging(false)
+    const file = e.dataTransfer.files[0]
+    if (file) handleFileSelected(file)
+  }, [handleFileSelected])
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) handleFileSelected(file)
+    e.target.value = ''
+  }, [handleFileSelected])
+
+  // Phase 11 — Progress timer 2 phases (D-13)
+  const stopProgressTimer = useCallback(() => {
+    if (progressTimerRef.current) { clearInterval(progressTimerRef.current); progressTimerRef.current = null }
+    if (progressPhase2TimerRef.current) { clearInterval(progressPhase2TimerRef.current); progressPhase2TimerRef.current = null }
+  }, [])
+
+  const startProgressTimer = useCallback(() => {
+    stopProgressTimer()
+    let current = 0
+    setProgress(0)
+    setProgressStage(0)
+
+    // Phase rapide : 0-30% en ~1s (intervalle 50ms, +1.5 par tick)
+    progressTimerRef.current = setInterval(() => {
+      current += 1.5
+      if (current >= 30) {
+        current = 30
+        if (progressTimerRef.current) clearInterval(progressTimerRef.current)
+        progressTimerRef.current = null
+        setProgressStage(1)
+
+        // Phase lente : 30-70% en ~4s (intervalle 200ms, +1 par tick)
+        progressPhase2TimerRef.current = setInterval(() => {
+          current += 1
+          if (current >= 70) {
+            current = 70
+            if (progressPhase2TimerRef.current) clearInterval(progressPhase2TimerRef.current)
+            progressPhase2TimerRef.current = null
+            setProgressStage(2)
+          }
+          setProgress(Math.round(current))
+        }, 200)
+      }
+      setProgress(Math.round(current))
+    }, 50)
+  }, [stopProgressTimer])
+
+  // Phase 11 — Fetch simulation avec AbortController (D-15, D-16, D-17, D-18)
+  const handleLancerSimulation = useCallback(async () => {
+    if (!selectedFile || !model) return
+    if (abortControllerRef.current) abortControllerRef.current.abort()
+
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+
+    setSimulationState('generating')
+    setErrorMessage(null)
+    startProgressTimer()
+
+    try {
+      const formData = new FormData()
+      formData.append('image', selectedFile)
+      formData.append('model_id', model.id)
+      if (selectedFabricId) formData.append('fabric_id', selectedFabricId)
+
+      const response = await fetch('/api/simulate', {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal,
+      })
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({ error: 'La simulation a echoue. Verifiez votre connexion et reessayez.' })) as { error?: string }
+        throw new Error(data.error ?? 'La simulation a echoue. Verifiez votre connexion et reessayez.')
+      }
+
+      const blob = await response.blob()
+      if (resultBlobUrl) URL.revokeObjectURL(resultBlobUrl)
+      const url = URL.createObjectURL(blob)
+
+      stopProgressTimer()
+      setProgress(100)
+      setProgressStage(2)
+      setResultBlobUrl(url)
+      setSimulationState('done')
+    } catch (err) {
+      stopProgressTimer()
+      if (err instanceof Error && err.name === 'AbortError') {
+        setSimulationState('preview')
+        setProgress(0)
+        setProgressStage(0)
+      } else {
+        const message = err instanceof Error ? err.message : 'La simulation a echoue. Verifiez votre connexion et reessayez.'
+        setErrorMessage(message)
+        setSimulationState('error')
+      }
+    }
+  }, [selectedFile, model, selectedFabricId, startProgressTimer, stopProgressTimer, resultBlobUrl])
+
+  const handleAnnuler = useCallback(() => {
+    if (abortControllerRef.current) abortControllerRef.current.abort()
+  }, [])
+
+  const handleReessayer = useCallback(() => {
+    handleLancerSimulation()
+  }, [handleLancerSimulation])
+
+  // Phase 11 — Step switching (D-01, D-02, D-03)
+  const handleGoToSimulation = useCallback(() => {
+    setModalStep('simulation')
+    setSimulationState('idle')
+    setErrorMessage(null)
+  }, [])
+
+  const handleBackToConfigurator = useCallback(() => {
+    if (abortControllerRef.current) abortControllerRef.current.abort()
+    stopProgressTimer()
+    setModalStep('configurator')
+    setSimulationState(selectedFile ? 'preview' : 'idle')
+    setProgress(0)
+    setProgressStage(0)
+    setErrorMessage(null)
+  }, [stopProgressTimer, selectedFile])
+
+  // Phase 11 — SVG inline icons (pas de nouvelle dependance)
+  const UploadIcon = (
+    <svg className={styles.uploadIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="17 8 12 3 7 8" />
+      <line x1="12" y1="3" x2="12" y2="15" />
+    </svg>
+  )
+
+  const CheckIcon = (
+    <svg className={styles.stepIcon} viewBox="0 0 16 16" fill="none" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+      <polyline points="3 8 6.5 11.5 13 5" />
+    </svg>
+  )
+
+  const SpinnerIcon = (
+    <svg className={`${styles.stepIcon} ${styles.spinner}`} viewBox="0 0 16 16" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+      <path d="M8 2a6 6 0 1 1-5.2 3" />
+    </svg>
+  )
+
+  const PendingIcon = (
+    <svg className={styles.stepIcon} viewBox="0 0 16 16" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" aria-hidden="true">
+      <circle cx="8" cy="8" r="5" />
+    </svg>
+  )
+
   return (
     <dialog
       ref={dialogRef}
@@ -192,127 +437,278 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
         </button>
 
         <div className={styles.inner}>
-          <div className={styles.leftColumn}>
-            {displayImageUrl && (
-              <div className={styles.imageWrapper}>
-                <Image
-                  key={displayImageUrl}
-                  src={displayImageUrl}
-                  alt={imageAlt}
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  sizes="(max-width: 640px) 100vw, 50vw"
-                  className={styles.imageMain}
-                />
-                {isOriginalFallback && (
-                  <span className={styles.badgeOriginalPhoto}>Photo originale</span>
-                )}
-              </div>
-            )}
 
-            {/* Phase 9 — Rangee thumbnails angles (D-11 : masquee si <= 1 angle disponible) */}
-            {availableAngles.length > 1 && (
-              <div
-                className={styles.thumbnailRow}
-                role="radiogroup"
-                aria-label="Choisir l'angle de vue"
-              >
-                {availableAngles.map((img) => (
-                  <button
-                    key={img.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={selectedAngle === img.id}
-                    aria-label={`Vue ${img.view_type}`}
-                    className={`${styles.thumbnail} ${selectedAngle === img.id ? styles.thumbnailActive : ''}`}
-                    onClick={() => setSelectedAngle(img.id)}
-                  >
+          {/* === Etape configurateur === */}
+          {modalStep === 'configurator' && (
+            <>
+              <div className={styles.leftColumn}>
+                {displayImageUrl && (
+                  <div className={styles.imageWrapper}>
                     <Image
-                      src={img.image_url}
-                      alt=""
+                      key={displayImageUrl}
+                      src={displayImageUrl}
+                      alt={imageAlt}
                       fill
                       style={{ objectFit: 'cover' }}
-                      sizes="72px"
+                      sizes="(max-width: 640px) 100vw, 50vw"
+                      className={styles.imageMain}
                     />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+                    {isOriginalFallback && (
+                      <span className={styles.badgeOriginalPhoto}>Photo originale</span>
+                    )}
+                  </div>
+                )}
 
-          <div className={styles.body}>
-            <h2 id="modal-title" className={styles.modelName}>{model.name}</h2>
-
-            {/* Prix dynamique — per D-10, D-11, D-12 */}
-            {selectedFabric ? (
-              <div className={styles.priceBlock}>
-                <p className={styles.price}>
-                  {formatPrice(calculatePrice(model.price, selectedFabric.is_premium))}
-                </p>
-                {selectedFabric.is_premium && (
-                  <p className={styles.priceSupplement}>+ 80&nbsp;EUR &middot; tissu premium</p>
+                {/* Phase 9 — Rangee thumbnails angles (D-11 : masquee si <= 1 angle disponible) */}
+                {availableAngles.length > 1 && (
+                  <div
+                    className={styles.thumbnailRow}
+                    role="radiogroup"
+                    aria-label="Choisir l'angle de vue"
+                  >
+                    {availableAngles.map((img) => (
+                      <button
+                        key={img.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={selectedAngle === img.id}
+                        aria-label={`Vue ${img.view_type}`}
+                        className={`${styles.thumbnail} ${selectedAngle === img.id ? styles.thumbnailActive : ''}`}
+                        onClick={() => setSelectedAngle(img.id)}
+                      >
+                        <Image
+                          src={img.image_url}
+                          alt=""
+                          fill
+                          style={{ objectFit: 'cover' }}
+                          sizes="72px"
+                        />
+                      </button>
+                    ))}
+                  </div>
                 )}
               </div>
-            ) : (
-              <p className={styles.price}>{formatStartingPrice(model.price)}</p>
-            )}
 
-            {model.description && (
-              <p className={styles.description}>{model.description}</p>
-            )}
+              <div className={styles.body}>
+                <h2 id="modal-title" className={styles.modelName}>{model.name}</h2>
 
-            <hr className={styles.separator} />
+                {/* Prix dynamique — per D-10, D-11, D-12 */}
+                {selectedFabric ? (
+                  <div className={styles.priceBlock}>
+                    <p className={styles.price}>
+                      {formatPrice(calculatePrice(model.price, selectedFabric.is_premium))}
+                    </p>
+                    {selectedFabric.is_premium && (
+                      <p className={styles.priceSupplement}>+ 80&nbsp;EUR &middot; tissu premium</p>
+                    )}
+                  </div>
+                ) : (
+                  <p className={styles.price}>{formatStartingPrice(model.price)}</p>
+                )}
 
-            {/* Grille swatches — per D-04, D-05, D-06, CONF-01 */}
-            <div className={styles.configurator}>
-              <p className={styles.swatchLabel}>Choisissez votre tissu</p>
+                {model.description && (
+                  <p className={styles.description}>{model.description}</p>
+                )}
 
-              {eligibleFabrics.length > 0 ? (
-                <div
-                  role="radiogroup"
-                  aria-label="Choisissez votre tissu"
-                  className={styles.swatchGrid}
-                >
-                  {eligibleFabrics.map(fabric => (
-                    <button
-                      key={fabric.id}
-                      type="button"
-                      role="radio"
-                      aria-checked={selectedFabricId === fabric.id}
-                      aria-label={`${fabric.name}${fabric.is_premium ? ' \u2014 Premium' : ''}`}
-                      className={`${styles.swatch} ${selectedFabricId === fabric.id ? styles.swatchSelected : ''}`}
-                      onClick={() => handleFabricSelect(fabric.id)}
+                <hr className={styles.separator} />
+
+                {/* Grille swatches — per D-04, D-05, D-06, CONF-01 */}
+                <div className={styles.configurator}>
+                  <p className={styles.swatchLabel}>Choisissez votre tissu</p>
+
+                  {eligibleFabrics.length > 0 ? (
+                    <div
+                      role="radiogroup"
+                      aria-label="Choisissez votre tissu"
+                      className={styles.swatchGrid}
                     >
-                      <Image
-                        src={fabric.swatch_url!}
-                        alt=""
-                        fill
-                        style={{ objectFit: 'cover' }}
-                        sizes="56px"
-                      />
-                      {fabric.is_premium && (
-                        <span className={styles.badgePremium} aria-hidden="true">Premium</span>
-                      )}
-                    </button>
-                  ))}
+                      {eligibleFabrics.map(fabric => (
+                        <button
+                          key={fabric.id}
+                          type="button"
+                          role="radio"
+                          aria-checked={selectedFabricId === fabric.id}
+                          aria-label={`${fabric.name}${fabric.is_premium ? ' \u2014 Premium' : ''}`}
+                          className={`${styles.swatch} ${selectedFabricId === fabric.id ? styles.swatchSelected : ''}`}
+                          onClick={() => handleFabricSelect(fabric.id)}
+                        >
+                          <Image
+                            src={fabric.swatch_url!}
+                            alt=""
+                            fill
+                            style={{ objectFit: 'cover' }}
+                            sizes="56px"
+                          />
+                          {fabric.is_premium && (
+                            <span className={styles.badgePremium} aria-hidden="true">Premium</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className={styles.emptySwatches}>Aucun tissu disponible pour ce modele.</p>
+                  )}
                 </div>
-              ) : (
-                <p className={styles.emptySwatches}>Aucun tissu disponible pour ce modele.</p>
-              )}
-            </div>
 
-            {/* CTA Shopify — per D-14, D-15, CONF-09, CONF-10 */}
-            {model.shopify_url && (
-              <a
-                href={model.shopify_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.ctaShopify}
-              >
-                Acheter sur Shopify
-              </a>
-            )}
-          </div>
+                {/* CTA Shopify — per D-14, D-15, CONF-09, CONF-10 */}
+                {model.shopify_url && (
+                  <a
+                    href={model.shopify_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.ctaShopify}
+                  >
+                    Acheter sur Shopify
+                  </a>
+                )}
+
+                {/* Phase 11 — CTA "Visualiser chez moi" (D-02) */}
+                <button
+                  type="button"
+                  className={styles.ctaSimulation}
+                  onClick={handleGoToSimulation}
+                >
+                  Visualiser chez moi
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* === Etape simulation === */}
+          {modalStep === 'simulation' && (
+            <div className={styles.simulationStep}>
+              <div className={styles.leftColumn}>
+
+                {/* Etat idle : zone upload DnD */}
+                {simulationState === 'idle' && (
+                  <div
+                    className={`${styles.uploadZone} ${isDragging ? styles.uploadZoneDragging : ''}`}
+                    onDragEnter={handleDragEnter}
+                    onDragLeave={handleDragLeave}
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInputRef.current?.click() } }}
+                    aria-label="Zone de depot de fichier"
+                  >
+                    {UploadIcon}
+                    <span className={styles.uploadText}>Glissez votre photo ici</span>
+                    <span className={styles.uploadOr}>ou</span>
+                    <button type="button" className={styles.uploadButton} onClick={() => fileInputRef.current?.click()}>
+                      Choisir une photo
+                    </button>
+                    <span className={styles.uploadFormats} id="upload-formats">JPEG, PNG, HEIC — max 15 Mo</span>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/heic,image/heif"
+                      className={styles.uploadHiddenInput}
+                      onChange={handleInputChange}
+                      aria-label="Selectionner une photo de votre salon"
+                      aria-describedby="upload-formats"
+                    />
+                  </div>
+                )}
+
+                {/* Etat idle : message d'erreur validation fichier */}
+                {simulationState === 'idle' && errorMessage && (
+                  <p className={styles.errorMessage} role="alert" aria-live="assertive">{errorMessage}</p>
+                )}
+
+                {/* Etat preview ou error : apercu image */}
+                {(simulationState === 'preview' || simulationState === 'error') && previewUrl && (
+                  <>
+                    <div className={styles.previewContainer}>
+                      <img src={previewUrl} alt="Apercu de votre salon" className={styles.previewImage} />
+                      <div className={styles.previewOverlay}>
+                        <button type="button" className={styles.changePhotoLink} onClick={() => fileInputRef.current?.click()}>
+                          Changer de photo
+                        </button>
+                      </div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/heic,image/heif"
+                        className={styles.uploadHiddenInput}
+                        onChange={handleInputChange}
+                        aria-label="Selectionner une autre photo"
+                      />
+                    </div>
+                    {simulationState === 'error' && errorMessage && (
+                      <p className={styles.errorMessage} role="alert" aria-live="assertive">{errorMessage}</p>
+                    )}
+                    {simulationState === 'error' ? (
+                      <button type="button" className={styles.retryButton} onClick={handleReessayer}>
+                        Reessayer
+                      </button>
+                    ) : (
+                      <button type="button" className={styles.launchButton} onClick={handleLancerSimulation}>
+                        Lancer la simulation
+                      </button>
+                    )}
+                  </>
+                )}
+
+                {/* Etat generating : photo fond + overlay progression */}
+                {simulationState === 'generating' && previewUrl && (
+                  <div className={styles.generatingContainer}>
+                    <img src={previewUrl} alt="" className={styles.previewImage} />
+                    <div className={styles.generatingOverlay}>
+                      <span className={styles.stepActive}>
+                        {progressStage === 0 ? 'Analyse de la piece' : progressStage === 1 ? 'Integration du canape' : 'Finition et eclairage'}
+                      </span>
+                      <div className={styles.progressBarTrack} role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+                        <div className={styles.progressBarFill} style={{ width: `${progress}%` }} />
+                      </div>
+                      <span className={styles.progressPercent}>{progress} %</span>
+                      <div className={styles.stepList} aria-live="polite">
+                        {(['Analyse de la piece', 'Integration du canape', 'Finition et eclairage'] as const).map((label, i) => (
+                          <div key={label} className={`${styles.stepItem} ${i < progressStage ? styles.stepDone : i === progressStage ? styles.stepActive : styles.stepPending}`}>
+                            {i < progressStage ? CheckIcon : i === progressStage ? SpinnerIcon : PendingIcon}
+                            <span>{label}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <button type="button" className={styles.cancelButton} onClick={handleAnnuler}>
+                        Annuler
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+              </div>
+
+              {/* Colonne droite simulation */}
+              <div className={styles.body}>
+                <button type="button" className={styles.backButton} onClick={handleBackToConfigurator}>
+                  &larr; Modifier la configuration
+                </button>
+
+                <h2 id="modal-title" className={styles.simulationTitle}>Simulation</h2>
+
+                <p className={styles.uploadExplainer}>
+                  Prenez votre salon en photo, on y place votre canap&eacute;
+                </p>
+
+                {/* Bandeau rappel config (D-05) */}
+                <div className={styles.configRecap}>
+                  {selectedFabric?.swatch_url ? (
+                    <img src={selectedFabric.swatch_url} alt="" className={styles.configRecapSwatch} />
+                  ) : (
+                    <div className={styles.configRecapSwatch} style={{ background: 'var(--surface-container)' }} />
+                  )}
+                  <span className={styles.configRecapText}>
+                    {selectedFabric ? `${model.name} \u00d7 ${selectedFabric.name}` : `Canap\u00e9 original \u00b7 Aucun tissu s\u00e9lectionn\u00e9`}
+                  </span>
+                  <button type="button" className={styles.configRecapLink} onClick={handleBackToConfigurator}>
+                    Modifier
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
     </dialog>

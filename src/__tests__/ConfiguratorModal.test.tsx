@@ -1142,3 +1142,186 @@ describe('Phase 9 — navigation angles', () => {
     expect(profilAfterReopen?.getAttribute('aria-checked')).toBe('true')
   })
 })
+
+// ==========================================
+// Phase 11 — Simulation IA Upload
+// ==========================================
+
+describe('Phase 11 — simulation IA upload', () => {
+  const renderModal = () => {
+    return render(
+      <ConfiguratorModal
+        model={mockModel}
+        onClose={vi.fn()}
+        fabrics={allFabrics}
+        visuals={allVisuals}
+      />
+    )
+  }
+
+  it('[SIM-01] CTA Visualiser chez moi est visible dans le configurateur', () => {
+    renderModal()
+    const ctaSim = screen.getByRole('button', { name: 'Visualiser chez moi' })
+    expect(ctaSim).toBeDefined()
+  })
+
+  it('[SIM-01] clic CTA affiche letape simulation avec zone upload', async () => {
+    const user = userEvent.setup()
+    renderModal()
+    const ctaSim = screen.getByRole('button', { name: 'Visualiser chez moi' })
+    await user.click(ctaSim)
+
+    // Zone upload visible
+    expect(screen.getByText('Glissez votre photo ici')).toBeDefined()
+    expect(screen.getByText('Choisir une photo')).toBeDefined()
+    expect(screen.getByText(/JPEG, PNG, HEIC/)).toBeDefined()
+  })
+
+  it('[D-03] bouton retour revient au configurateur', async () => {
+    const user = userEvent.setup()
+    renderModal()
+
+    // Aller a la simulation
+    await user.click(screen.getByRole('button', { name: 'Visualiser chez moi' }))
+    expect(screen.getByText('Glissez votre photo ici')).toBeDefined()
+
+    // Revenir
+    await user.click(screen.getByText(/Modifier la configuration/))
+    expect(screen.getByText('Choisissez votre tissu')).toBeDefined()
+  })
+
+  it('[D-05] bandeau rappel config affiche le canape sans tissu', async () => {
+    const user = userEvent.setup()
+    renderModal()
+    await user.click(screen.getByRole('button', { name: 'Visualiser chez moi' }))
+
+    expect(screen.getByText(/original/i)).toBeDefined()
+  })
+
+  it('[D-05] bandeau rappel config affiche canape x tissu selectionne', async () => {
+    const user = userEvent.setup()
+    renderModal()
+
+    // Selectionner un tissu d'abord
+    const swatchRadiogroup = screen.getByRole('radiogroup', { name: 'Choisissez votre tissu' })
+    const firstSwatch = swatchRadiogroup.querySelector('[role="radio"]') as HTMLElement
+    await user.click(firstSwatch)
+
+    // Aller a la simulation
+    await user.click(screen.getByRole('button', { name: 'Visualiser chez moi' }))
+
+    // Bandeau doit montrer le nom du tissu
+    expect(screen.getByText(/Velours Emeraude/)).toBeDefined()
+  })
+
+  it('[D-11] validation fichier > 15 Mo affiche erreur en francais', async () => {
+    const user = userEvent.setup()
+    renderModal()
+    await user.click(screen.getByRole('button', { name: 'Visualiser chez moi' }))
+
+    // Creer un fichier > 15 Mo
+    const bigFile = new File([new Uint8Array(16 * 1024 * 1024)], 'big.jpg', { type: 'image/jpeg' })
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement
+    await user.upload(input, bigFile)
+
+    // L'erreur est dans un role="alert"
+    const alert = screen.getByRole('alert')
+    expect(alert.textContent).toContain('15 Mo')
+  })
+
+  it('[D-11] validation format invalide affiche erreur en francais', async () => {
+    const user = userEvent.setup()
+    renderModal()
+    await user.click(screen.getByRole('button', { name: 'Visualiser chez moi' }))
+
+    // fireEvent.change contourne accept= pour tester la validation JS
+    const pdfFile = new File(['fake'], 'doc.pdf', { type: 'application/pdf' })
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement
+    Object.defineProperty(input, 'files', { value: [pdfFile], configurable: true })
+    fireEvent.change(input)
+
+    const alert = screen.getByRole('alert')
+    expect(alert.textContent).toContain('Format non supporte')
+  })
+
+  it('[D-09] upload valide affiche le preview et bouton Lancer', async () => {
+    const user = userEvent.setup()
+    // Mock createObjectURL
+    const mockUrl = 'blob:http://localhost/fake-preview'
+    vi.stubGlobal('URL', { ...URL, createObjectURL: vi.fn(() => mockUrl), revokeObjectURL: vi.fn() })
+
+    renderModal()
+    await user.click(screen.getByRole('button', { name: 'Visualiser chez moi' }))
+
+    const validFile = new File([new Uint8Array(1024)], 'salon.jpg', { type: 'image/jpeg' })
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement
+    await user.upload(input, validFile)
+
+    expect(screen.getByText('Lancer la simulation')).toBeDefined()
+    expect(screen.getByText('Changer de photo')).toBeDefined()
+
+    vi.unstubAllGlobals()
+  })
+
+  it('[D-12] etat generating affiche la barre de progression et bouton Annuler', async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal('URL', { ...URL, createObjectURL: vi.fn(() => 'blob:fake'), revokeObjectURL: vi.fn() })
+
+    // Mock fetch pour ne jamais resoudre (simuler generation en cours)
+    vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})))
+
+    renderModal()
+    await user.click(screen.getByRole('button', { name: 'Visualiser chez moi' }))
+
+    // Upload
+    const validFile = new File([new Uint8Array(1024)], 'salon.jpg', { type: 'image/jpeg' })
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement
+    await user.upload(input, validFile)
+
+    // Lancer
+    await user.click(screen.getByText('Lancer la simulation'))
+
+    // Barre de progression et annuler visibles
+    expect(screen.getByRole('progressbar')).toBeDefined()
+    expect(screen.getByText('Annuler')).toBeDefined()
+    // "Analyse de la piece" apparait 2 fois (stage label + step list item)
+    expect(screen.getAllByText('Analyse de la piece').length).toBeGreaterThanOrEqual(1)
+
+    vi.unstubAllGlobals()
+  })
+
+  it('[D-15] annulation retourne a letat preview', async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal('URL', { ...URL, createObjectURL: vi.fn(() => 'blob:fake'), revokeObjectURL: vi.fn() })
+
+    // Mock fetch qui ecoute le signal.abort pour rejeter avec AbortError
+    vi.stubGlobal('fetch', vi.fn((_url: string, opts: { signal?: AbortSignal }) => {
+      return new Promise((_resolve, reject) => {
+        if (opts?.signal) {
+          opts.signal.addEventListener('abort', () => {
+            reject(new DOMException('The operation was aborted.', 'AbortError'))
+          })
+        }
+      })
+    }))
+
+    renderModal()
+    await user.click(screen.getByRole('button', { name: 'Visualiser chez moi' }))
+
+    // Upload + lancer
+    const validFile = new File([new Uint8Array(1024)], 'salon.jpg', { type: 'image/jpeg' })
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement
+    await user.upload(input, validFile)
+    await user.click(screen.getByText('Lancer la simulation'))
+
+    // Annuler
+    await user.click(screen.getByText('Annuler'))
+
+    // Attendre le retour a l'etat preview (AbortError est async)
+    await vi.waitFor(() => {
+      expect(screen.getByText('Lancer la simulation')).toBeDefined()
+    })
+
+    vi.unstubAllGlobals()
+  })
+})

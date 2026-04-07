@@ -68,7 +68,11 @@ next-env.d.ts
 # ── Runtime artifacts ──
 .bg-shell/
 .artifacts/
+.playwright-mcp/
 isolate-*-v8.log
+
+# ── UI review screenshots (generated artifacts) ──
+.planning/ui-reviews/*/
 
 # ── Brand kit source (assets lourds, pas du code) ──
 fichier-mobelunique/

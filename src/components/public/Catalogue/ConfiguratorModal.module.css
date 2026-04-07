@@ -340,4 +340,437 @@
   .thumbnailRow {
     padding: 0 var(--spacing-sm);
   }
+
+  /* Phase 11 — responsive mobile */
+  .previewContainer {
+    max-height: 240px;
+  }
+
+  .generatingContainer {
+    max-height: 240px;
+  }
+}
+
+/* === Phase 11 — Simulation IA === */
+
+/* CTA "Visualiser chez moi" — style outline secondaire (D-02) */
+.ctaSimulation {
+  display: block;
+  width: 100%;
+  margin-top: var(--spacing-sm);
+  padding: 0 var(--spacing-lg);
+  height: 48px;
+  line-height: 48px;
+  text-align: center;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+  background: transparent;
+  border: 1px solid var(--color-text);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.ctaSimulation:hover {
+  background: var(--color-text);
+  color: var(--color-background);
+}
+
+.ctaSimulation:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Wrapper etape simulation avec animation d'entree (D-01) */
+.simulationStep {
+  animation: slideIn 200ms ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Bandeau rappel config (D-05) */
+.configRecap {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: var(--color-background-alt);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-md);
+}
+
+/* Mini swatch dans le bandeau */
+.configRecapSwatch {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+/* Texte du bandeau */
+.configRecapText {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  flex: 1;
+}
+
+/* Lien "Modifier" dans le bandeau */
+.configRecapLink {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.configRecapLink:hover {
+  text-decoration: underline;
+}
+
+/* Bouton retour "Modifier la configuration" (D-03) */
+.backButton {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-xs) 0;
+  margin-bottom: var(--spacing-md);
+}
+
+.backButton:hover {
+  color: var(--color-text);
+}
+
+/* Texte explicatif au-dessus de la zone upload (D-06) */
+.uploadExplainer {
+  font-size: var(--font-size-base);
+  font-weight: 400;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-md);
+  line-height: 1.6;
+}
+
+/* Zone drag & drop idle (D-08) */
+.uploadZone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-2xl) var(--spacing-lg);
+  background: var(--color-background-alt);
+  border: 2px dashed var(--outline-variant);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+/* Etat isDragging actif */
+.uploadZoneDragging {
+  border-color: var(--color-primary);
+  background: rgba(228, 148, 0, 0.05);
+}
+
+/* Icone upload dans la zone */
+.uploadIcon {
+  width: 32px;
+  height: 32px;
+  color: var(--color-muted);
+}
+
+/* Texte "Glissez votre photo ici" */
+.uploadText {
+  font-size: var(--font-size-base);
+  font-weight: 400;
+  color: var(--color-muted);
+}
+
+/* Texte "ou" separateur */
+.uploadOr {
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+}
+
+/* Bouton "Choisir une photo" */
+.uploadButton {
+  height: 44px;
+  padding: 0 var(--spacing-lg);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-background);
+  background: var(--color-text);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: opacity 150ms ease;
+}
+
+.uploadButton:hover {
+  opacity: 0.85;
+}
+
+/* Texte formats acceptes */
+.uploadFormats {
+  font-size: var(--font-size-xs);
+  color: var(--color-muted);
+}
+
+/* Input file cache */
+.uploadHiddenInput {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
+/* Container preview photo salon (D-09) */
+.previewContainer {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* Image preview */
+.previewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: imageFadeIn 200ms ease;
+}
+
+/* Overlay gradient bas — lien "Changer de photo" */
+.previewOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 30%;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.4));
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: var(--spacing-md);
+}
+
+/* Lien "Changer de photo" */
+.changePhotoLink {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: #FFFFFF;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Bouton "Lancer la simulation" */
+.launchButton {
+  display: block;
+  width: 100%;
+  height: 48px;
+  margin-top: var(--spacing-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+  background: var(--color-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: opacity 150ms ease;
+}
+
+.launchButton:hover {
+  opacity: 0.9;
+}
+
+.launchButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Container etat generating (D-12) */
+.generatingContainer {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* Overlay sombre sur la photo salon pendant la generation */
+.generatingOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+}
+
+/* Barre de progression track */
+.progressBarTrack {
+  width: 80%;
+  max-width: 240px;
+  height: 6px;
+  background: var(--surface-container);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+/* Barre de progression fill */
+.progressBarFill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+  transition: width 300ms ease;
+}
+
+/* Indicateur pourcentage */
+.progressPercent {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+/* Liste 3 etapes */
+.stepList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+}
+
+/* Item etape individuel */
+.stepItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+}
+
+/* Etape terminee */
+.stepDone {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Etape active en cours */
+.stepActive {
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+/* Etape en attente */
+.stepPending {
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Icone 16x16 par etape */
+.stepIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Animation spinner pour etape active */
+.spinner {
+  animation: spinRotate 1s linear infinite;
+}
+
+@keyframes spinRotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Bouton "Annuler" pendant la generation (D-15) */
+.cancelButton {
+  height: 44px;
+  padding: 0 var(--spacing-lg);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: #FFFFFF;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  margin-top: var(--spacing-md);
+  transition: background-color 150ms ease;
+}
+
+.cancelButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Message d'erreur inline (D-17) */
+.errorMessage {
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  margin-top: var(--spacing-sm);
+}
+
+/* Bouton "Reessayer" — meme style que launchButton */
+.retryButton {
+  display: block;
+  width: 100%;
+  height: 48px;
+  margin-top: var(--spacing-sm);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+  background: var(--color-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: opacity 150ms ease;
+}
+
+.retryButton:hover {
+  opacity: 0.9;
+}
+
+/* Titre "Simulation" dans la colonne droite */
+.simulationTitle {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.2;
+  margin: 0 0 var(--spacing-md) 0;
+}
+
+/* Desktop >= 640px — ajustements simulation */
+@media (min-width: 640px) {
+  .generatingContainer {
+    aspect-ratio: auto;
+    min-height: 300px;
+  }
+
+  .previewContainer {
+    aspect-ratio: auto;
+    min-height: 300px;
+  }
 }

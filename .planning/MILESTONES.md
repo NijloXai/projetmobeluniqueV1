@@ -1,5 +1,20 @@
 # Milestones
 
+## v10.0 Simulation IA Salon (Shipped: 2026-04-07)
+
+**Phases completed:** 3 phases, 3 plans, 4 tasks
+
+**Key accomplishments:**
+
+- Upload photo salon drag & drop avec preview, barre de progression animee, abort controller, et validation client (JPEG/PNG, 15 Mo max)
+- API /api/simulate avec fabric_id optionnel, fallback "tissu original", limite 15 Mo, gestion HEIC 422, et watermark automatique
+- Affichage resultat IA dans le modal avec fondu 400ms, disclaimer "Apercu genere par IA"
+- 4 boutons action post-simulation : telecharger JPEG, partager Web Share API/WhatsApp, commander Shopify (conditionnel), relancer
+- Layout responsive mobile/desktop avec boutons dupliques par breakpoint CSS (< 640px / >= 640px)
+- Dette technique v9.0 pre-resolue : VERIFICATION Phase 8, useRef D-15, getPrimaryImage/formatPrice extraits dans utils.ts
+
+---
+
 ## v9.0 Configurateur Tissu (Shipped: 2026-03-30)
 
 **Phases completed:** 3 phases, 3 plans, 6 tasks

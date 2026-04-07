@@ -4,7 +4,7 @@ milestone: v10.0
 milestone_name: Simulation IA Salon
 status: executing
 stopped_at: Phase 12 UI-SPEC approved
-last_updated: "2026-04-07T16:13:46.735Z"
+last_updated: "2026-04-07T16:20:30.238Z"
 last_activity: 2026-04-07
 progress:
   total_phases: 3

@@ -39,24 +39,26 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 - [x] **CONF-03**: Prix dynamique avec supplement premium (+80 EUR si applicable) -- Validated in Phase 08
 - [x] **CONF-04**: CTA "Acheter sur Shopify" avec lien vers le produit -- Validated in Phase 08
 
+- [x] **SIM-01**: Upload photo salon drag & drop avec preview et progression -- Validated in Phase 11
+- [x] **SIM-02**: Generation IA via POST /api/simulate avec watermark -- Validated in Phase 11
+- [x] **SIM-03**: Resultat avec telecharger, partager WhatsApp, CTA Shopify -- Validated in Phase 12
+
 ### Active
 
-- [ ] **SIM-01**: Upload photo salon et simulation IA
+(Next milestone — v11.0 Polish)
 
 ### Out of Scope
 
-- Catalogue produits -- M008
-- Configurateur tissu -- M009
-- Simulation IA salon -- M010
-- Produits similaires, footer, polish -- M011
-- Integration Nano Banana reelle -- M012+
+- Integration Nano Banana reelle -- M012+ (mock Sharp suffit pour le dev)
 - Tailwind / shadcn/ui -- Interdit par conventions projet
+- Historique/galerie de simulations -- Complexite sans valeur ajoutee pour v10
+- Streaming SSE pour la generation -- Pas necessaire avec le mock
 
 ## Context
 
 - Backend complet (~5350 lignes, M001-M006)
-- Frontend v7.0 + v8.0 + v9.0 complets (shipped) : Header + Hero + HowItWorks + Catalogue + Configurateur tissu complet (swatches, rendus IA, prix dynamique, navigation angles, CTA Shopify) — 9 phases, 9 plans
-- v10.0 en cours : Phase 10 (dette technique) + Phase 11 (upload simulation) completes, Phase 12 (affichage resultat) a venir
+- Frontend v7.0-v10.0 complets (shipped) : Header + Hero + HowItWorks + Catalogue + Configurateur tissu + Simulation IA (upload, generation, affichage resultat, telecharger/partager) — 12 phases, 12 plans
+- Flux E2E complet : page accueil → catalogue → modal configurateur → upload photo → generation IA → resultat → telecharger/partager/commander
 - Brand assets client integres depuis `fichier-mobelunique/` (logos, favicon, app icons)
 - URL Shopify reelle : https://www.mobelunique.fr/
 - Maquette Stitch "Mobel Unique -- SPA Desktop" (project ID: 16534774796210155266)
@@ -91,21 +93,21 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 | TDD RED-GREEN | Tests ecrits avant implementation, contrat comportemental garanti | ✓ Good |
 | Co-fetch server-side Promise.all | 3 queries paralleles (models + fabrics + visuals) dans CatalogueSection | ✓ Good |
 | Props plates modal | fabrics[] + visuals[] passes separement, filtrage UI = Phase 8 | ✓ Good |
+| State machine simulation | idle → preview → generating → done → error, transitions claires | ✓ Good |
+| Web Share API + fallback WhatsApp | canShare({files}) sur mobile, wa.me sur desktop | ✓ Good |
+| Boutons dupliques mobile/desktop | CSS hide/show par breakpoint, pas de JS resize listener | ✓ Good |
+| Mock Sharp pour dev | Service IA interchangeable via factory pattern, pas de dependance Nano Banana | ✓ Good |
 
 ## Completed Milestones
 
 - **v7.0** Header + Hero + Comment ca marche (shipped 2026-03-27)
 - **v8.0** Catalogue Produits (shipped 2026-03-29)
 - **v9.0** Configurateur Tissu (shipped 2026-03-30)
+- **v10.0** Simulation IA Salon (shipped 2026-04-07)
 
 ## Next Milestone
 
-**v10.0 Simulation IA Salon** — Phases 10-12 (started 2026-04-07)
-- Phase 10: Dette technique v9.0 (promoted from backlog 999.1)
-- Phase 11: Simulation IA — Upload et traitement
-- Phase 12: Simulation IA — Affichage résultat et partage
-
-Candidat suivant : v11.0 Polish (produits similaires, footer, sticky bar, deep link)
+Candidat : **v11.0 Polish** — produits similaires, footer, sticky bar mobile, deep link ?produit=slug
 
 ## Evolution
 
@@ -125,4 +127,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-07 after Phase 11 Simulation IA Upload et traitement complete*
+*Last updated: 2026-04-07 after v10.0 Simulation IA Salon milestone*

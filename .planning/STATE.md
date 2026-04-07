@@ -1,36 +1,36 @@
 ---
 gsd_state_version: 1.0
-milestone: v9.0
-milestone_name: Configurateur Tissu
-status: verifying
-stopped_at: Completed 09-01-PLAN.md
-last_updated: "2026-03-30T02:00:25.284Z"
-last_activity: 2026-03-30
+milestone: v10.0
+milestone_name: Simulation IA Salon
+status: Phase not yet planned
+stopped_at: Phase 11 context gathered
+last_updated: "2026-04-07T12:38:06.031Z"
+last_activity: 2026-04-07
 progress:
   total_phases: 3
-  completed_phases: 3
-  total_plans: 3
-  completed_plans: 3
-  percent: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 33
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-29)
+See: .planning/PROJECT.md (updated 2026-04-07)
 
 **Core value:** Le client peut visualiser un canapé dans le tissu de son choix et le simuler dans son salon avant d'acheter.
-**Current focus:** Phase 09 — navigation-angles
+**Current focus:** Phase 11 — simulation-ia-upload
 
 ## Current Position
 
-Phase: 09
+Phase: 11
 Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-03-30
+Status: Phase not yet planned
+Last activity: 2026-04-07
 
-Progress: [░░░░░░░░░░] 0% (v9.0)
+Progress: [███░░░░░░░] 33% (v10.0)
 
 ## Performance Metrics
 
@@ -67,15 +67,14 @@ Décisions clés v9.0 :
 
 ### Pending Todos
 
-- getPrimaryImage/formatPrice dupliqués entre ProductCard et ConfiguratorModal — à extraire (v9.0 ou v10.0)
+_(vide — getPrimaryImage/formatPrice extraits dans utils.ts, commit edf5080)_
 
 ### Blockers/Concerns
 
-- iOS Safari scroll lock : requiert test sur appareil physique après enrichissement contenu modal (Phase 8)
-- Hooks React avant `return null` guard — les nouveaux useState doivent être déclarés avant le guard hérité de Phase 6
+- iOS Safari scroll lock : requiert test sur appareil physique (mitigé par position:fixed pattern)
 
 ## Session Continuity
 
-Last session: 2026-03-30T01:07:11.116Z
-Stopped at: Completed 09-01-PLAN.md
-Resume file: None
+Last session: 2026-04-07T12:38:06.029Z
+Stopped at: Phase 11 context gathered
+Resume file: .planning/phases/11-simulation-ia-upload-et-traitement/11-CONTEXT.md

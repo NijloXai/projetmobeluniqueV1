@@ -85,7 +85,10 @@ Plans:
 **Goal:** Affichage du rendu simulation IA dans le modal, options de telechargement/partage.
 **Depends on:** Phase 11
 **Requirements:** SIM-01
-**Plans:** 0 plans
+**Plans:** 1 plan
+
+Plans:
+- [ ] 12-01-PLAN.md -- Affichage resultat IA + boutons telecharger/partager/commander/relancer
 
 ---
 

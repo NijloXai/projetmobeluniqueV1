@@ -762,6 +762,174 @@
   margin: 0 0 var(--spacing-md) 0;
 }
 
+/* === Phase 12 — Affichage resultat et partage === */
+
+/* Container image resultat */
+.resultContainer {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-background-alt);
+}
+
+/* Image resultat avec fade-in 400ms (D-04) */
+.resultImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: imageFadeIn 400ms ease;
+}
+
+/* Texte disclaimer IA (D-02) */
+.resultDisclaimer {
+  font-size: var(--font-size-sm);
+  font-weight: 400;
+  color: var(--color-muted);
+  font-style: italic;
+  margin-top: var(--spacing-sm);
+}
+
+/* Sous-titre dynamique dans colonne droite (D-03) */
+.resultSubtitle {
+  font-size: var(--font-size-base);
+  font-weight: 400;
+  color: var(--color-muted);
+  margin-top: var(--spacing-xs);
+}
+
+/* Conteneur flex pour les 4 boutons */
+.actionButtons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-xl);
+}
+
+/* Boutons visibles uniquement sur mobile (< 640px) */
+.actionButtonsMobile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-xl);
+}
+
+/* Boutons visibles uniquement sur desktop (>= 640px) */
+.actionButtonsDesktop {
+  display: none;
+}
+
+/* CTA primaire "Telecharger" */
+.downloadButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  width: 100%;
+  height: 48px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  background: var(--color-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: opacity 150ms ease;
+}
+
+.downloadButton:hover {
+  opacity: 0.9;
+}
+
+.downloadButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Bouton "Partager" vert WhatsApp */
+.shareButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  width: 100%;
+  height: 48px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: #FFFFFF;
+  background: var(--color-whatsapp);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.shareButton:hover {
+  background: var(--color-whatsapp-hover);
+}
+
+.shareButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Bouton outline "Commander sur Shopify" */
+.orderButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  width: 100%;
+  height: 48px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  background: transparent;
+  border: 1px solid var(--color-text);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.orderButton:hover {
+  background: var(--color-text);
+  color: var(--color-background);
+}
+
+.orderButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Bouton tertiaire "Essayer une autre photo" */
+.retryPhotoButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  width: 100%;
+  height: 44px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: color 150ms ease;
+}
+
+.retryPhotoButton:hover {
+  color: var(--color-text);
+}
+
+.retryPhotoButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 /* Desktop >= 640px — ajustements simulation */
 @media (min-width: 640px) {
   .generatingContainer {
@@ -770,6 +938,23 @@
   }
 
   .previewContainer {
+    aspect-ratio: auto;
+    min-height: 300px;
+  }
+
+  /* Phase 12 — responsive resultat desktop */
+  .actionButtonsMobile {
+    display: none;
+  }
+
+  .actionButtonsDesktop {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-xl);
+  }
+
+  .resultContainer {
     aspect-ratio: auto;
     min-height: 300px;
   }

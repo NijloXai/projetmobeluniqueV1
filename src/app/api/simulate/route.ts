@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getIAService } from '@/lib/ai'
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 Mo (photos salon plus grandes)
+const MAX_FILE_SIZE = 15 * 1024 * 1024 // 15 Mo (D-10)
 
 /**
  * POST /api/simulate
  * Route publique — simule un canapé dans un tissu donné.
- * Accepte FormData : image (File), model_id (string), fabric_id (string).
+ * Accepte FormData : image (File), model_id (string), fabric_id (string, optionnel).
  * Retourne un JPEG binaire avec filigrane. Pas de ligne en base, résultat éphémère.
  */
 export async function POST(request: NextRequest) {
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
   if (image.size > MAX_FILE_SIZE) {
     return NextResponse.json(
-      { error: "L'image ne doit pas dépasser 10 Mo." },
+      { error: "L'image ne doit pas dépasser 15 Mo." },
       { status: 400 }
     )
   }
@@ -43,13 +43,6 @@ export async function POST(request: NextRequest) {
   if (!modelId) {
     return NextResponse.json(
       { error: 'Le champ model_id est requis.' },
-      { status: 400 }
-    )
-  }
-
-  if (!fabricId) {
-    return NextResponse.json(
-      { error: 'Le champ fabric_id est requis.' },
       { status: 400 }
     )
   }
@@ -71,18 +64,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Récupérer le tissu (nom pour le prompt)
-    const { data: fabric, error: fabricError } = await supabase
-      .from('fabrics')
-      .select('id, name')
-      .eq('id', fabricId)
-      .single()
+    // Récupérer le tissu conditionnellement (D-16 : tissu optionnel)
+    let fabricName = 'tissu original'
+    if (fabricId) {
+      const { data: fabric, error: fabricError } = await supabase
+        .from('fabrics')
+        .select('id, name')
+        .eq('id', fabricId)
+        .single()
 
-    if (fabricError || !fabric) {
-      return NextResponse.json(
-        { error: 'Tissu introuvable.' },
-        { status: 404 }
-      )
+      if (fabricError || !fabric) {
+        return NextResponse.json(
+          { error: 'Tissu introuvable.' },
+          { status: 404 }
+        )
+      }
+      fabricName = fabric.name
     }
 
     // Convertir l'image uploadée en URL data pour le service IA
@@ -91,25 +88,41 @@ export async function POST(request: NextRequest) {
 
     // Générer le visuel via le service IA
     const iaService = getIAService()
-    const result = await iaService.generate({
-      modelName: model.name,
-      fabricName: fabric.name,
-      viewType: 'simulation',
-      sourceImageUrl,
-    })
-
-    // Ajouter le filigrane
-    const watermarked = await iaService.addWatermark(
-      result.imageBuffer,
-      'MÖBEL UNIQUE — Aperçu'
-    )
+    let resultBuffer: Buffer
+    try {
+      const result = await iaService.generate({
+        modelName: model.name,
+        fabricName,
+        viewType: 'simulation',
+        sourceImageUrl,
+      })
+      resultBuffer = await iaService.addWatermark(
+        result.imageBuffer,
+        'MÖBEL UNIQUE — Aperçu'
+      )
+    } catch (genErr) {
+      const genMessage = genErr instanceof Error ? genErr.message : ''
+      if (
+        genMessage.includes('compression format') ||
+        genMessage.includes('unsupported image format')
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              'Ce format HEIC ne peut pas être traité. Convertissez votre photo en JPEG et réessayez.',
+          },
+          { status: 422 }
+        )
+      }
+      throw genErr // Re-throw pour le catch externe
+    }
 
     // Retourner l'image binaire — pas de JSON, pas de ligne en base
-    return new NextResponse(new Uint8Array(watermarked), {
+    return new NextResponse(new Uint8Array(resultBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'image/jpeg',
-        'Content-Length': String(watermarked.length),
+        'Content-Length': String(resultBuffer.length),
         'Cache-Control': 'no-store',
       },
     })

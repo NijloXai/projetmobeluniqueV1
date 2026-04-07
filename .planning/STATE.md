@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Simulation IA Salon
 status: executing
-stopped_at: Phase 12 context gathered
-last_updated: "2026-04-07T14:33:11.506Z"
+stopped_at: Phase 12 UI-SPEC approved
+last_updated: "2026-04-07T14:39:05.982Z"
 last_activity: 2026-04-07
 progress:
   total_phases: 3
@@ -75,6 +75,6 @@ _(vide — getPrimaryImage/formatPrice extraits dans utils.ts, commit edf5080)_
 
 ## Session Continuity
 
-Last session: 2026-04-07T14:33:11.504Z
-Stopped at: Phase 12 context gathered
-Resume file: .planning/phases/12-simulation-ia-affichage-resultat-et-partage/12-CONTEXT.md
+Last session: 2026-04-07T14:39:05.980Z
+Stopped at: Phase 12 UI-SPEC approved
+Resume file: .planning/phases/12-simulation-ia-affichage-resultat-et-partage/12-UI-SPEC.md

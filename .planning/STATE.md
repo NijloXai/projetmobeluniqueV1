@@ -4,14 +4,14 @@ milestone: v10.0
 milestone_name: Simulation IA Salon
 status: executing
 stopped_at: Phase 11 UI-SPEC approved
-last_updated: "2026-04-07T13:15:23.073Z"
-last_activity: 2026-04-07 -- Phase 11 planning complete
+last_updated: "2026-04-07T13:43:19.214Z"
+last_activity: 2026-04-07
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 0
-  percent: 0
+  completed_plans: 2
+  percent: 100
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-07)
 
 **Core value:** Le client peut visualiser un canapé dans le tissu de son choix et le simuler dans son salon avant d'acheter.
-**Current focus:** Phase 11 — simulation-ia-upload
+**Current focus:** Phase 11 — simulation-ia-upload-et-traitement
 
 ## Current Position
 
-Phase: 11
+Phase: 12
 Plan: Not started
-Status: Ready to execute
-Last activity: 2026-04-07 -- Phase 11 planning complete
+Status: Executing Phase 11
+Last activity: 2026-04-07
 
 Progress: [███░░░░░░░] 33% (v10.0)
 
@@ -36,7 +36,7 @@ Progress: [███░░░░░░░] 33% (v10.0)
 
 **Velocity (v7.0 + v8.0 combined):**
 
-- Total plans completed: 8 (v7.0: 3, v8.0: 5)
+- Total plans completed: 10 (v7.0: 3, v8.0: 5)
 - Total phases: 6
 - Tests: 74 verts
 - Timeline: 4 jours (26 mars → 29 mars)

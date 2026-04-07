@@ -74,11 +74,11 @@
 
 **Goal:** Upload photo salon par l'utilisateur, envoi au service IA pour simulation du canape configure dans l'environnement.
 **Requirements:** SIM-01
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 11-01-PLAN.md -- API simulate: fabric_id optionnel + MAX_FILE_SIZE 15 Mo + HEIC error handling
-- [ ] 11-02-PLAN.md -- Client: etape simulation dans ConfiguratorModal (DnD, preview, progression, abort)
+- [x] 11-01-PLAN.md -- API simulate: fabric_id optionnel + MAX_FILE_SIZE 15 Mo + HEIC error handling
+- [x] 11-02-PLAN.md -- Client: etape simulation dans ConfiguratorModal (DnD, preview, progression, abort)
 
 ### Phase 12: Simulation IA -- Affichage resultat et partage
 

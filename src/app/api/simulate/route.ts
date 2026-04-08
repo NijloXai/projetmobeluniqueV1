@@ -1,8 +1,33 @@
+export const maxDuration = 60
+
 import { NextRequest, NextResponse } from 'next/server'
+import sharp from 'sharp'
 import { createClient } from '@/lib/supabase/server'
 import { getIAService } from '@/lib/ai'
+import { ImageSafetyError } from '@/lib/ai/nano-banana'
 
 const MAX_FILE_SIZE = 15 * 1024 * 1024 // 15 Mo (D-10)
+
+// Rate-limit en memoire par IP — 5 appels/minute (D-04)
+// Limitation connue : reset au cold start Vercel (Redis differe v12+)
+const rateMap = new Map<string, { count: number; resetAt: number }>()
+const RATE_LIMIT_MAX = 5
+const RATE_WINDOW_MS = 60_000
+
+function checkRateLimit(ip: string): { allowed: boolean; retryAfter: number } {
+  const now = Date.now()
+  const entry = rateMap.get(ip)
+  if (!entry || now > entry.resetAt) {
+    rateMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS })
+    return { allowed: true, retryAfter: 0 }
+  }
+  if (entry.count >= RATE_LIMIT_MAX) {
+    const retryAfter = Math.ceil((entry.resetAt - now) / 1000)
+    return { allowed: false, retryAfter }
+  }
+  entry.count++
+  return { allowed: true, retryAfter: 0 }
+}
 
 /**
  * POST /api/simulate
@@ -11,6 +36,19 @@ const MAX_FILE_SIZE = 15 * 1024 * 1024 // 15 Mo (D-10)
  * Retourne un JPEG binaire avec filigrane. Pas de ligne en base, résultat éphémère.
  */
 export async function POST(request: NextRequest) {
+  // Rate-limit par IP (per D-04, D-18 : pas de rate-limit sur admin)
+  const ip =
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+    request.headers.get('x-real-ip') ??
+    '127.0.0.1'
+  const { allowed, retryAfter } = checkRateLimit(ip)
+  if (!allowed) {
+    return NextResponse.json(
+      { error: `Trop de demandes. Reessayez dans ${retryAfter} secondes.` },
+      { status: 429, headers: { 'Retry-After': String(retryAfter) } }
+    )
+  }
+
   let formData: FormData
   try {
     formData = await request.formData()
@@ -82,9 +120,13 @@ export async function POST(request: NextRequest) {
       fabricName = fabric.name
     }
 
-    // Convertir l'image uploadée en URL data pour le service IA
-    const imageBuffer = Buffer.from(await image.arrayBuffer())
-    const sourceImageUrl = `data:${image.type};base64,${imageBuffer.toString('base64')}`
+    // Resize systematique avant envoi Gemini — evite payload > 20 Mo (per IA-04)
+    const rawImageBuffer = Buffer.from(await image.arrayBuffer())
+    const resizedBuffer = await sharp(rawImageBuffer)
+      .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
+      .jpeg({ quality: 80 })
+      .toBuffer()
+    const sourceImageUrl = `data:image/jpeg;base64,${resizedBuffer.toString('base64')}`
 
     // Générer le visuel via le service IA
     const iaService = getIAService()
@@ -102,6 +144,8 @@ export async function POST(request: NextRequest) {
       )
     } catch (genErr) {
       const genMessage = genErr instanceof Error ? genErr.message : ''
+
+      // Format HEIC non supporte
       if (
         genMessage.includes('compression format') ||
         genMessage.includes('unsupported image format')
@@ -109,11 +153,32 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             error:
-              'Ce format HEIC ne peut pas être traité. Convertissez votre photo en JPEG et réessayez.',
+              'Ce format HEIC ne peut pas etre traite. Convertissez votre photo en JPEG et reessayez.',
           },
           { status: 422 }
         )
       }
+
+      // IMAGE_SAFETY (per D-01)
+      if (genErr instanceof ImageSafetyError) {
+        return NextResponse.json(
+          { error: genErr.message },
+          { status: 422 }
+        )
+      }
+
+      // Timeout (per D-05)
+      if (
+        (genErr instanceof Error && genErr.name === 'AbortError') ||
+        genMessage.includes('trop de temps') ||
+        genMessage.includes('aborted')
+      ) {
+        return NextResponse.json(
+          { error: 'La generation a pris trop de temps. Veuillez reessayer.' },
+          { status: 504 }
+        )
+      }
+
       throw genErr // Re-throw pour le catch externe
     }
 

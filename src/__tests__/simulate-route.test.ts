@@ -28,6 +28,29 @@ vi.mock('@/lib/ai', () => ({
   })),
 }))
 
+// Mock sharp pour le resize (phase 13)
+vi.mock('sharp', () => ({
+  default: vi.fn(() => ({
+    resize: vi.fn(() => ({
+      jpeg: vi.fn(() => ({
+        toBuffer: vi.fn().mockResolvedValue(Buffer.from('resized')),
+      })),
+    })),
+  })),
+}))
+
+// Mock ImageSafetyError
+class MockImageSafetyError extends Error {
+  constructor() {
+    super("Cette image n'a pas pu etre traitee (contenu non autorise). Essayez une autre photo.")
+    this.name = 'ImageSafetyError'
+  }
+}
+
+vi.mock('@/lib/ai/nano-banana', () => ({
+  ImageSafetyError: MockImageSafetyError,
+}))
+
 // Import dynamique apres les mocks
 const { POST } = await import('@/app/api/simulate/route')
 
@@ -39,9 +62,12 @@ function createFormData(fields: Record<string, string | File>): FormData {
   return fd
 }
 
-function makeRequest(formData: FormData): Request {
+function makeRequest(formData: FormData, ip?: string): Request {
+  const headers: Record<string, string> = {}
+  if (ip) headers['x-forwarded-for'] = ip
   return new Request('http://localhost:3000/api/simulate', {
     method: 'POST',
+    headers,
     body: formData,
   })
 }
@@ -156,5 +182,75 @@ describe('POST /api/simulate', () => {
     expect(response.status).toBe(422)
     expect(json.error).toContain('HEIC')
     expect(json.error).toContain('JPEG')
+  })
+
+  // -----------------------------------------------------------------------
+  // Tests Phase 13 : rate-limit, IMAGE_SAFETY, timeout
+  // -----------------------------------------------------------------------
+
+  it('retourne 429 apres 5 appels rate-limit (phase 13)', async () => {
+    // IP unique pour isoler ce test du rate-limit des autres
+    const testIp = '10.0.0.99'
+
+    for (let i = 0; i < 6; i++) {
+      const image = createFakeImage(1024)
+      const fd = createFormData({ image, model_id: `model-rl-${i}` })
+
+      // Mock model lookup pour chaque appel
+      mockSingle.mockResolvedValueOnce({ data: { id: `model-rl-${i}`, name: 'Milano' }, error: null })
+
+      // Mock IA generate + watermark pour les 5 premiers
+      if (i < 5) {
+        const fakeBuffer = Buffer.from('fake-jpeg')
+        mockGenerate.mockResolvedValueOnce({ imageBuffer: fakeBuffer })
+        mockAddWatermark.mockResolvedValueOnce(fakeBuffer)
+      }
+
+      const response = await POST(makeRequest(fd, testIp) as never)
+
+      if (i === 5) {
+        // 6eme appel : rate-limited
+        const json = await response.json()
+        expect(response.status).toBe(429)
+        expect(json.error).toContain('Trop de demandes')
+        expect(response.headers.get('Retry-After')).toBeTruthy()
+      }
+    }
+  })
+
+  it('retourne 422 sur ImageSafetyError (phase 13)', async () => {
+    const image = createFakeImage(1024)
+    const fd = createFormData({ image, model_id: 'model-safety' })
+
+    // Mock model lookup
+    mockSingle.mockResolvedValueOnce({ data: { id: 'model-safety', name: 'Milano' }, error: null })
+
+    // Mock IA generate qui throw ImageSafetyError
+    mockGenerate.mockRejectedValueOnce(new MockImageSafetyError())
+
+    // IP unique pour eviter la pollution du rate-limit
+    const response = await POST(makeRequest(fd, '10.0.1.1') as never)
+    const json = await response.json()
+    expect(response.status).toBe(422)
+    expect(json.error).toContain('contenu non autorise')
+  })
+
+  it('retourne 504 sur timeout AbortError (phase 13)', async () => {
+    const image = createFakeImage(1024)
+    const fd = createFormData({ image, model_id: 'model-timeout' })
+
+    // Mock model lookup
+    mockSingle.mockResolvedValueOnce({ data: { id: 'model-timeout', name: 'Milano' }, error: null })
+
+    // Mock IA generate qui throw AbortError
+    const abortErr = new Error('The operation was aborted')
+    abortErr.name = 'AbortError'
+    mockGenerate.mockRejectedValueOnce(abortErr)
+
+    // IP unique pour eviter la pollution du rate-limit
+    const response = await POST(makeRequest(fd, '10.0.1.2') as never)
+    const json = await response.json()
+    expect(response.status).toBe(504)
+    expect(json.error).toContain('trop de temps')
   })
 })

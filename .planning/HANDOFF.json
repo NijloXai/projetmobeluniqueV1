@@ -1,26 +1,31 @@
 {
   "version": "1.0",
-  "timestamp": "2026-04-08T14:21:56.322Z",
-  "phase": "13",
-  "phase_name": "nanobananaservice",
-  "phase_dir": ".planning/phases/13-nanobananaservice",
-  "plan": 2,
-  "task": 2,
-  "total_tasks": 2,
-  "status": "complete",
+  "timestamp": "2026-04-08T19:13:06.199Z",
+  "phase": "14",
+  "phase_name": "Audit Code",
+  "phase_dir": ".planning/phases/14-audit-code",
+  "plan": 0,
+  "task": 0,
+  "total_tasks": 0,
+  "status": "paused",
   "completed_tasks": [
-    {"id": 1, "name": "NanoBananaService core (generate + addWatermark + retry + Gemini SDK)", "status": "done", "commit": "b028c8f"},
-    {"id": 2, "name": "Adaptation routes (maxDuration + rate-limit + resize + error handling)", "status": "done", "commit": "632099c"}
+    {"id": 1, "name": "discuss-phase 14 (context gathering)", "status": "done", "commit": "96332ac"},
+    {"id": 2, "name": "research-phase 14 (ecosystem research)", "status": "done", "commit": "421d567"}
   ],
-  "remaining_tasks": [],
+  "remaining_tasks": [
+    {"id": 3, "name": "plan-phase 14 (create PLAN.md)", "status": "not_started"},
+    {"id": 4, "name": "execute-phase 14 (install ESLint+knip, run audit, write AUDIT.md)", "status": "not_started"}
+  ],
   "blockers": [],
   "human_actions_pending": [],
   "decisions": [
-    {"decision": "Import Part type depuis @google/genai pour typage strict", "rationale": "resolveImagePart retourne Part du SDK", "phase": "13"},
-    {"decision": "Rate-limit uniquement sur /api/simulate", "rationale": "Routes admin protegees par requireAdmin()", "phase": "13"},
-    {"decision": "Resize systematique 1024px avant envoi Gemini", "rationale": "Limiter payload < 2 Mo", "phase": "13"}
+    {"decision": "ESLint + knip comme outils permanents", "rationale": "Prévient les régressions, pas de linter actuellement", "phase": "14"},
+    {"decision": "Approche mixte : GSD code-review + script custom", "rationale": "Complémentarité review humain-like et vérification programmatique", "phase": "14"},
+    {"decision": "AUDIT.md unique, 3 niveaux (Critical/Warning/Info)", "rationale": "Simple, actionnable, format fichier:ligne", "phase": "14"},
+    {"decision": "Documenter seulement, corrections en Phase 16", "rationale": "Séparation analyse/fix, rapport exhaustif", "phase": "14"},
+    {"decision": "Audit exhaustif tout src/ + configs + CSS + scripts", "rationale": "Codebase assez petit (~77 fichiers) pour audit complet", "phase": "14"}
   ],
-  "uncommitted_files": [".mcp.json", "deleted phase 11/12 planning files (pre-existing)"],
-  "next_action": "/gsd:discuss-phase 14 — Preparer la phase Audit Code",
-  "context_notes": "Phase 13 complete a 100%. Execution (2 plans, 2 waves), code review (6 warnings fixes), 27 tests unitaires ajoutes, UAT 6/6 pass. Prochaine etape: Phase 14 Audit Code."
+  "uncommitted_files": [],
+  "next_action": "/gsd-plan-phase 14 — créer le plan d'exécution basé sur CONTEXT.md et RESEARCH.md",
+  "context_notes": "Phase 14 prête à planifier. La recherche a révélé que ESLint est déjà configuré (via eslint-config-next) mais cassé (module node_modules corrompu). Seul ajout nécessaire : knip. Le codebase est déjà sain (0 any, 0 ts-ignore, 0 eval). L'audit trouvera surtout des warnings (security headers, dead code CSS, console.error)."
 }

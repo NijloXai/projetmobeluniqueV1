@@ -44,11 +44,9 @@ export class ImageSafetyError extends Error {
 function isRetryableError(err: Error): boolean {
   const msg = err.message
   return (
-    msg.includes('429') ||
+    /\b429\b/.test(msg) ||
     msg.includes('RESOURCE_EXHAUSTED') ||
-    msg.includes('500') ||
-    msg.includes('502') ||
-    msg.includes('503') ||
+    /\b50[023]\b/.test(msg) ||
     err.name === 'AbortError'
   )
 }

@@ -1,6 +1,9 @@
+export const maxDuration = 60
+
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/supabase/admin'
 import { getIAService } from '@/lib/ai'
+import { ImageSafetyError } from '@/lib/ai/nano-banana'
 
 /**
  * POST /api/admin/generate
@@ -162,10 +165,31 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(visual, { status: 201 })
   } catch (err) {
+    // Erreurs specifiques IA
+    if (err instanceof ImageSafetyError) {
+      return NextResponse.json(
+        { error: err.message },
+        { status: 422 }
+      )
+    }
+
     const message = err instanceof Error ? err.message : 'Erreur inconnue'
+
+    // Timeout (AbortError ou message explicite) (per D-05)
+    if (
+      (err instanceof Error && err.name === 'AbortError') ||
+      message.includes('trop de temps') ||
+      message.includes('aborted')
+    ) {
+      return NextResponse.json(
+        { error: 'La generation a pris trop de temps. Veuillez reessayer.' },
+        { status: 504 }
+      )
+    }
+
     console.error('[POST /api/admin/generate] Erreur:', message)
     return NextResponse.json(
-      { error: `Erreur lors de la génération : ${message}` },
+      { error: `Erreur lors de la generation : ${message}` },
       { status: 500 }
     )
   }

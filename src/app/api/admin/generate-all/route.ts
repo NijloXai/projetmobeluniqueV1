@@ -1,6 +1,9 @@
+export const maxDuration = 300
+
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/supabase/admin'
 import { getIAService } from '@/lib/ai'
+import { ImageSafetyError } from '@/lib/ai/nano-banana'
 import { extractStoragePath } from '@/lib/utils'
 
 /**
@@ -79,99 +82,120 @@ export async function POST(request: NextRequest) {
     const iaService = getIAService()
     const startTime = Date.now()
     const results = []
+    const errors: Array<{ view_type: string; reason: string }> = []
 
     for (const modelImage of modelImages) {
-      // Upsert : supprimer l'ancien visuel si existant
-      const { data: existing } = await supabase!
-        .from('generated_visuals')
-        .select('id, generated_image_url')
-        .eq('model_image_id', modelImage.id)
-        .eq('fabric_id', fabric_id)
-        .maybeSingle()
-
-      if (existing) {
-        const oldPath = extractStoragePath(existing.generated_image_url)
-        if (oldPath) {
-          await supabase!.storage
-            .from('generated-visuals')
-            .remove([oldPath])
-        }
-        await supabase!
+      try {
+        // Upsert : supprimer l'ancien visuel si existant
+        const { data: existing } = await supabase!
           .from('generated_visuals')
-          .delete()
-          .eq('id', existing.id)
-      }
+          .select('id, generated_image_url')
+          .eq('model_image_id', modelImage.id)
+          .eq('fabric_id', fabric_id)
+          .maybeSingle()
 
-      // Générer le visuel
-      const result = await iaService.generate({
-        modelName: model.name,
-        fabricName: fabric.name,
-        viewType: modelImage.view_type,
-        sourceImageUrl: modelImage.image_url,
-      })
+        if (existing) {
+          const oldPath = extractStoragePath(existing.generated_image_url)
+          if (oldPath) {
+            await supabase!.storage
+              .from('generated-visuals')
+              .remove([oldPath])
+          }
+          await supabase!
+            .from('generated_visuals')
+            .delete()
+            .eq('id', existing.id)
+        }
 
-      // Upload
-      const storagePath = `${model.slug}/${fabric_id}-${modelImage.id}.${result.extension}`
-
-      const { error: uploadError } = await supabase!.storage
-        .from('generated-visuals')
-        .upload(storagePath, result.imageBuffer, {
-          upsert: true,
-          contentType: result.mimeType,
+        // Generer le visuel
+        const result = await iaService.generate({
+          modelName: model.name,
+          fabricName: fabric.name,
+          viewType: modelImage.view_type,
+          sourceImageUrl: modelImage.image_url,
         })
 
-      if (uploadError) {
+        // Upload
+        const storagePath = `${model.slug}/${fabric_id}-${modelImage.id}.${result.extension}`
+
+        const { error: uploadError } = await supabase!.storage
+          .from('generated-visuals')
+          .upload(storagePath, result.imageBuffer, {
+            upsert: true,
+            contentType: result.mimeType,
+          })
+
+        if (uploadError) {
+          console.error(
+            `[POST /api/admin/generate-all] Upload echoue pour ${modelImage.view_type}:`,
+            uploadError.message
+          )
+          errors.push({ view_type: modelImage.view_type, reason: uploadError.message })
+          continue
+        }
+
+        const { data: urlData } = supabase!.storage
+          .from('generated-visuals')
+          .getPublicUrl(storagePath)
+
+        // Inserer en base — mode IA : non valide, non publie
+        const { data: visual, error: insertError } = await supabase!
+          .from('generated_visuals')
+          .insert({
+            model_id,
+            fabric_id,
+            model_image_id: modelImage.id,
+            generated_image_url: urlData.publicUrl,
+            is_validated: false,
+            is_published: false,
+          })
+          .select()
+          .single()
+
+        if (insertError) {
+          console.error(
+            `[POST /api/admin/generate-all] Insert echoue pour ${modelImage.view_type}:`,
+            insertError.message
+          )
+          errors.push({ view_type: modelImage.view_type, reason: insertError.message })
+          continue
+        }
+
+        results.push(visual)
+      } catch (angleErr) {
+        const reason = angleErr instanceof Error ? angleErr.message : 'Erreur inconnue'
         console.error(
-          `[POST /api/admin/generate-all] Upload échoué pour ${modelImage.view_type}:`,
-          uploadError.message
+          `[POST /api/admin/generate-all] Echec pour ${modelImage.view_type}:`,
+          reason
         )
-        continue // On continue les autres angles
-      }
-
-      const { data: urlData } = supabase!.storage
-        .from('generated-visuals')
-        .getPublicUrl(storagePath)
-
-      // Insérer en base — mode IA : non validé, non publié
-      const { data: visual, error: insertError } = await supabase!
-        .from('generated_visuals')
-        .insert({
-          model_id,
-          fabric_id,
-          model_image_id: modelImage.id,
-          generated_image_url: urlData.publicUrl,
-          is_validated: false,
-          is_published: false,
-        })
-        .select()
-        .single()
-
-      if (insertError) {
-        console.error(
-          `[POST /api/admin/generate-all] Insert échoué pour ${modelImage.view_type}:`,
-          insertError.message
-        )
+        errors.push({ view_type: modelImage.view_type, reason })
         continue
       }
-
-      results.push(visual)
     }
 
     const duration = Date.now() - startTime
     console.log(
-      `[POST /api/admin/generate-all] ${results.length}/${modelImages.length} visuels générés en ${duration}ms — ${model.name} / ${fabric.name}`
+      `[POST /api/admin/generate-all] ${results.length}/${modelImages.length} visuels generes en ${duration}ms — ${model.name} / ${fabric.name}`
     )
 
     return NextResponse.json({
       generated: results,
       total: modelImages.length,
       success: results.length,
+      errors,
     })
   } catch (err) {
+    if (err instanceof ImageSafetyError) {
+      return NextResponse.json(
+        { error: err.message },
+        { status: 422 }
+      )
+    }
+
     const message = err instanceof Error ? err.message : 'Erreur inconnue'
     console.error('[POST /api/admin/generate-all] Erreur:', message)
     return NextResponse.json(
-      { error: `Erreur lors de la génération : ${message}` },
+      { error: `Erreur lors de la generation : ${message}` },
       { status: 500 }
     )
   }

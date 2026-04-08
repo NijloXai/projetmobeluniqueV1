@@ -66,31 +66,31 @@ Reportés aux milestones suivants.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| IA-01 | — | Pending |
-| IA-02 | — | Pending |
-| IA-03 | — | Pending |
-| IA-04 | — | Pending |
-| IA-05 | — | Pending |
-| IA-06 | — | Pending |
-| IA-07 | — | Pending |
-| TEST-01 | — | Pending |
-| TEST-02 | — | Pending |
-| TEST-03 | — | Pending |
-| TEST-04 | — | Pending |
-| E2E-01 | — | Pending |
-| E2E-02 | — | Pending |
-| E2E-03 | — | Pending |
-| AUDIT-01 | — | Pending |
-| AUDIT-02 | — | Pending |
-| AUDIT-03 | — | Pending |
-| AUDIT-04 | — | Pending |
-| FIX-01 | — | Pending |
+| IA-01 | Phase 13 | Pending |
+| IA-02 | Phase 13 | Pending |
+| IA-03 | Phase 13 | Pending |
+| IA-04 | Phase 13 | Pending |
+| IA-05 | Phase 13 | Pending |
+| IA-06 | Phase 13 | Pending |
+| IA-07 | Phase 13 | Pending |
+| AUDIT-01 | Phase 14 | Pending |
+| AUDIT-02 | Phase 14 | Pending |
+| AUDIT-03 | Phase 14 | Pending |
+| AUDIT-04 | Phase 14 | Pending |
+| TEST-01 | Phase 15 | Pending |
+| TEST-02 | Phase 15 | Pending |
+| TEST-03 | Phase 15 | Pending |
+| TEST-04 | Phase 15 | Pending |
+| E2E-01 | Phase 16 | Pending |
+| E2E-02 | Phase 16 | Pending |
+| E2E-03 | Phase 16 | Pending |
+| FIX-01 | Phase 16 | Pending |
 
 **Coverage:**
 - v11.0 requirements: 19 total
-- Mapped to phases: 0
-- Unmapped: 19 ⚠️
+- Mapped to phases: 19
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-08*
-*Last updated: 2026-04-08 after initial definition*
+*Last updated: 2026-04-08 after roadmap creation*

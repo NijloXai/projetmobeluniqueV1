@@ -1,28 +1,9 @@
-# Feature Research — M009 Configurateur Tissu
+# Feature Research
 
-**Domain:** Configurateur tissu canapé — SPA Next.js avec visuels IA pré-générés
-**Milestone:** M009 — Remplacement du placeholder "Configurateur à venir" par le configurateur réel
-**Researched:** 2026-03-29
-**Confidence:** HIGH (wireframe v4 + schéma DB + API existantes + analyse concurrentielle)
-
----
-
-## Context
-
-Le modal configurateur (MODAL-01/02/03) est en place : dialog natif, focus trap, fermeture
-Escape/X/backdrop, scroll lock iOS. Il affiche actuellement un placeholder "Configurateur à venir".
-
-Les données backend sont complètes :
-- `GET /api/models/[slug]/visuals` : rendus publiés (is_validated + is_published + fabric.is_active),
-  avec tissu jointuré et image_url de chaque rendu
-- `fabrics` table : name, swatch_url, is_premium, is_active, category
-- `generated_visuals` table : model_image_id (= angle), fabric_id, generated_image_url, is_published
-- Contrainte UNIQUE (model_image_id, fabric_id) : un rendu par combinaison angle × tissu
-- Prix premium = prix de base + 80€ fixe (CLAUDE.md)
-- `models.shopify_url` : lien Shopify par modèle (nullable)
-
-Ce milestone transforme ce placeholder en configurateur fonctionnel. Les rendus IA sont
-**pré-générés côté admin** — pas de génération temps-réel dans le configurateur public.
+**Domain:** Intégration IA réelle (Nano Banana 2 / Gemini) + tests complets — Next.js 16 + Supabase
+**Milestone:** v11.0 — IA Réelle + Audit Qualité
+**Researched:** 2026-04-08
+**Confidence:** HIGH (Gemini API docs officiels vérifiés), MEDIUM (patterns tests, plusieurs sources concordantes)
 
 ---
 
@@ -30,152 +11,120 @@ Ce milestone transforme ce placeholder en configurateur fonctionnel. Les rendus 
 
 ### Table Stakes (Users Expect These)
 
-Features que tout visiteur d'un configurateur canapé luxe attend. Leur absence = produit cassé.
+Fonctionnalités que le milestone ne peut pas livrer sans elles. Leur absence = le ticket est incomplet.
 
 | Feature | Pourquoi attendu | Complexité | Notes |
 |---------|-----------------|------------|-------|
-| Grille de swatches tissu cliquables | Standard universel des configurateurs meuble — IKEA, BUT, Roche Bobois | FAIBLE | Cercles 52px (wireframe v4), tous les tissus `is_active=true`, au moins 1 swatch visible |
-| Affichage du rendu IA quand un tissu est sélectionné | Raison d'être du configurateur — sans ça, c'est juste une liste de tissus | MOYEN | Image du rendu publié pour (model_image_id, fabric_id) via `/api/models/[slug]/visuals` |
-| Swatch actif visuellement distinct | L'utilisateur doit savoir quel tissu est sélectionné | FAIBLE | Bordure `--color-primary` (#E49400) + éventuel ring ou scale(1.1) |
-| Nom du tissu affiché avec le swatch sélectionné | Identifier ce qu'on a choisi — requis par WCAG 2.1 AA aussi | FAIBLE | Label textuel sous ou à côté du swatch actif — pas seulement en tooltip |
-| Prix mis à jour dynamiquement | Transparence tarifaire — 9/10 acheteurs veulent voir le prix total avant achat | FAIBLE | Base + 80€ si `fabric.is_premium`, sinon prix de base — logique déjà dans PROJECT.md |
-| Badge "premium" ou "+80 EUR" sur les tissus premium | L'utilisateur doit anticiper le surcoût avant de cliquer | FAIBLE | Badge court sur le swatch ou label inline — pas de surprise au checkout |
-| CTA "Commander sur Shopify" | Sortie vers l'achat — sans ça le configurateur est une dead-end | FAIBLE | Lien `model.shopify_url` (nullable) — bouton désactivé ou masqué si null |
-| Image de fallback si aucun rendu publié pour ce tissu | Tissu actif peut ne pas avoir de rendu publié (workflow admin incomplet) | MOYEN | Afficher la photo originale du modèle (`model_images[0]`) + badge "Aperçu sans IA" |
-| État chargement pendant le fetch des visuels | L'appel API est async — éviter le flash de contenu vide | FAIBLE | Skeleton dans la zone image pendant le fetch initial |
-| Fermeture du modal et retour au catalogue fonctionnels | Déjà implémenté — ne pas régresser lors du remplacement du placeholder | FAIBLE | Tester que le remplacement du contenu interne ne casse pas les handlers existants |
+| `NanoBananaService.generate()` fonctionnel | Le factory pattern existe et bascule déjà sur Nano Banana si `NANO_BANANA_API_KEY` est défini — mais l'implémentation actuelle lance une erreur stub. Avec une vraie clé, toute génération admin explose | MEDIUM | SDK `@google/genai`, modèle `gemini-3.1-flash-image-preview`, envoyer prompt + image source en base64 `inlineData`, extraire `candidates[0].content.parts` image retournée |
+| `NanoBananaService.addWatermark()` fonctionnel | `/api/simulate` appelle toujours `addWatermark()` après `generate()` — le stub lance une erreur, cassant le flux client complet | LOW | Sharp déjà installé et utilisé par `MockIAService`; réutiliser le même pattern de composite SVG |
+| Retry exponentiel sur 429 / 5xx | L'API Gemini image a des limites strictes (IPM, RPM, RPD); le tier payant atteint quand même des 429 sous charge. Sans retry, une erreur transitoire fait échouer la génération définitivement | MEDIUM | 3 tentatives, délais 1s/2s/4s + jitter; ne retenter que 429/500/503; exposer `503 Service temporairement indisponible` au caller après épuisement |
+| Timeout par appel Gemini | La génération d'image peut prendre 15-30 s; sans timeout, la route Next.js se pend indéfiniment | LOW | 30 s via `AbortSignal.timeout(30_000)` passé au SDK ou `Promise.race` avec un reject temporisé |
+| Messages d'erreur en français | Toute la codebase utilise des messages d'erreur français — la cohérence est requise | LOW | Mapper les erreurs du SDK Gemini vers le vocabulaire projet (`"Génération IA impossible"`, `"Service temporairement indisponible"`, `"Format d'image non supporté"`) |
+| Tests Vitest pour `NanoBananaService` | Le pattern de mock est établi dans `simulate-route.test.ts`; le service IA doit avoir ses propres tests unitaires | MEDIUM | Couvrir: happy path retourne `GenerateResult`, 429 déclenche retry puis succès, erreur permanente rejette, watermark composite fonctionne |
+| Tests Vitest pour les fonctions utilitaires | `slugify`, `calculatePrice`, `extractStoragePath`, `buildBackOfficePrompt`, `buildSimulatePrompt` — fonctions pures, coût de test quasi nul | LOW | Aucun mock nécessaire; test des cas limites (accents, caractères spéciaux, slugs vides) |
+| Tests Vitest pour les routes admin generate | Les routes `/api/admin/generate` et `/api/admin/generate-all` appellent `getIAService().generate()` — elles doivent gérer gracieusement les erreurs IA (propagation 500, cas success) | MEDIUM | Même pattern que `simulate-route.test.ts` : `vi.mock('@/lib/ai', ...)` puis import dynamique de la route |
 
 ### Differentiators (Competitive Advantage)
 
-Features qui élèvent l'expérience au-dessus du configurateur basique.
+Features qui améliorent significativement la qualité ou la confiance sans être strictement bloquantes.
 
 | Feature | Valeur ajoutée | Complexité | Notes |
 |---------|---------------|------------|-------|
-| Navigation par angles (thumbnails) | Les rendus existent par `view_type` (3/4, face, profil, dos, détail) — montrer l'angle IA | MOYEN | Thumbnails 72×54px (wireframe v4), un par angle disponible pour le tissu sélectionné, clic = maj image principale |
-| Zoom texture (encart tissu de près) | Sécuriser la décision matière — 70% des acheteurs meuble ont besoin de voir le tissu en détail | FAIBLE | `fabric.reference_image_url` (bucket fabric-references) dans un encart 100-120px avec nom et catégorie |
-| Badge "Rendu IA" sur l'image principale | Transparence sur la nature du visuel — différenciateur de confiance | FAIBLE | Pill sombre bas-droite sur la zone image — "Rendu IA" quand rendu actif, "Photo originale" quand fallback |
-| Nombre d'angles disponibles affiché | Informer sur la richesse du catalogue de rendus avant de cliquer | FAIBLE | "5 angles disponibles" sous les thumbnails ou en label |
-| Lien "Changer de canapé" | Anti dead-end — retour fluide vers le catalogue sans fermer/rouvrir | FAIBLE | Text link `← Changer de modèle` qui appelle `onClose()` |
-| Bandeau sticky mobile (swatch + prix + CTA) | Prix et action toujours visibles sur mobile sans scroller — conversion critique | MOYEN | `position: fixed`, bottom 0, visible uniquement < 1024px (wireframe v4), masqué si Shopify URL absente |
-| Affichage dimensions du modèle | Information produit complémentaire — "220 × 90 × 85 cm" — attendu en haut de gamme | FAIBLE | `model.dimensions` (nullable) — afficher sous le nom si present |
+| Image source passée à Gemini pour `/api/simulate` | La photo du salon de l'utilisateur alimente le prompt inpainting — Gemini utilise le contexte de la pièce pour un placement réaliste vs. génération pure texte | MEDIUM | Convertir le `Buffer` uploadé → base64, passer en `inlineData` avec `buildSimulatePrompt`; Gemini 3.1 supporte nativement text+image→image |
+| Photo du modèle passée comme contexte en back-office | Envoyer la vraie photo de l'angle canapé donne à Gemini une forme de référence concrète vs. le nom seul — meilleure fidélité de sortie | MEDIUM | `sourceImageUrl` déjà dans `GenerateRequest`; fetch URL → base64 avant d'appeler Gemini; fallback vers prompt seul si le fetch échoue |
+| Logging structuré des erreurs Gemini | Capturer modèle, hash prompt, code erreur, latence en logs serveur — permet le debugging sans exposer de données sensibles côté client | LOW | `console.error('[NanaBanana]', { model, errorCode, latencyMs })` dans le catch; aucun changement côté utilisateur |
+| Tests Playwright E2E — flux simulation | Valide le flux public complet (idle → generating → done) avec le mock provider — détecte les régressions dans le câblage UI sans coût IA | HIGH | `page.route('/api/simulate', ...)` pour intercepter et retourner un JPEG fixture; valider les états de la state machine UI |
+| Tests Playwright E2E — flux admin generate + publish | Valide le flux admin le plus complexe : sélection modèle + tissu → generate → validate → publish; confirme les transitions de statut dans l'UI | HIGH | Mocker `/api/admin/generate` pour retourner une fixture; asserter les changements de statut des cards visuels |
+| Tests Vitest pour `requireAdmin()` | Vérifie le contrat d'authentification : 401 sans session valide, 200 avec session valide — régression critique si auth casse | LOW | `vi.mock('@/lib/supabase/server', ...)` pour contrôler la session; test de chaque route admin protégée |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
 | Feature | Pourquoi demandé | Pourquoi problématique | Alternative |
 |---------|-----------------|----------------------|-------------|
-| Génération IA temps-réel dans le configurateur | "Visualisation à la demande" | Les rendus sont pré-générés côté admin — la stack IA (Nano Banana / Mock Sharp) n'est pas conçue pour du temps-réel public. Latence 5-15s, coût par requête, watermark public sur `/api/simulate` | Afficher les rendus publiés — qualité contrôlée par admin, zéro latence |
-| Sélecteur de quantité / taille dans le configurateur | "Upsell inline" | Ce n'est pas un configurateur de commande — c'est un outil de visualisation. La commande se fait sur Shopify. Ajouter quantité = confusion de rôle | Rediriger vers Shopify pour tout ce qui est "commander" |
-| Partage de configuration par URL ou lien | "Partage réseaux sociaux" | Requiert persistance d'état (localStorage ou query params), gestion de l'hydratation SSR, et coordination avec le Shopify URL. Hors scope M009. | Section Simulation (M010) avec WhatsApp share — prévue dans le wireframe |
-| Comparaison avant/après tissu | "Voir la différence" | Requiert deux images côte à côte = layout complexe dans le modal. Le toggle "photo originale → rendu IA" via badge offre une forme de comparaison suffisante | Badge "Rendu IA / Photo originale" + fallback clair |
-| Filtrage des swatches par catégorie de tissu | "Organisation des options" | À 6-10 tissus actifs, un filtre est une surcharge cognitive. La catégorie existe dans `fabric.category` mais n'est pertinente qu'à 20+ tissus | Grille linéaire scrollable — simple et rapide |
-| Zoom interactif sur l'image principale (loupe) | "Voir les détails du rendu" | Complexité d'implémentation élevée (touch events, position calcul), rendu IA ne justifie pas un zoom photo-réaliste. La référence tissu dans l'encart zoom couvre ce besoin | Encart `reference_image_url` pour le détail matière |
-| Loader animé façon "génération en cours" pendant le fetch | "Sentiment de technologie IA" | Trompe l'utilisateur — les rendus sont déjà générés, le fetch est rapide (< 500ms). Un vrai loader donnerait l'impression d'une attente inexistante | Skeleton discret le temps du premier fetch — disparaît rapidement |
-| Mode plein écran image (expand) | "Mieux voir le rendu" | Le modal est déjà 90vw desktop / plein écran mobile. Un expand intérieur = imbrication de modals ou z-index battles | Taille d'image généreuse dans le layout 60/40 (wireframe v4) |
+| Streaming SSE pour la progression de la génération | "Montrer une barre de progression" — donne l'impression d'être plus réactif | L'API Gemini image retourne une image complète en une seule réponse — il n'y a pas de tokens partiels à streamer. SSE ajoute une infrastructure (EventSource, keep-alive) pour zéro bénéfice réel ici | Conserver le pattern actuel: POST attend la réponse; afficher un spinner CSS pendant `status === 'generating'` — déjà implémenté en Phase 11 |
+| Cache Redis/mémoire des images générées | "Économiser les coûts API" | L'admin génère à la demande (le contenu change); la simulation client est unique par utilisateur (chaque photo de salon diffère). Le taux de hit cache est proche de zéro. Ajoute une dépendance Redis | Utiliser Supabase Storage comme couche de persistance — c'est le workflow conçu; la régénération via UI admin est intentionnelle |
+| Statut de génération en temps réel via polling | "Savoir quand c'est terminé sans attendre" | Toute génération est synchrone dans les routes actuelles (admin attend la réponse); ajouter des jobs asynchrones nécessite une queue (Bull, Inngest) bien au-delà du scope | La route attend la génération et retourne le résultat; le timeout 30 s protège contre les blocages |
+| Tests par snapshot des images générées | "S'assurer que le visuel est correct" | La sortie IA est non-déterministe par nature; les snapshots pixel-level seront flaky par définition | Mocker le service IA dans les tests; asserter le statut HTTP, le header `Content-Type`, et le buffer non-vide — pas le contenu pixel |
+| Multi-providers avec UI de sélection | "Supporter aussi OpenAI DALL-E" | Le factory pattern est déjà l'abstraction — ajouter des providers est une préoccupation future; une UI de sélection n'a aucune valeur pour l'utilisateur maintenant | La variable d'env `NANO_BANANA_API_KEY` contrôle le provider; ajouter des providers dans `getIAService()` quand le besoin est réel |
+| Tests E2E avec la vraie API Gemini | "Tester l'intégration réelle" | Coûts par requête ($0.045/image), latence 10-30 s par test, non-déterminisme, quota quotidien — un test suite complet brûle le budget et est lent | Mocker l'API Gemini en tests (`vi.mock('@google/genai')`); écrire des scripts d'intégration manuels séparés pour valider la clé API |
 
 ---
 
 ## Feature Dependencies
 
 ```
-GET /api/models/[slug]/visuals (existant, opérationnel)
-  └──fournit──> Liste de rendus publiés avec fabric + model_image jointés
-      └──requiert──> model.slug (déjà dans ConfiguratorModal via ModelWithImages)
+NanoBananaService.generate() [MUST]
+    └──requiert──> @google/genai installé (npm install @google/genai)
+    └──requiert──> encodage base64 de l'image source (fetch URL → Buffer → base64)
+    └──requiert──> RetryHandler (logique backoff)
+    └──requiert──> Timeout wrapper (AbortSignal ou Promise.race)
+    └──retourne──> GenerateResult { imageBuffer, mimeType, extension }
 
-Swatches cliquables
-  └──requiert──> Liste des tissus actifs ayant au moins un rendu publié
-  └──dépend de──> generated_visuals filtrés (is_published + fabric.is_active)
-  └──dépend de──> fabric.swatch_url (pour l'image du swatch)
-  └──dépend de──> useState selectedFabricId
+NanoBananaService.addWatermark() [MUST]
+    └──requiert──> sharp (déjà installé, utilisé par MockIAService)
+    └──réutilise──> pattern SVG composite de MockIAService.addWatermark()
 
-Image principale rendu IA
-  └──requiert──> selectedFabricId + selectedViewType (angle actif)
-  └──dépend de──> generated_visuals (trouver le rendu pour [fabric_id, model_image.view_type])
-  └──fallback──> model_images[0].image_url si aucun rendu pour cette combinaison
+Tests Vitest: NanoBananaService [MUST]
+    └──requiert──> NanoBananaService implémenté
+    └──requiert──> vi.mock('@google/genai') — mocker GoogleGenAI constructor et generateContent
 
-Thumbnails angles
-  └──requiert──> Liste des angles DISPONIBLES pour le tissu sélectionné
-  └──dépend de──> generated_visuals groupés par view_type pour le fabric_id actif
-  └──requiert──> selectedFabricId (les angles disponibles changent selon le tissu)
-  └──dépend de──> useState selectedViewType
+Tests Vitest: routes admin generate [MUST]
+    └──requiert──> vi.mock('@/lib/ai') — pattern déjà établi dans simulate-route.test.ts
+    └──requiert──> vi.mock('@/lib/supabase/server') — pattern établi
 
-Prix dynamique
-  └──requiert──> selectedFabricId → fabric.is_premium
-  └──dépend de──> model.price (base)
-  └──calcule──> price + (is_premium ? 80 : 0)
+Tests Playwright E2E: flux simulate [DIFFERENTIATEUR]
+    └──requiert──> @playwright/test installé
+    └──requiert──> playwright.config.ts à la racine (webServer: npm run dev)
+    └──requiert──> page.route('/api/simulate', ...) pour retourner JPEG fixture
+    └──requiert──> serveur dev actif pendant les tests
 
-Zoom texture (encart)
-  └──requiert──> selectedFabricId → fabric.reference_image_url
-  └──fallback──> fabric.swatch_url si reference_image_url est null
-
-CTA Commander sur Shopify
-  └──requiert──> model.shopify_url (nullable)
-  └──affiche──> Bouton actif si shopify_url présent, masqué ou disabled si null
-
-Bandeau sticky mobile
-  └──requiert──> selectedFabricId (swatch + nom tissu)
-  └──requiert──> Prix dynamique calculé
-  └──requiert──> model.shopify_url (lien achat)
-  └──visible──> uniquement < 1024px (CSS media query)
+Tests Playwright E2E: flux admin [DIFFERENTIATEUR]
+    └──requiert──> infrastructure Playwright E2E simulate (config partagée)
+    └──requiert──> fixtures Supabase OU mocks complets des routes admin API
+    └──requiert──> session admin mockée ou réelle
 ```
 
 ### Dependency Notes
 
-- **Données visuals via un seul fetch :** `GET /api/models/[slug]/visuals` retourne tous les rendus
-  publiés du modèle (tous tissus, tous angles). Ce fetch unique charge tout — pas de fetch par swatch
-  ou par angle. Organiser côté client en `Map<fabricId, Map<viewType, GeneratedVisual>>` pour un
-  accès O(1).
+- **`NanoBananaService` requiert `@google/genai`:** SDK officiel Google (`npm install @google/genai`, package `@google/genai` sur npm, repo `github.com/googleapis/js-genai`). Auth via param `apiKey` dans le constructeur, depuis `process.env.NANO_BANANA_API_KEY`.
 
-- **slug du modèle dans le modal :** Le composant `ConfiguratorModal` reçoit `model: ModelWithImages`.
-  Le type `Model` inclut `slug`. Aucune prop supplémentaire à passer — le slug est disponible.
+- **Retry requiert classification des erreurs:** Ne retenter que 429 (rate limit) et 5xx (serveur transitoire). Ne jamais retenter 400 (requête invalide) ou 403 (auth). Le SDK Gemini lance des erreurs typées — vérifier `error.status` ou `error.message`.
 
-- **Tissus sans rendu publié :** Un tissu peut être `is_active=true` mais sans aucun rendu publié.
-  Dans ce cas, il ne figure pas dans la réponse de `/api/models/[slug]/visuals`. Ne pas l'afficher
-  dans les swatches, ou l'afficher grisé avec un état "aperçu non disponible". Recommandé : ne pas
-  afficher — évite la frustration de cliquer et de voir un fallback photo.
+- **Playwright requiert une config séparée:** `playwright.config.ts` à la racine, `webServer: { command: 'npm run dev', url: 'http://localhost:3000' }`. Tests dans `e2e/` séparé de `src/__tests__/` (Vitest). Les deux frameworks coexistent sans conflit.
 
-- **Angle par défaut :** Au chargement, sélectionner l'angle `3/4` si disponible pour le tissu
-  sélectionné par défaut, sinon le premier angle disponible. Logique `getPrimaryImage` déjà dans
-  `ConfiguratorModal.tsx` — réutiliser ce pattern.
-
-- **Tissu sélectionné par défaut :** Premier tissu dans la liste (non-premium si possible) — ne pas
-  forcer l'utilisateur à cliquer avant de voir quoi que ce soit.
+- **Fetch image source en back-office:** `sourceImageUrl` est une URL Supabase Storage. En contexte serveur (routes admin), le fetch est direct. Doit gérer les erreurs de fetch gracieusement — fallback vers prompt seul si l'image est inaccessible (ne pas bloquer la génération).
 
 ---
 
 ## MVP Definition
 
-### Launch With — M009
+### IA-REAL-01 et IA-REAL-02 (ce milestone)
 
-Minimum viable pour valider le configurateur tissu et débloquer M010 (Simulation).
+Minimum nécessaire pour remplacer le stub par une intégration réelle fonctionnelle.
 
-- [ ] **Fetch visuels** : appel `GET /api/models/[slug]/visuals` au montage du modal — chargé en
-  mémoire une seule fois
-- [ ] **Grille swatches** : afficher tous les tissus ayant au moins 1 rendu publié, avec `swatch_url`,
-  nom au hover/focus, badge "+80 EUR" si premium
-- [ ] **Sélection swatch** : clic → `selectedFabricId` mis à jour → image principale change
-- [ ] **Image principale** : rendu IA si disponible, sinon photo originale + badge "Photo originale"
-- [ ] **Badge "Rendu IA"** sur l'image quand c'est un rendu IA publié
-- [ ] **Prix dynamique** : base + 80€ si premium, affiché en temps réel
-- [ ] **CTA Shopify** : bouton "Commander sur Shopify" lié à `model.shopify_url` (masqué si null)
-- [ ] **État chargement** : skeleton dans la zone image pendant le fetch
-- [ ] **Lien "Changer de modèle"** : `onClose()` avec text link discret
+- [ ] Installer `@google/genai` et implémenter `NanoBananaService.generate()` — envoyer prompt + image source base64, parser la part image de la réponse
+- [ ] Implémenter `NanoBananaService.addWatermark()` — réutiliser le pattern Sharp composite de `MockIAService`
+- [ ] Ajouter wrapper retry + timeout (3 tentatives, timeout 30 s) — prévient les blocages et échecs rate limit en production
+- [ ] Tests unitaires pour `NanoBananaService` : happy path, retry sur 429, erreur permanente, watermark
 
-### Add After Validation — v9.x
+### TEST-01 et AUDIT-01 (ce milestone)
 
-Features à ajouter une fois le configurateur core validé (même milestone si temps).
+Minimum nécessaire pour établir une couverture de tests sur le code existant.
 
-- [ ] **Navigation angles** : thumbnails 72×54px par angle disponible, clic change l'image principale
-- [ ] **Encart zoom texture** : `reference_image_url` ou fallback `swatch_url`, 100-120px
-- [ ] **Dimensions modèle** : `model.dimensions` affiché sous le nom si non-null
+- [ ] Tests unitaires pour utils (`slugify`, `calculatePrice`, `extractStoragePath`) — fonctions pures, aucun mock
+- [ ] Tests unitaires pour prompts (`buildBackOfficePrompt`, `buildSimulatePrompt`) — vérification de sortie string
+- [ ] Tests Vitest pour les routes admin generate — mocker `getIAService()`, asserter propagation 500 et chemin success
+- [ ] Tests Vitest couvrant le comportement de `requireAdmin()` — mocker l'auth Supabase, asserter 401 sans session valide
 
-### Future Consideration — v10+
+### Ajouter après validation (v11.x)
 
-Features à différer — dépendent de milestones ultérieurs ou hors scope M009.
+- [ ] Tests Playwright E2E pour le flux simulate — ajouter après que la suite Vitest passe; valide l'intégration de toutes les pièces ensemble
+- [ ] Tests Playwright E2E pour le flux admin generate+publish — ajoute de la confiance sur le workflow le plus complexe
 
-- [ ] **Bandeau sticky mobile** : swatch + prix + CTA — M009 si temps, sinon M010
-- [ ] **Partage de configuration** : WhatsApp — M010 Simulation
-- [ ] **Simulation salon** : upload photo + génération IA — M010
-- [ ] **Produits similaires** — M011 polish
+### Future Consideration (v12+)
+
+- [ ] Queue de génération asynchrone (Inngest ou similaire) — seulement si le temps de génération > 30 s devient une douleur utilisateur
+- [ ] Expansion de providers (OpenAI DALL-E, Stability AI) — seulement si la qualité de sortie Gemini est insuffisante
 
 ---
 
@@ -183,162 +132,101 @@ Features à différer — dépendent de milestones ultérieurs ou hors scope M00
 
 | Feature | Valeur Utilisateur | Coût Implémentation | Priorité |
 |---------|-------------------|---------------------|----------|
-| Fetch visuels + organisation en Map | HAUTE | FAIBLE | P1 |
-| Grille swatches cliquables | HAUTE | FAIBLE | P1 |
-| Image principale rendu IA | HAUTE | FAIBLE | P1 |
-| Prix dynamique premium | HAUTE | FAIBLE | P1 |
-| Badge "Rendu IA" / "Photo originale" | HAUTE | FAIBLE | P1 |
-| CTA Commander Shopify | HAUTE | FAIBLE | P1 |
-| Fallback photo originale | MOYENNE | FAIBLE | P1 |
-| Skeleton chargement | MOYENNE | FAIBLE | P1 |
-| Navigation angles (thumbnails) | HAUTE | MOYEN | P2 |
-| Encart zoom texture | MOYENNE | FAIBLE | P2 |
-| Dimensions modèle | FAIBLE | FAIBLE | P2 |
-| Lien "Changer de modèle" | FAIBLE | FAIBLE | P2 |
-| Bandeau sticky mobile | HAUTE (mobile) | MOYEN | P2 |
+| `NanoBananaService.generate()` | HAUTE (active la vraie IA) | MEDIUM | P1 |
+| `NanoBananaService.addWatermark()` | HAUTE (flux client cassé sans ça) | LOW | P1 |
+| Retry + timeout wrapper | HAUTE (résilience production) | MEDIUM | P1 |
+| Tests Vitest: NanoBananaService | HAUTE (détecte régressions couche IA) | MEDIUM | P1 |
+| Tests Vitest: utils + prompts | MEDIUM (couverture logique pure) | LOW | P1 |
+| Tests Vitest: routes admin generate | MEDIUM (gestion erreurs routes) | MEDIUM | P2 |
+| Tests Vitest: requireAdmin() | MEDIUM (contrat auth) | LOW | P2 |
+| Image source passée à Gemini (simulate) | MEDIUM (meilleure qualité IA) | MEDIUM | P2 |
+| Image source passée à Gemini (back-office) | MEDIUM (meilleure fidélité rendu) | MEDIUM | P2 |
+| Logging structuré erreurs Gemini | LOW (DX debugging) | LOW | P2 |
+| Playwright E2E: flux simulate | HAUTE (garde contre régressions) | HIGH | P2 |
+| Playwright E2E: flux admin | MEDIUM (déjà testé manuellement) | HIGH | P3 |
 
-**Clé priorités :**
-- P1 : Indispensable pour livrer M009 — CONF-01, CONF-02, CONF-03, CONF-04
-- P2 : Souhaitable, ajouter dans M009 si temps disponible
-- P3 : Nice-to-have, M011 polish
-
----
-
-## Competitor Feature Analysis
-
-| Feature | IKEA | Roche Bobois | Ligne Roset | Notre Approche |
-|---------|------|--------------|-------------|----------------|
-| Swatches | Cercles/carrés, tous visibles, tooltip nom | Carrés avec hover zoom, catégories | Cercles 40px, scrollables, label dessous | Cercles 52px (wireframe), label visible pour sélectionné, badge premium |
-| Affichage rendu | 3D temps réel | Photo IA pré-générée par angle | Photo lifestyle studio | Photo IA pré-générée (admin → publish), pas de temps-réel |
-| Angles | Rotation 360° interactive | Thumbnails 3-5 angles cliquables | 2-3 angles, thumbnails | Thumbnails par angle publié — dépend du workflow admin |
-| Prix | Mis à jour temps réel | Affiché en permanence | "À partir de" + surcoût tissu clair | Base + 80€ premium, affiché dynamiquement |
-| Fallback | N/A (3D toujours disponible) | "Visuel non disponible" message | Photo standard si pas de rendu | Photo originale modèle + badge "Photo originale" |
-| CTA achat | "Ajouter au panier" inline | "Demander un devis" | "Commander" → page produit | Lien Shopify externe — sortie contrôlée |
-| Mobile | Swatches scrollables, sticky CTA | Swatches en carousel | Swatches 2 colonnes | Swatches scrollables + bandeau sticky (v9.x) |
+**Clé priorités:**
+- P1 : Indispensable pour livrer IA-REAL-01/02 et TEST-01 — ne pas shipper sans
+- P2 : Souhaitable, ajouter dans v11.0 si le temps le permet
+- P3 : Nice-to-have, v11.x ou v12+
 
 ---
 
-## Considérations Techniques Clés
+## Notes Techniques API Gemini
 
-### Organisation des données en mémoire
+Vérifiées contre la documentation officielle (`ai.google.dev/gemini-api/docs/image-generation`, 2026-04-08).
 
-La réponse de `GET /api/models/[slug]/visuals` est un tableau plat de rendus. Organiser en Map
-imbriquée côté client pour des lookups O(1) :
+**Modèle:** `gemini-3.1-flash-image-preview` (Nano Banana 2, publié le 2026-02-26)
 
+**SDK:** `@google/genai` (package npm officiel, repo `github.com/googleapis/js-genai`)
+
+**Pattern requête (édition image / inpainting):**
 ```typescript
-// Map<fabricId, Map<viewType, GeneratedVisual>>
-type VisualsMap = Map<string, Map<string, GeneratedVisual & { fabric: Fabric; model_image: ModelImage }>>
+const ai = new GoogleGenAI({ apiKey: process.env.NANO_BANANA_API_KEY })
 
-function buildVisualsMap(visuals: Visual[]): VisualsMap {
-  const map = new Map()
-  for (const v of visuals) {
-    if (!map.has(v.fabric_id)) map.set(v.fabric_id, new Map())
-    map.get(v.fabric_id)!.set(v.model_image.view_type, v)
+const response = await ai.models.generateContent({
+  model: 'gemini-3.1-flash-image-preview',
+  contents: [{
+    role: 'user',
+    parts: [
+      { text: prompt },
+      { inlineData: { mimeType: 'image/jpeg', data: base64ImageData } }
+    ]
+  }],
+  config: { responseModalities: ['IMAGE'] }
+})
+```
+
+**Extraction de la réponse:**
+```typescript
+for (const part of response.candidates[0].content.parts) {
+  if (part.inlineData) {
+    const imageBuffer = Buffer.from(part.inlineData.data, 'base64')
+    // → imageBuffer pour GenerateResult
   }
-  return map
 }
 ```
 
-### Tissus disponibles (avec au moins 1 rendu)
+**Rate limits (tier payant):** 429 si dépassement RPM/RPD/IPM. Tier gratuit : IPM = 0 depuis le 2025-12-07 (impossible de générer des images gratuitement). Backoff exponentiel avec jitter requis en production.
 
-```typescript
-// Extraire les tissus uniques ayant des rendus
-const availableFabrics = Array.from(
-  new Map(visuals.map(v => [v.fabric_id, v.fabric])).values()
-)
-```
-
-### Sélection angle par défaut
-
-```typescript
-// Trouver le meilleur angle pour un tissu donné
-function getBestAngle(fabricMap: Map<string, Visual>, preferredViewType = '3/4'): string {
-  if (fabricMap.has(preferredViewType)) return preferredViewType
-  return fabricMap.keys().next().value // premier angle disponible
-}
-```
-
-### Fallback image
-
-```typescript
-// Résolution de l'image à afficher
-function resolveImage(
-  visualsMap: VisualsMap,
-  fabricId: string | null,
-  viewType: string,
-  fallbackUrl: string
-): { url: string; isAI: boolean } {
-  if (fabricId && visualsMap.get(fabricId)?.get(viewType)) {
-    return { url: visualsMap.get(fabricId)!.get(viewType)!.generated_image_url, isAI: true }
-  }
-  return { url: fallbackUrl, isAI: false }
-}
-```
-
-### Prix dynamique
-
-```typescript
-const PREMIUM_SURCHARGE = 80 // Fixe selon CLAUDE.md
-
-function calculatePrice(basePrice: number, isPremium: boolean): number {
-  return basePrice + (isPremium ? PREMIUM_SURCHARGE : 0)
-}
-```
-
-### État interne du configurateur
-
-```typescript
-// État minimal dans ConfiguratorModal (ou composant ConfiguratorContent interne)
-const [selectedFabricId, setSelectedFabricId] = useState<string | null>(null)
-const [selectedViewType, setSelectedViewType] = useState<string>('3/4')
-const [visuals, setVisuals] = useState<Visual[]>([])
-const [loading, setLoading] = useState(true)
-
-// Initialisation : sélectionner le premier tissu non-premium par défaut
-useEffect(() => {
-  if (visuals.length > 0 && !selectedFabricId) {
-    const first = availableFabrics.find(f => !f.is_premium) ?? availableFabrics[0]
-    setSelectedFabricId(first?.id ?? null)
-  }
-}, [visuals])
-```
-
-### Reset au changement de modèle
-
-Quand `model` change (l'utilisateur ferme et rouvre pour un autre canapé), réinitialiser
-`selectedFabricId`, `selectedViewType` et `visuals`. Utiliser `useEffect([model?.id])`.
+**Pricing:** $0.045/image à résolution 1K (MEDIUM confidence — source tierce; vérifier la page pricing officielle Google pour les estimations de facturation).
 
 ---
 
-## Accessibilité Configurateur
+## Notes Infrastructure Tests
 
-| Élément | Exigence | Mise en oeuvre |
-|---------|----------|----------------|
-| Swatches | `role="radio"` + `aria-checked` + `aria-label="Nom tissu"` | Groupe `role="radiogroup"` avec label "Choisissez votre tissu" |
-| Swatch premium | Mention textuelle dans `aria-label` | `aria-label="Bleu nuit — tissu premium, +80 EUR"` |
-| Image rendu | `alt` descriptif dynamique | `"Rendu IA du canapé Milano en tissu Bleu nuit, vue 3/4"` |
-| Image fallback | `alt` + indication non-AI | `"Photo du canapé Milano — aperçu non disponible pour ce tissu"` |
-| Thumbnails angles | `aria-label` avec view_type | `"Vue de face"`, `"Vue de côté"` — aria-pressed si actif |
-| Prix dynamique | `aria-live="polite"` | Annonce le changement de prix sans interrompre la navigation |
-| Encart zoom texture | `alt` de l'image de référence | `"Texture du tissu Bleu nuit en gros plan"` |
-| CTA Shopify | Lien externe signalé | Texte "Commander sur Shopify" + `aria-label` avec modèle + tissu + prix total |
+Vérifiées contre la codebase projet et la documentation Next.js.
+
+**Setup Vitest existant:**
+- `vitest.config.ts` avec environnement `happy-dom`, `src/__tests__/setup.ts`
+- Pattern établi: `vi.mock('@/lib/ai', () => ({ getIAService: vi.fn(...) }))` — utiliser pour tous les tests de routes touchant à l'IA
+- `@testing-library/react` + `@testing-library/jest-dom` installés
+- Vitest 3.2.4 installé
+
+**Pattern routes API (prouvé dans `simulate-route.test.ts`):**
+- Import direct `import { POST } from '@/app/api/...'` après les mocks
+- Invocation avec `new Request('http://localhost/...', { method: 'POST', body: ... })`
+- Pas besoin de `next-test-api-route-handler` — le pattern actuel est plus simple et déjà fonctionnel
+
+**Pour les tests Playwright:** Playwright n'est pas encore installé. Nécessite `npm install -D @playwright/test` + `npx playwright install chromium`. Config à la racine du projet. Intercepter `/api/simulate` avec `page.route()` pour retourner un JPEG fixture (évite les coûts IA réels et le non-déterminisme). Point clé: tester la state machine UI (idle → generating → done → error), pas la sortie IA.
+
+**Composants serveur async:** Vitest ne peut pas tester les Server Components async. Tester les handlers de routes API directement (pattern éprouvé). Utiliser Playwright pour les pages complètes en E2E.
 
 ---
 
 ## Sources
 
-- Wireframe v4 `.planning/maquette/wireframe-page-unique.md` — autorité absolue layout + dimensions (HIGH confidence)
-- Schema database `src/types/database.ts` — source de vérité données disponibles (HIGH confidence)
-- API `src/app/api/models/[slug]/visuals/route.ts` — contrat API confirmé (HIGH confidence)
-- `ConfiguratorModal.tsx` — implémentation existante, patterns à conserver (HIGH confidence)
-- PROJECT.md — requirements CONF-01/02/03/04 et contrainte prix premium (HIGH confidence)
-- Cylindo — Best practices furniture configurator (MEDIUM confidence, vérifié)
-- Baymard — Mobile swatch UX, 57% sites manquent swatches mobiles (MEDIUM confidence)
-- Smashing Magazine — Configurator UX patterns (preset, real-time feedback, price display) (MEDIUM confidence)
-- Analyse concurrentielle IKEA / Roche Bobois / Ligne Roset / France Canapé (MEDIUM confidence)
-- WCAG 2.1 AA — radiogroup pattern pour swatches, aria-live pour prix (HIGH confidence)
+- [Nano Banana 2 image generation — Google AI for Developers](https://ai.google.dev/gemini-api/docs/image-generation) (HIGH confidence)
+- [googleapis/js-genai — SDK TypeScript officiel](https://github.com/googleapis/js-genai) (HIGH confidence)
+- [gemini-image-editing-nextjs-quickstart — Google Gemini](https://github.com/google-gemini/gemini-image-editing-nextjs-quickstart) (HIGH confidence)
+- [Nano Banana 2 launch — TechCrunch 2026-02-26](https://techcrunch.com/2026/02/26/google-launches-nano-banana-2-model-with-faster-image-generation/) (MEDIUM confidence)
+- [Gemini image 429 rate limit guide 2026](https://blog.laozhang.ai/en/posts/gemini-image-429-rate-limit) (MEDIUM confidence)
+- [Testing Next.js App Router API routes — Arcjet](https://blog.arcjet.com/testing-next-js-app-router-api-routes/) (MEDIUM confidence)
+- [E2E testing AI agents with Playwright in Next.js — DEV Community](https://dev.to/dumebii/how-to-e2e-test-ai-agents-mocking-api-responses-with-playwright-in-nextjs-nic) (MEDIUM confidence)
+- [Vitest mocking guide](https://vitest.dev/guide/mocking) (HIGH confidence)
+- [Next.js Vitest testing guide](https://nextjs.org/docs/app/guides/testing/vitest) (HIGH confidence)
 
 ---
 
-*Feature research pour : Configurateur Tissu Möbel Unique — M009*
-*Researched: 2026-03-29*
+*Feature research pour: Möbel Unique v11.0 — Intégration IA Réelle + Audit Qualité*
+*Researched: 2026-04-08*

@@ -1,259 +1,150 @@
-# Stack Research — v9.0 Configurateur Tissu
+# Stack Research — v11.0 Intégration IA Réelle + Tests
 
-**Domain:** SPA configurateur tissu — swatch picker, galerie angles, zoom texture, prix dynamique
-**Milestone:** M009 — Configurateur Tissu (CONF-01, CONF-02, CONF-03, CONF-04)
-**Researched:** 2026-03-29
-**Confidence:** HIGH (capacites de base verifiees dans le projet ; decision zoom documentee ci-dessous)
+**Domain:** Remplacement mock IA + infrastructure de tests complète (unit / E2E)
+**Milestone:** M011 — IA-REAL-01, IA-REAL-02, TEST-01, TEST-02
+**Researched:** 2026-04-08
+**Confidence:** MEDIUM-HIGH (SDK Google officiel vérifié via docs officielles ; versions npm vérifiées via recherche ; tests infrastructure déjà partiellement en place)
 
 ---
 
 ## Verdict principal
 
-**Aucune nouvelle dependance npm requise pour M009.**
+**Deux nouvelles dépendances npm requises uniquement :**
 
-Les quatre features du configurateur sont realisables avec les capacites deja installees :
+| Ajout | Pourquoi |
+|-------|----------|
+| `@google/genai` ^1.48.0 | SDK officiel Google pour Nano Banana 2 (gemini-3.1-flash-image-preview) |
+| `@playwright/test` ^1.59.1 | Tests E2E — non encore installé dans le projet |
 
-| Feature | Solution | Librairie requise |
-|---------|----------|-------------------|
-| Swatches cliquables (CONF-01) | `useState` + CSS Modules (cercles 52px) | AUCUNE |
-| Galerie angles avec miniatures (CONF-02) | `useState` selectedAngle + `next/image` | AUCUNE |
-| Zoom texture swatch (wireframe : encart 100-120px) | CSS `transform: scale()` + `overflow: hidden` | AUCUNE |
-| Prix dynamique +80 EUR premium (CONF-03) | `calculatePrice()` deja dans `src/lib/utils.ts` | AUCUNE |
-| CTA Shopify (CONF-04) | `<a href={model.shopify_url}>` | AUCUNE |
+Tout le reste (Vitest, @testing-library/react, happy-dom) est **déjà installé** et opérationnel (6 fichiers de tests existants, vitest.config.ts configuré).
 
 ---
 
 ## Recommended Stack
 
-### Core Technologies (deja installees — aucun ajout)
+### Core Technologies — Nano Banana 2
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| React `useState` | 19.2.4 (installe) | Etat swatch selectionne, angle selectionne | Pattern etabli dans CatalogueClient — coherence totale |
-| `next/image` | inclus Next.js 16.2.1 | Rendu IA par angle dans la galerie | `remotePatterns` Supabase Storage deja configure (Phase 4) |
-| CSS Modules | natif Next.js | Layout 2 colonnes 60/40, swatches rail, thumbnails angles | Convention projet obligatoire, tous les tokens existent |
-| `calculatePrice()` | `src/lib/utils.ts` | Prix base + 80 EUR si tissu premium | Fonction deja implementee, testee dans le projet |
-| `/api/models/[slug]/visuals` | route existante | Recupere les rendus IA publies par modele, inclut les donnees tissu | Route publique deja implementee (M006), retourne `fabric` embedded |
-| `motion/react` | 12.38.0 (installe) | Transitions optionnelles swatch/angle (si design le requiert) | Deja present, utilise dans phases anterieures — pas de poids supplementaire |
+| `@google/genai` | ^1.48.0 | SDK officiel Google Gen AI — accès à `gemini-3.1-flash-image-preview` | Seul SDK officiel supportant Nano Banana 2. Remplace l'ancien `@google/generative-ai`. API unifiée Gemini Developer API + Vertex AI. Publié activement (version 1.48.0 il y a 7 jours au moment de la recherche). |
+| `gemini-3.1-flash-image-preview` | model string | Nano Banana 2 — génération image text-to-image + image editing | Modèle exact pour Nano Banana 2. Flash = optimisé vitesse/coût (~$0.045/image à 1K). Qualité proche de Pro. Supporte input image (editing/simulation salon). |
 
-### Supporting Libraries (deja installees)
+### Supporting Libraries — Tests (déjà installées)
 
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
-| `lucide-react` | 1.7.0 (installe) | Icones dans le modal (chevron, check, externe) | Coherence avec le reste du projet |
-| `zustand` + `immer` | 5.0.12 / 11.1.4 (installes) | Etat global tissu selectionne si partage entre composants | Seulement si l'etat tissu doit etre accessible hors du modal (bandeau sticky mobile) |
-| Zod 4 | 4.3.6 (installe) | Validation reponse API visuals | Si typage runtime est necessaire (conseille pour robustesse) |
+| `vitest` | ^3.2.4 (installé) | Framework tests unitaires + intégration | Tous les tests non-E2E (composants, hooks, utils, API routes) |
+| `@testing-library/react` | ^16.3.2 (installé) | Rendu composants React en tests | Tests composants UI (CatalogueClient, ConfiguratorModal, ProductCard) |
+| `@testing-library/jest-dom` | ^6.9.1 (installé) | Matchers DOM enrichis (toBeInTheDocument, etc.) | Import dans setup.ts — déjà configuré |
+| `@testing-library/user-event` | ^14.6.1 (installé) | Simulation interactions utilisateur réalistes | Clics, saisies, navigation clavier dans les tests composants |
+| `happy-dom` | ^20.8.8 (installé) | Environnement DOM léger pour Vitest | Configuré dans vitest.config.ts (`environment: 'happy-dom'`) |
+| `@vitejs/plugin-react` | ^4.7.0 (installé) | Plugin React pour Vitest | Configuré dans vitest.config.ts |
 
-### Development Tools
+### Development Tools — Tests E2E (à installer)
 
-| Tool | Purpose | Notes |
-|------|---------|-------|
-| TypeScript strict | Types des donnees visuals + fabrics | `GeneratedVisual & { fabric: Fabric }` deja defini dans `database.ts` |
-| vitest + @testing-library/react | Tests composants configurateur | Pattern etabli — 74 tests existants, infrastructure en place |
+| Tool | Version | Purpose | Notes |
+|------|---------|---------|-------|
+| `@playwright/test` | ^1.59.1 | Tests E2E cross-browser (Chromium, Firefox, WebKit) | À ajouter en devDependency. Playwright 1.59.1 est la version courante (avril 2026). |
 
 ---
 
-## Architecture de donnees
+## Integration avec le factory pattern existant
 
-### Shape des donnees de l'API `/api/models/[slug]/visuals`
-
-La route publique existante retourne exactement ce dont le configurateur a besoin :
+Le factory pattern dans `src/lib/ai/index.ts` est déjà conçu pour l'intégration :
 
 ```typescript
-// Type derive de database.ts — deja defini
-type VisualWithFabricAndImage = GeneratedVisual & {
-  fabric: Fabric          // { id, name, slug, is_premium, swatch_url, ... }
-  model_image: ModelImage // { id, image_url, view_type, sort_order }
+// src/lib/ai/index.ts — AUCUNE MODIFICATION REQUISE
+export function getIAService(): IAService {
+  if (process.env.NANO_BANANA_API_KEY) {
+    return new NanoBananaService()  // ← remplacer le stub par l'implémentation réelle
+  }
+  return new MockIAService()        // ← conservé intact pour le dev sans clé
 }
-
-// Reponse JSON de GET /api/models/[slug]/visuals
-// Filtre cote serveur : is_validated=true, is_published=true, fabric.is_active=true
-VisualWithFabricAndImage[]
 ```
 
-### Pattern de donnees pour le configurateur
+Seul `src/lib/ai/nano-banana.ts` est à réécrire. Le contrat `IAService` (types.ts) reste inchangé.
 
-Le configurateur n'a pas besoin d'une route `/api/fabrics` publique separee. Les tissus disponibles sont derives des visuals publies : un tissu est "disponible" si au moins un rendu publie existe pour ce modele avec ce tissu. Cette approche evite la desynchronisation (tissu actif mais aucun rendu publie).
+### Pattern d'appel SDK pour `generate()`
 
 ```typescript
-// Derivation cote client depuis la reponse visuals
-const availableFabrics = useMemo(() => {
-  const seen = new Set<string>()
-  return visuals
-    .filter(v => { const seen_result = !seen.has(v.fabric.id); seen.add(v.fabric.id); return seen_result })
-    .map(v => v.fabric)
-}, [visuals])
+// src/lib/ai/nano-banana.ts — implémentation réelle
+import { GoogleGenAI } from '@google/genai'
 
-// Visuels pour le tissu selectionne (tous les angles)
-const selectedVisuals = useMemo(() =>
-  visuals.filter(v => v.fabric_id === selectedFabricId),
-  [visuals, selectedFabricId]
-)
+const ai = new GoogleGenAI({ apiKey: process.env.NANO_BANANA_API_KEY })
+
+// text-to-image (back-office : génération rendu tissu × angle)
+const response = await ai.models.generateContent({
+  model: 'gemini-3.1-flash-image-preview',
+  contents: prompt,
+  config: { responseModalities: ['TEXT', 'IMAGE'] },
+})
+
+// image editing avec source image (simulation salon)
+const response = await ai.models.generateContent({
+  model: 'gemini-3.1-flash-image-preview',
+  contents: [
+    { text: prompt },
+    { inlineData: { mimeType: 'image/jpeg', data: base64ImageString } },
+  ],
+  config: { responseModalities: ['TEXT', 'IMAGE'] },
+})
+
+// Extraction du buffer image depuis la réponse
+for (const part of response.candidates[0].content.parts) {
+  if (part.inlineData) {
+    const buffer = Buffer.from(part.inlineData.data, 'base64')
+    // → retourner { imageBuffer: buffer, mimeType: 'image/png', extension: 'png' }
+  }
+}
+```
+
+Note : Nano Banana 2 retourne du PNG par défaut. Le mock retourne du JPEG. Adapter `NanoBananaService.generate()` pour retourner `mimeType: 'image/png'` et `extension: 'png'`. La route admin et simulate acceptent les deux formats (elles ne hardcodent pas l'extension).
+
+### Pattern addWatermark avec le vrai SDK
+
+`addWatermark()` ne nécessite PAS le SDK Gemini. Sharp est déjà installé et gère parfaitement la composition SVG. L'implémentation mock peut être réutilisée telle quelle dans `NanoBananaService` :
+
+```typescript
+// Réutiliser directement l'implémentation de MockIAService
+async addWatermark(imageBuffer: Buffer, text = 'MÖBEL UNIQUE — Aperçu'): Promise<Buffer> {
+  // ... même code Sharp que mock.ts
+}
 ```
 
 ---
 
-## Patterns de composants
+## Infrastructure tests existante
 
-### 1. Swatches cliquables (CONF-01)
+Le projet a déjà une infrastructure Vitest fonctionnelle. État actuel :
 
-**Pattern :** Rail scrollable de cercles 52px, `role="radio"` + `aria-checked` pour accessibilite.
+| Fichier de test | Couvre |
+|-----------------|--------|
+| `simulate-route.test.ts` | POST /api/simulate (6 cas dont HEIC) |
+| `CatalogueClient.test.tsx` | Composant liste + recherche |
+| `ConfiguratorModal.test.tsx` | Ouverture/fermeture modal |
+| `ProductCard.test.tsx` | Rendu carte produit |
+| `ProductCardSkeleton.test.tsx` | Rendu skeleton |
+| `isActiveFilter.test.ts` | Utilitaire filtre |
+| `nextconfig.test.ts` | Config Next.js |
 
-```tsx
-// ConfiguratorFabricPicker.tsx
-const [selectedFabricId, setSelectedFabricId] = useState<string | null>(null)
+Pour TEST-01 : étendre avec tests pour `NanoBananaService`, `MockIAService`, utils (`slugify`, `calculatePrice`), et les nouvelles routes admin.
 
-// Rendu swatch : cercle avec swatch_url ou couleur CSS fallback
-<button
-  role="radio"
-  aria-checked={selectedFabricId === fabric.id}
-  className={`${styles.swatch} ${selectedFabricId === fabric.id ? styles.swatchActive : ''}`}
-  style={{ backgroundImage: fabric.swatch_url ? `url(${fabric.swatch_url})` : undefined }}
-  onClick={() => setSelectedFabricId(fabric.id)}
-  title={fabric.name}
->
-  {fabric.is_premium && <span className={styles.premiumBadge}>+80 €</span>}
-</button>
-```
-
-Pas de librairie color picker — les swatches sont des images de texture (swatch_url), pas des couleurs solides. Un `<button>` circle avec `background-image` est la solution directe.
-
-### 2. Galerie angles avec miniatures (CONF-02)
-
-**Pattern :** Image principale grande + rail thumbnails 72x54px, `useState` pour l'angle actif.
-
-```tsx
-// ConfiguratorVisualGallery.tsx
-const [activeVisualId, setActiveVisualId] = useState<string | null>(null)
-
-const activeVisual = selectedVisuals.find(v => v.id === activeVisualId) ?? selectedVisuals[0]
-
-// Image principale
-<div className={styles.mainImage}>
-  {activeVisual ? (
-    <Image
-      src={activeVisual.generated_image_url}
-      alt={`${model.name} — ${activeVisual.model_image.view_type}`}
-      fill
-      sizes="(max-width: 640px) 100vw, 60vw"
-      style={{ objectFit: 'cover' }}
-      priority
-    />
-  ) : (
-    <div className={styles.placeholder}>/* placeholder canape + tissu non selectionne */</div>
-  )}
-</div>
-
-// Thumbnails angles
-<div className={styles.anglesRail} role="tablist">
-  {selectedVisuals.map(visual => (
-    <button
-      key={visual.id}
-      role="tab"
-      aria-selected={visual.id === activeVisual?.id}
-      className={`${styles.thumbnail} ${visual.id === activeVisual?.id ? styles.thumbnailActive : ''}`}
-      onClick={() => setActiveVisualId(visual.id)}
-    >
-      <Image
-        src={visual.generated_image_url}
-        alt={visual.model_image.view_type}
-        fill
-        sizes="72px"
-        style={{ objectFit: 'cover' }}
-      />
-    </button>
-  ))}
-</div>
-```
-
-Pas de librairie carousel/gallery — 5 angles maximum selon la maquette. Un rail CSS avec `overflow-x: auto` et `scroll-snap-type: x mandatory` est suffisant.
-
-### 3. Zoom texture swatch (encart wireframe section 5)
-
-**Spec maquette :** "Encart blanc (100-120px preview + infos)" dans la colonne controles. C'est un zoom *statique* : affiche la swatch du tissu selectionne en grand, pas un zoom interactif pan/pinch.
-
-**Pattern :** CSS `transform: scale()` sur `hover`, ou simplement une `<Image>` 100-120px avec `object-fit: cover`. Pas de librairie de zoom.
-
-```tsx
-// TexturePreview.tsx
-<div className={styles.texturePreview}>
-  {selectedFabric?.swatch_url ? (
-    <Image
-      src={selectedFabric.swatch_url}
-      alt={`Texture ${selectedFabric.name}`}
-      fill
-      sizes="120px"
-      style={{ objectFit: 'cover' }}
-      className={styles.textureImage}
-    />
-  ) : (
-    <div className={styles.texturePlaceholder} style={{ background: '#e0e0e0' }} />
-  )}
-  <div className={styles.textureInfo}>
-    <span className={styles.textureName}>{selectedFabric?.name ?? 'Choisissez un tissu'}</span>
-    {selectedFabric?.is_premium && <span className={styles.texturePremium}>+80 €</span>}
-  </div>
-</div>
-```
-
-L'effet "zoom sur la texture" du wireframe signifie afficher la swatch en grand dans un encart — pas un magnifier interactif. Si la spec evolue vers un zoom interactif (pan/pinch), evaluer `react-medium-image-zoom` a ce moment (voir section Alternatives).
-
-### 4. Prix dynamique (CONF-03)
-
-**Pattern :** `calculatePrice()` deja dans `utils.ts`, `formatPrice()` aussi. Zero code nouveau.
-
-```tsx
-// Dans ConfiguratorControls.tsx
-import { calculatePrice, formatPrice } from '@/lib/utils'
-
-const totalPrice = selectedFabric
-  ? calculatePrice(model.price, selectedFabric.is_premium)
-  : model.price
-
-// Affichage
-<p className={styles.priceTotal}>{formatPrice(totalPrice)}</p>
-{selectedFabric?.is_premium && (
-  <p className={styles.priceSupplement}>dont +80 € supplement tissu premium</p>
-)}
-```
-
-### 5. CTA Shopify (CONF-04)
-
-**Pattern :** Lien `<a>` externe vers `model.shopify_url`. Pas de router Next.js (URL externe).
-
-```tsx
-{model.shopify_url && (
-  <a
-    href={model.shopify_url}
-    target="_blank"
-    rel="noopener noreferrer"
-    className={styles.shopifyCta}
-  >
-    Commander sur Shopify
-    <ExternalLink size={16} aria-hidden="true" />
-  </a>
-)}
-```
+Pour TEST-02 : ajouter Playwright pour les parcours E2E (catalogue → configurateur → simulation).
 
 ---
 
-## Structure des fichiers
+## Installation
 
-```
-src/components/public/Catalogue/
-├── ConfiguratorModal.tsx              ← MODIFIER : remplacer placeholder par ConfiguratorContent
-├── ConfiguratorModal.module.css       ← MODIFIER : layout 2 colonnes 60/40 desktop
-├── ConfiguratorContent.tsx            ← NOUVEAU : orchestrateur (fetch visuals + etat)
-├── ConfiguratorContent.module.css     ← NOUVEAU
-├── ConfiguratorVisualGallery.tsx      ← NOUVEAU : image principale + rail thumbnails
-├── ConfiguratorVisualGallery.module.css
-├── ConfiguratorFabricPicker.tsx       ← NOUVEAU : swatches rail + texture preview
-├── ConfiguratorFabricPicker.module.css
-├── ConfiguratorControls.tsx           ← NOUVEAU : prix dynamique + CTA Shopify
-└── ConfiguratorControls.module.css
-```
+```bash
+# Nouvelle dépendance runtime
+npm install @google/genai
 
-Le composant `ConfiguratorContent` gere le fetch via `useEffect` vers `/api/models/[slug]/visuals` et orchestre l'etat global (tissu selectionne, angle actif). Les enfants sont des composants presentationnels purs.
+# Nouvelle dépendance dev (E2E)
+npm install -D @playwright/test
+
+# Installer les browsers Playwright (une seule fois)
+npx playwright install --with-deps chromium
+```
 
 ---
 
@@ -261,12 +152,10 @@ Le composant `ConfiguratorContent` gere le fetch via `useEffect` vers `/api/mode
 
 | Recommended | Alternative | When to Use Alternative |
 |-------------|-------------|-------------------------|
-| CSS + `useState` pour swatches | `@uiw/react-color-swatch` | Jamais ici — les swatches sont des textures (images), pas des couleurs hexadecimales. La librairie est concue pour un color picker hex. |
-| CSS + `useState` pour galerie angles | `react-image-gallery` | Si le produit evolue vers un carousel avec transitions et lightbox. Pour 5 angles statiques, la librairie est sur-dimensionnee (~30KB gzip). |
-| CSS encart statique pour texture preview | `react-medium-image-zoom` v5.4.1 (supporte React 19) | Si la spec evolue vers un zoom interactif click-to-enlarge sur la texture. Seule librairie de zoom verifiee React 19 compatible (peerDeps: `^16.8 \|\| ^17 \|\| ^18 \|\| ^19`). |
-| CSS encart statique pour texture preview | `react-zoom-pan-pinch` v3.7.0 | A EVITER : peerDeps declares `^17 \|\| ^18` seulement. React 19 non supporte officiellement. |
-| Derive fabrics depuis visuals | Route `/api/fabrics` publique separee | Seulement si le catalogue doit afficher les tissus independamment des rendus generes. Ici, un tissu sans rendu publie ne sert a rien dans le configurateur. |
-| `calculatePrice()` + `formatPrice()` existants | Logique inline custom | Jamais — fonctions deja testees et coherentes avec les conventions projet. |
+| `@google/genai` ^1.48.0 | `@google/generative-ai` (ancienne version) | Jamais — `@google/generative-ai` est l'ancien SDK, remplacé officiellement par `@google/genai`. Ne supporte pas les nouveaux modèles Gemini 3.x. |
+| `@google/genai` direct | Vercel AI SDK (`ai` package) + Google provider | Si le projet devait supporter plusieurs providers IA (OpenAI, Anthropic, Google) dans une interface unifiée. Ici, le factory pattern maison remplit ce rôle. Ajouter Vercel AI SDK serait une sur-ingénierie. |
+| `@playwright/test` pour E2E | Cypress | Playwright est plus léger, supporte les 3 engines, s'intègre mieux avec Next.js App Router (test du build de production). Cypress ne supporte pas nativement les Server Components. |
+| `@playwright/test` pour E2E | Continuer avec les scripts `verify-e2e-m005.ts` | Les scripts existants (`scripts/verify-e2e-m005.ts`) sont des vérifications d'API via fetch, pas de vrais tests E2E browser. Playwright couvre le vrai parcours utilisateur. |
 
 ---
 
@@ -274,90 +163,58 @@ Le composant `ConfiguratorContent` gere le fetch via `useEffect` vers `/api/mode
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| `react-zoom-pan-pinch` v3.7.0 | peerDeps `^17 \|\| ^18` — React 19.2.4 non supporte officiellement. Risque de conflit au `npm install --legacy-peer-deps` uniquement. | CSS `transform: scale()` pour l'encart texture (use case couvert) |
-| `react-image-gallery` ou `lightgallery` | ~30-50KB gzip pour une galerie de 5 thumbnails statiques. Carousel avec navigation fleche/keyboard geree manuellement est trivial en CSS + `useState`. | `useState` + `next/image` + CSS Modules |
-| `@uiw/react-color-swatch` | Concu pour selectionner une couleur hex, pas une texture tissu (image). Ajoute ~8KB pour une fonctionnalite realisable avec un `<button>` et `background-image`. | CSS Modules + `<button>` circle |
-| Zustand pour l'etat configurateur | L'etat (tissu selectionne, angle actif) est local au modal. Zustand est justifie seulement si le bandeau sticky mobile doit lire le meme etat hors du modal — decision a prendre a l'implementation. | `useState` dans `ConfiguratorContent.tsx` |
-| Fetch Supabase direct cote client | Bypass la route API publique existante. Expose la structure de la BDD au client. | `fetch('/api/models/[slug]/visuals')` via `useEffect` dans `ConfiguratorContent` |
-| Route `/api/fabrics` publique nouvelle | Inutile — les tissus disponibles pour un modele sont deja inclus dans la reponse de `/api/models/[slug]/visuals` (champ `fabric` embedded). | Deriver les tissus disponibles depuis la reponse visuals |
+| `@google/generative-ai` | Ancien SDK Google (v1.x), déprécié au profit de `@google/genai`. Installe une version sans support Nano Banana 2. | `@google/genai` ^1.48.0 |
+| Jest | Vitest est déjà installé, configuré, avec 7 fichiers de tests existants. Migrer vers Jest serait une régression (moins performant, pas de support ESM natif). | Vitest ^3.2.4 (déjà installé) |
+| MSW (Mock Service Worker) | Utile pour mocker des requêtes HTTP sortantes dans les tests. Ici les mocks sont faits via `vi.mock()` au niveau module — pattern établi dans `simulate-route.test.ts`. MSW ajoute une couche sans bénéfice net. | `vi.mock('@/lib/ai')` + `vi.mock('@/lib/supabase/server')` |
+| `nock` | Alternative à MSW pour Node, même raisonnement. Le pattern `vi.mock()` est plus idiomatique avec Vitest. | `vi.mock()` |
+| Storybook | Pas de composant design system à documenter. Le projet est une SPA métier, pas une librairie de composants. | Tests `@testing-library/react` (déjà en place) |
 
 ---
 
 ## Stack Patterns by Variant
 
-**Si le bandeau sticky mobile (wireframe bas de page) doit afficher le tissu selectionne :**
-- Promouvoir l'etat `selectedFabricId` dans Zustand (deja installe)
-- `ConfiguratorContent` dispatch vers le store, `StickyBar` lit depuis le store
-- Pas besoin de nouvelle librairie
+**Si NANO_BANANA_API_KEY n'est pas définie (développement local) :**
+- `getIAService()` retourne `MockIAService` (Sharp) — comportement inchangé
+- Aucune dépendance `@google/genai` chargée au runtime
 
-**Si aucun rendu IA publie n'existe pour un modele :**
-- `ConfiguratorContent` recoit un tableau vide depuis l'API
-- Afficher un etat vide explicatif : "Les rendus IA sont en cours de preparation pour ce modele."
-- Le swatches picker reste vide, les CTA prix/Shopify restent fonctionnels (prix de base)
+**Si la génération Nano Banana 2 retourne une erreur de quota (429) :**
+- `NanoBananaService.generate()` doit propager l'erreur avec un message explicite en français
+- La route admin catch et retourne un 503 avec message utilisateur
+- Ne pas retomber silencieusement sur le mock (comportement trompeur)
 
-**Si le nombre d'angles depasse 5 :**
-- Le rail thumbnails devient scrollable horizontalement via `overflow-x: auto` + `scroll-snap-type: x mandatory`
-- Pas de librairie carousel necessaire avant 10+ angles
+**Pour les tests Playwright (TEST-02) :**
+- Toujours tester contre le build de production (`next build && next start`)
+- Mocker `NANO_BANANA_API_KEY` absent en CI → MockIAService actif → tests déterministes
+- Sauvegarder le state d'auth admin une fois, réutiliser via `storageState` Playwright
 
-**Si la simulation (SIM-01, v10.0) necessite un zoom interactif sur le rendu :**
-- Evaluer `react-medium-image-zoom` v5.4.1 a ce moment (React 19 compatible verifie)
-- Ne pas l'installer prematurement pour M009
+**Si Nano Banana 2 est en preview et que le modèle string change :**
+- Le nom exact `gemini-3.1-flash-image-preview` est en preview au moment de la recherche
+- Isoler le model string dans une constante dans `nano-banana.ts` pour faciliter la mise à jour
 
 ---
 
 ## Version Compatibility
 
-| Package | Version actuelle | Compatible Avec | Notes |
-|---------|-----------------|-----------------|-------|
-| `next/image` | inclus Next.js 16.2.1 | React 19.2.4 | `remotePatterns` Supabase configure, pattern `fill` + `sizes` etabli |
-| `calculatePrice` / `formatPrice` | `src/lib/utils.ts` | TypeScript strict | Deja testees dans le projet |
-| `motion/react` | 12.38.0 | React 19.2.4 | Si animations swatch/angle requises |
-| `react-medium-image-zoom` | 5.4.1 (NON INSTALLE) | `^16.8 \|\| ^17 \|\| ^18 \|\| ^19` verifie | A installer seulement si zoom interactif requis |
-| `react-zoom-pan-pinch` | 3.7.0 (NON INSTALLE) | `^17 \|\| ^18` — React 19 NON verifie | A EVITER pour ce projet |
-
----
-
-## API publiques disponibles
-
-| Route | Methode | Retourne | Status |
-|-------|---------|----------|--------|
-| `/api/models` | GET | Modeles actifs + model_images | Existante (M001) |
-| `/api/models/[slug]` | GET | Modele actif par slug | Existante |
-| `/api/models/[slug]/visuals` | GET | Visuals publies + fabric + model_image | Existante (M006) |
-
-La route `/api/models/[slug]/visuals` est le point d'entree unique pour M009. Elle retourne tout ce dont le configurateur a besoin en un seul appel.
-
----
-
-## Installation
-
-Aucune installation requise. Le stack est complet avec les dependances existantes.
-
-```bash
-# Aucune commande npm install necessaire pour M009
-# Stack complet avec l'existant :
-# - next/image (Next.js 16.2.1)
-# - react useState/useMemo (React 19.2.4)
-# - CSS Modules
-# - calculatePrice / formatPrice (src/lib/utils.ts)
-# - lucide-react 1.7.0
-# - /api/models/[slug]/visuals (route publique existante)
-```
+| Package | Version | Compatible Avec | Notes |
+|---------|---------|-----------------|-------|
+| `@google/genai` ^1.48.0 | Node 22 (.nvmrc) | Node ≥18 requis | Compatible Node 22. API key via env var ou constructeur. TypeScript types inclus. |
+| `@playwright/test` ^1.59.1 | Next.js 16.2.1 | Node ≥18 | Testé contre build de prod `next start`. `playwright.config.ts` à créer. |
+| `vitest` ^3.2.4 | `@testing-library/react` ^16.3.2 | React 19.2.4 | Déjà validé — 7 fichiers de tests passent. |
+| `@google/genai` ^1.48.0 | TypeScript strict | ^5 | SDK distribué avec types `.d.ts`, compatible strict mode. |
 
 ---
 
 ## Sources
 
-- Package.json projet — versions installees verifiees directement
-- `src/app/api/models/[slug]/visuals/route.ts` — route publique verifiee, retourne `fabric` embedded
-- `src/lib/utils.ts` — `calculatePrice()` et `formatPrice()` verifiees
-- `src/types/database.ts` — `GeneratedVisual`, `Fabric`, `ModelImage` types verifies
-- [react-medium-image-zoom package.json sur GitHub](https://github.com/rpearce/react-medium-image-zoom/blob/main/package.json) — peerDeps `^16.8 || ^17 || ^18 || ^19` verifie (HIGH confidence)
-- [react-zoom-pan-pinch peerDependencies — npmpeer.dev](https://www.npmpeer.dev/packages/react-zoom-pan-pinch/compatibility) — peerDeps `^17 || ^18` seulement (React 19 non supporte) verifie (MEDIUM confidence)
-- [Wireframe page unique v4](../maquette/wireframe-page-unique.md) — section 5 configurateur, spec zoom texture "encart 100-120px" = preview statique, pas zoom interactif
-- [CSS image zoom sans librairie — MDN scale()](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/transform-function/scale) — HIGH confidence
+- [Google AI — Nano Banana image generation (officiel)](https://ai.google.dev/gemini-api/docs/image-generation) — model string `gemini-3.1-flash-image-preview` vérifié, API `generateContent` avec `responseModalities`, extraction `part.inlineData.data` base64 (HIGH confidence)
+- [npmjs @google/genai](https://www.npmjs.com/package/@google/genai) — version 1.48.0 courante confirmée (MEDIUM confidence — accès 403 au NPM registry, version citée par plusieurs sources concordantes)
+- [Playwright installation](https://playwright.dev/docs/intro) — version 1.59.1 confirmée (MEDIUM confidence — sources multiples concordantes)
+- [Next.js testing guides](https://nextjs.org/docs/app/guides/testing) — recommandations Vitest + Playwright pour App Router (MEDIUM confidence)
+- Package.json projet — versions installées (Vitest 3.2.4, @testing-library/react 16.3.2, happy-dom 20.8.8) vérifiées directement (HIGH confidence)
+- `src/lib/ai/` — factory pattern, types, mock, stub nano-banana lus directement (HIGH confidence)
+- `src/__tests__/` — infrastructure tests existante (7 fichiers) lue directement (HIGH confidence)
 
 ---
 
-*Stack research pour : Configurateur Tissu v9.0 (M009)*
-*Recherche : 2026-03-29*
+*Stack research pour : Intégration IA Réelle + Tests v11.0 (M011)*
+*Recherche : 2026-04-08*

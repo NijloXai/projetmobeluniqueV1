@@ -44,18 +44,14 @@ function checkRateLimit(ip: string): { allowed: boolean; retryAfter: number } {
  * Retourne un JPEG binaire avec filigrane. Pas de ligne en base, résultat éphémère.
  */
 export async function POST(request: NextRequest) {
-  // Rate-limit par IP (per D-04, D-18 : pas de rate-limit sur admin)
+  // Extraction IP en amont (necessaire pour le rate-limit)
   const ip =
     request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
     request.headers.get('x-real-ip') ??
     '127.0.0.1'
-  const { allowed, retryAfter } = checkRateLimit(ip)
-  if (!allowed) {
-    return NextResponse.json(
-      { error: `Trop de demandes. Reessayez dans ${retryAfter} secondes.` },
-      { status: 429, headers: { 'Retry-After': String(retryAfter) } }
-    )
-  }
+
+  // --- Validation du body AVANT le rate-limit (D-04, WR-04) ---
+  // Les requetes invalides ne consomment pas de slot rate-limit.
 
   let formData: FormData
   try {
@@ -90,6 +86,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: 'Le champ model_id est requis.' },
       { status: 400 }
+    )
+  }
+
+  // Rate-limit seulement sur les requetes valides qui vont couter de l'IA
+  const { allowed, retryAfter } = checkRateLimit(ip)
+  if (!allowed) {
+    return NextResponse.json(
+      { error: `Trop de demandes. Reessayez dans ${retryAfter} secondes.` },
+      { status: 429, headers: { 'Retry-After': String(retryAfter) } }
     )
   }
 

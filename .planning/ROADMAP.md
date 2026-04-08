@@ -70,7 +70,7 @@
 **Plans**: 2 plans
 
 Plans:
-- [ ] 13-01-PLAN.md — NanoBananaService core (generate + addWatermark + retry + Gemini SDK)
+- [x] 13-01-PLAN.md — NanoBananaService core (generate + addWatermark + retry + Gemini SDK)
 - [ ] 13-02-PLAN.md — Adaptation routes (maxDuration + rate-limit + resize + error handling)
 
 ### Phase 14: Audit Code
@@ -100,7 +100,7 @@ Plans:
 **Goal:** [Urgent work - to be planned]
 **Requirements**: TBD
 **Depends on:** Phase 15
-**Plans:** 0 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] TBD (run /gsd-plan-phase 15.1 to break down)
@@ -132,7 +132,7 @@ Plans:
 | 10. Dette technique v9.0 | v10.0 | 0/0 | Complete (pre-resolved) | 2026-04-07 |
 | 11. Simulation IA Upload | v10.0 | 2/2 | Complete | 2026-04-07 |
 | 12. Simulation IA Affichage | v10.0 | 1/1 | Complete | 2026-04-07 |
-| 13. NanoBananaService | v11.0 | 0/2 | Not started | - |
+| 13. NanoBananaService | v11.0 | 1/2 | In Progress|  |
 | 14. Audit Code | v11.0 | 0/? | Not started | - |
 | 15. Tests Unitaires Vitest | v11.0 | 0/? | Not started | - |
 | 16. Tests E2E + Corrections Audit | v11.0 | 0/? | Not started | - |

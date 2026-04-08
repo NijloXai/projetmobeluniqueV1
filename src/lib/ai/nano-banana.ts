@@ -200,8 +200,13 @@ export class NanoBananaService implements IAService {
   private async resolveImagePart(sourceImageUrl: string): Promise<Part> {
     if (sourceImageUrl.startsWith('data:')) {
       // Chemin simulate : data URI deja base64 — split sur la virgule
-      const [meta, data] = sourceImageUrl.split(',')
-      const mimeType = meta.split(':')[1].split(';')[0]
+      const commaIdx = sourceImageUrl.indexOf(',')
+      if (commaIdx === -1) {
+        throw new Error('Data URI malformee : separateur virgule manquant.')
+      }
+      const meta = sourceImageUrl.slice(0, commaIdx)
+      const data = sourceImageUrl.slice(commaIdx + 1)
+      const mimeType = meta.split(':')[1]?.split(';')[0] || 'image/jpeg'
       return { inlineData: { mimeType, data } }
     }
 

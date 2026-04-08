@@ -41,8 +41,8 @@
 <summary>v10.0 Simulation IA Salon (Phases 10-12) -- SHIPPED 2026-04-07</summary>
 
 - [x] Phase 10: Dette technique v9.0 (0/0 plans, pre-resolved) -- completed 2026-04-07
-- [x] Phase 11: Simulation IA -- Upload et traitement (2/2 plans) -- completed 2026-04-07
-- [x] Phase 12: Simulation IA -- Affichage resultat et partage (1/1 plans) -- completed 2026-04-07
+- [x] Phase 11: Simulation IA Upload (2/2 plans) -- completed 2026-04-07
+- [x] Phase 12: Simulation IA Affichage (1/1 plans) -- completed 2026-04-07
 
 </details>
 
@@ -67,7 +67,11 @@
   3. Un appel Gemini qui retourne 429 est automatiquement retenté (1s → 2s → 4s) sans erreur visible côté client
   4. Un finishReason IMAGE_SAFETY retourne une erreur explicite sans crash (pas d'accès à parts[0].inlineData.data)
   5. La route generate-all ne timeout pas sur Vercel (maxDuration = 300 exporté)
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 13-01-PLAN.md — NanoBananaService core (generate + addWatermark + retry + Gemini SDK)
+- [ ] 13-02-PLAN.md — Adaptation routes (maxDuration + rate-limit + resize + error handling)
 
 ### Phase 14: Audit Code
 **Goal**: Les problèmes de sécurité, performance, dead code, et bonnes pratiques sont identifiés et documentés
@@ -90,6 +94,16 @@
   3. requireAdmin() retourne 401 sur token absent/expiré — vérifié par test d'intégration route
   4. La route simulate retourne 422 HEIC et 400 taille > 15 Mo — vérifié par test avec mock provider
 **Plans**: TBD
+
+### Phase 15.1: Tests Intégration Supabase (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 15
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 15.1 to break down)
 
 ### Phase 16: Tests E2E + Corrections Audit
 **Goal**: Les parcours utilisateur critiques sont couverts par des tests E2E Playwright et les problèmes de l'audit sont corrigés
@@ -118,7 +132,7 @@
 | 10. Dette technique v9.0 | v10.0 | 0/0 | Complete (pre-resolved) | 2026-04-07 |
 | 11. Simulation IA Upload | v10.0 | 2/2 | Complete | 2026-04-07 |
 | 12. Simulation IA Affichage | v10.0 | 1/1 | Complete | 2026-04-07 |
-| 13. NanoBananaService | v11.0 | 0/? | Not started | - |
+| 13. NanoBananaService | v11.0 | 0/2 | Not started | - |
 | 14. Audit Code | v11.0 | 0/? | Not started | - |
 | 15. Tests Unitaires Vitest | v11.0 | 0/? | Not started | - |
 | 16. Tests E2E + Corrections Audit | v11.0 | 0/? | Not started | - |

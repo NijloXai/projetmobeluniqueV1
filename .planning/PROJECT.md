@@ -45,7 +45,12 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 
 ### Active
 
-(Next milestone — v11.0 Polish)
+- [ ] **IA-REAL-01**: Intégration Nano Banana 2 côté admin (rendus tissu × angle) remplace le mock Sharp
+- [ ] **IA-REAL-02**: Intégration Nano Banana 2 côté client (/api/simulate) simulation salon réelle
+- [ ] **AUDIT-01**: Audit code complet (sécurité, performance, dead code, bonnes pratiques)
+- [ ] **TEST-01**: Tests unitaires + intégration (composants, hooks, utils, API routes)
+- [ ] **TEST-02**: Tests E2E Playwright (parcours catalogue → configurateur → simulation)
+- [ ] **FIX-01**: Corrections des problèmes identifiés par l'audit
 
 ### Out of Scope
 
@@ -59,6 +64,7 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 - Backend complet (~5350 lignes, M001-M006)
 - Frontend v7.0-v10.0 complets (shipped) : Header + Hero + HowItWorks + Catalogue + Configurateur tissu + Simulation IA (upload, generation, affichage resultat, telecharger/partager) — 12 phases, 12 plans
 - Flux E2E complet : page accueil → catalogue → modal configurateur → upload photo → generation IA → resultat → telecharger/partager/commander
+- Factory pattern IA en place : NANO_BANANA_API_KEY set → Nano Banana 2, sinon Mock Sharp
 - Brand assets client integres depuis `fichier-mobelunique/` (logos, favicon, app icons)
 - URL Shopify reelle : https://www.mobelunique.fr/
 - Maquette Stitch "Mobel Unique -- SPA Desktop" (project ID: 16534774796210155266)
@@ -105,9 +111,17 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 - **v9.0** Configurateur Tissu (shipped 2026-03-30)
 - **v10.0** Simulation IA Salon (shipped 2026-04-07)
 
-## Next Milestone
+## Current Milestone: v11.0 Intégration IA Réelle + Audit Qualité
 
-Candidat : **v11.0 Polish** — produits similaires, footer, sticky bar mobile, deep link ?produit=slug
+**Goal:** Remplacer le mock Sharp par Nano Banana 2 (Gemini) sur toute la chaîne IA, puis auditer et tester l'ensemble du projet.
+
+**Target features:**
+- Intégration Nano Banana 2 côté admin (rendus tissu × angle)
+- Intégration Nano Banana 2 côté client (/api/simulate)
+- Audit code complet (sécurité, performance, dead code)
+- Tests unitaires + intégration
+- Tests E2E Playwright
+- Corrections issues audit
 
 ## Evolution
 
@@ -127,4 +141,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-07 after v10.0 Simulation IA Salon milestone*
+*Last updated: 2026-04-08 after v11.0 milestone start*

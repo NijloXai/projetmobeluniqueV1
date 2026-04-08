@@ -229,7 +229,7 @@ export class NanoBananaService implements IAService {
 
   async addWatermark(
     imageBuffer: Buffer,
-    text = 'MOBEL UNIQUE -- Apercu'
+    text = 'MÖBEL UNIQUE \u2014 Aperçu'
   ): Promise<Buffer> {
     const metadata = await sharp(imageBuffer).metadata()
     const width = metadata.width || 800

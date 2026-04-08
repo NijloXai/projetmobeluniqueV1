@@ -3,7 +3,6 @@ export const maxDuration = 300
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/supabase/admin'
 import { getIAService } from '@/lib/ai'
-import { ImageSafetyError } from '@/lib/ai/nano-banana'
 import { extractStoragePath } from '@/lib/utils'
 
 /**
@@ -185,13 +184,6 @@ export async function POST(request: NextRequest) {
       errors,
     })
   } catch (err) {
-    if (err instanceof ImageSafetyError) {
-      return NextResponse.json(
-        { error: err.message },
-        { status: 422 }
-      )
-    }
-
     const message = err instanceof Error ? err.message : 'Erreur inconnue'
     console.error('[POST /api/admin/generate-all] Erreur:', message)
     return NextResponse.json(

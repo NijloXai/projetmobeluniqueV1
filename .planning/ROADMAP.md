@@ -50,7 +50,7 @@
 
 **Milestone Goal:** Remplacer le mock Sharp par Nano Banana 2 (Gemini) sur toute la chaîne IA, auditer l'ensemble du projet, et établir un filet de tests unitaires + E2E.
 
-- [ ] **Phase 13: NanoBananaService** - Implémentation réelle du service IA Gemini avec retry, timeout, et deux chemins d'entrée image
+- [x] **Phase 13: NanoBananaService** - Implémentation réelle du service IA Gemini avec retry, timeout, et deux chemins d'entrée image (completed 2026-04-08)
 - [ ] **Phase 14: Audit Code** - Audit complet du projet (sécurité, performance, dead code, bonnes pratiques)
 - [ ] **Phase 15: Tests Unitaires Vitest** - Couverture tests unitaires et intégration (NanoBanana, utils, routes)
 - [ ] **Phase 16: Tests E2E + Corrections Audit** - Tests Playwright flux complets et corrections des problèmes identifiés
@@ -71,7 +71,7 @@
 
 Plans:
 - [x] 13-01-PLAN.md — NanoBananaService core (generate + addWatermark + retry + Gemini SDK)
-- [ ] 13-02-PLAN.md — Adaptation routes (maxDuration + rate-limit + resize + error handling)
+- [x] 13-02-PLAN.md — Adaptation routes (maxDuration + rate-limit + resize + error handling)
 
 ### Phase 14: Audit Code
 **Goal**: Les problèmes de sécurité, performance, dead code, et bonnes pratiques sont identifiés et documentés
@@ -100,7 +100,7 @@ Plans:
 **Goal:** [Urgent work - to be planned]
 **Requirements**: TBD
 **Depends on:** Phase 15
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] TBD (run /gsd-plan-phase 15.1 to break down)
@@ -132,7 +132,7 @@ Plans:
 | 10. Dette technique v9.0 | v10.0 | 0/0 | Complete (pre-resolved) | 2026-04-07 |
 | 11. Simulation IA Upload | v10.0 | 2/2 | Complete | 2026-04-07 |
 | 12. Simulation IA Affichage | v10.0 | 1/1 | Complete | 2026-04-07 |
-| 13. NanoBananaService | v11.0 | 1/2 | In Progress|  |
+| 13. NanoBananaService | v11.0 | 2/2 | Complete   | 2026-04-08 |
 | 14. Audit Code | v11.0 | 0/? | Not started | - |
 | 15. Tests Unitaires Vitest | v11.0 | 0/? | Not started | - |
 | 16. Tests E2E + Corrections Audit | v11.0 | 0/? | Not started | - |

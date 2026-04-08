@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v11.0
 milestone_name: Intégration IA Réelle + Audit Qualité
 status: executing
-stopped_at: Completed 13-01-PLAN.md
-last_updated: "2026-04-08T13:21:51.093Z"
-last_activity: 2026-04-08 -- Plan 13-01 complete (NanoBananaService)
+stopped_at: Completed 13-02-PLAN.md
+last_updated: "2026-04-08T13:39:12.101Z"
+last_activity: 2026-04-08
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
-  percent: 50
+  completed_plans: 2
+  percent: 100
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 13 of 16 (NanoBananaService)
-Plan: 1 of 2 complete
-Status: Executing plan 13-02
-Last activity: 2026-04-08 -- Plan 13-01 complete (NanoBananaService)
+Plan: 2 of 2 complete
+Status: Phase 13 complete
+Last activity: 2026-04-08
 
-Progress: [█████░░░░░] 50%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -54,6 +54,8 @@ Décisions récentes pour v11.0 :
 - Tests Vitest dans src/__tests__/ (pattern établi), Playwright dans e2e/ à la racine
 - Mock @google/genai en CI — pas de clé API réelle dans les tests automatisés
 - [Phase 13]: Import Part type depuis @google/genai pour typage strict resolveImagePart
+- [Phase 13]: Rate-limit uniquement sur /api/simulate (route publique), pas sur les routes admin
+- [Phase 13]: Resize systematique a 1024px max via sharp avant envoi Gemini pour limiter payload
 
 ### Roadmap Evolution
 
@@ -70,6 +72,6 @@ _(vide)_
 
 ## Session Continuity
 
-Last session: 2026-04-08T13:21:51.091Z
-Stopped at: Completed 13-01-PLAN.md
+Last session: 2026-04-08T13:39:12.100Z
+Stopped at: Completed 13-02-PLAN.md
 Resume file: None

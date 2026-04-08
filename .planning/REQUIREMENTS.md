@@ -12,9 +12,9 @@ Requirements pour ce milestone. Chaque requirement mappe à une phase du roadmap
 - [x] **IA-01**: NanoBananaService.generate() implémenté via @google/genai avec retry exponentiel (1s/2s/4s + jitter) et timeout 30s
 - [x] **IA-02**: NanoBananaService.addWatermark() implémenté via Sharp SVG (réutilise pattern MockIAService)
 - [x] **IA-03**: Vérification finishReason === 'STOP' avant parsing réponse Gemini (gère IMAGE_SAFETY)
-- [ ] **IA-04**: Resize systématique image simulate avant envoi Gemini (max 1024px via Sharp)
+- [x] **IA-04**: Resize systématique image simulate avant envoi Gemini (max 1024px via Sharp)
 - [x] **IA-05**: Conversion PNG→JPEG des résultats Gemini (compatibilité Storage existant)
-- [ ] **IA-06**: export maxDuration = 300 dans generate-all/route.ts (évite timeout Vercel)
+- [x] **IA-06**: export maxDuration = 300 dans generate-all/route.ts (évite timeout Vercel)
 - [x] **IA-07**: Deux chemins d'entrée image : URL Supabase → fetch+base64 (admin) / data URI → split (simulate)
 
 ### Tests Unitaires + Intégration
@@ -69,9 +69,9 @@ Reportés aux milestones suivants.
 | IA-01 | Phase 13 | Complete |
 | IA-02 | Phase 13 | Complete |
 | IA-03 | Phase 13 | Complete |
-| IA-04 | Phase 13 | Pending |
+| IA-04 | Phase 13 | Complete |
 | IA-05 | Phase 13 | Complete |
-| IA-06 | Phase 13 | Pending |
+| IA-06 | Phase 13 | Complete |
 | IA-07 | Phase 13 | Complete |
 | AUDIT-01 | Phase 14 | Pending |
 | AUDIT-02 | Phase 14 | Pending |

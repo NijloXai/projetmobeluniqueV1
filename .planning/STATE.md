@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v11.0
 milestone_name: Intégration IA Réelle + Audit Qualité
-status: ready_to_plan
-stopped_at: null
-last_updated: "2026-04-08"
-last_activity: 2026-04-08
+status: planning
+stopped_at: Phase 13 context gathered
+last_updated: "2026-04-08T12:16:55.532Z"
+last_activity: 2026-04-08 — Roadmap v11.0 créé (4 phases, 19 requirements mappés)
 progress:
-  total_phases: 4
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -49,9 +49,14 @@ Progress: [░░░░░░░░░░] 0%
 Decisions consolidées dans PROJECT.md Key Decisions table.
 
 Décisions récentes pour v11.0 :
+
 - Factory pattern IA déjà en place — nano-banana.ts est le seul fichier modifié côté IA
 - Tests Vitest dans src/__tests__/ (pattern établi), Playwright dans e2e/ à la racine
 - Mock @google/genai en CI — pas de clé API réelle dans les tests automatisés
+
+### Roadmap Evolution
+
+- Phase 15.1 inserted after Phase 15: Tests Intégration Supabase (URGENT)
 
 ### Pending Todos
 
@@ -64,6 +69,6 @@ _(vide)_
 
 ## Session Continuity
 
-Last session: 2026-04-08
-Stopped at: Roadmap v11.0 créé, prêt pour /gsd-plan-phase 13
-Resume file: null
+Last session: 2026-04-08T12:16:55.530Z
+Stopped at: Phase 13 context gathered
+Resume file: .planning/phases/13-nanobananaservice/13-CONTEXT.md

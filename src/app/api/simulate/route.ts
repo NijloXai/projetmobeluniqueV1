@@ -16,6 +16,14 @@ const RATE_WINDOW_MS = 60_000
 
 function checkRateLimit(ip: string): { allowed: boolean; retryAfter: number } {
   const now = Date.now()
+
+  // Eviction periodique des entrees expirees (seuil 1000 entrees)
+  if (rateMap.size > 1000) {
+    for (const [key, val] of rateMap) {
+      if (now > val.resetAt) rateMap.delete(key)
+    }
+  }
+
   const entry = rateMap.get(ip)
   if (!entry || now > entry.resetAt) {
     rateMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS })

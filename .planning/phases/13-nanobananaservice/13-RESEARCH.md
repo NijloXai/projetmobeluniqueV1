@@ -554,17 +554,15 @@ export const maxDuration = 300
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Type exact de l'erreur 401 Gemini (clé invalide)**
+1. **Type exact de l'erreur 401 Gemini (clé invalide)** — RESOLVED
    - Ce qu'on sait : D-15 spécifie "retourner 500 Configuration IA invalide"
-   - Ce qui est flou : le message exact de l'erreur levée par @google/genai pour une clé invalide (401 ? 403 ? message `UNAUTHENTICATED` ?)
-   - Recommandation : Vérifier `err.message.includes('API_KEY_INVALID')` OU `err.message.includes('401')` OU `err.message.includes('UNAUTHENTICATED')` — les trois cas couvrent les variantes documentées
+   - Résolution : Vérifier `err.message.includes('API_KEY_INVALID')` OU `err.message.includes('401')` OU `err.message.includes('UNAUTHENTICATED')` — les trois cas couvrent les variantes documentées. Implémenté dans Plan 13-01 Task 1.
 
-2. **Compatibilité TypeScript strict `any` sur les types Gemini**
+2. **Compatibilité TypeScript strict `any` sur les types Gemini** — RESOLVED
    - Ce qu'on sait : Le projet est TypeScript strict (aucun `any`)
-   - Ce qui est flou : Les types retournés par `@google/genai` v1.48.0 pour `candidates[0].content.parts` — nullable ou non ?
-   - Recommandation : Utiliser optional chaining `candidate.content?.parts?.find(...)` — protège contre les types nullable sans `any`
+   - Résolution : Utiliser optional chaining `candidate.content?.parts?.find(...)` — protège contre les types nullable sans `any`. Implémenté dans Plan 13-01 Task 1.
 
 ---
 

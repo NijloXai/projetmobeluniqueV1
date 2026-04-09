@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 // Mock requireAdmin — mocks par table pour eviter le chainage sequentiel fragile
 const mockModelSingle = vi.fn()
@@ -88,8 +88,8 @@ vi.mock('@/lib/utils', () => ({
 // Import apres mocks
 const { POST, maxDuration } = await import('@/app/api/admin/generate-all/route')
 
-function makeRequest(body: Record<string, unknown>): Request {
-  return new Request('http://localhost:3000/api/admin/generate-all', {
+function makeRequest(body: Record<string, unknown>): NextRequest {
+  return new NextRequest('http://localhost:3000/api/admin/generate-all', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -106,18 +106,17 @@ describe('POST /api/admin/generate-all', () => {
   })
 
   it('retourne 400 si body JSON invalide', async () => {
-    const req = new Request('http://localhost:3000/api/admin/generate-all', {
+    const response = await POST(new NextRequest('http://localhost:3000/api/admin/generate-all', {
       method: 'POST',
       body: 'not-json',
-    })
-    const response = await POST(req as never)
+    }))
     const json = await response.json()
     expect(response.status).toBe(400)
     expect(json.error).toContain('JSON invalide')
   })
 
   it('retourne 400 si champs requis manquants', async () => {
-    const response = await POST(makeRequest({ model_id: 'abc' }) as never)
+    const response = await POST(makeRequest({ model_id: 'abc' }))
     const json = await response.json()
     expect(response.status).toBe(400)
     expect(json.error).toContain('requis')
@@ -152,7 +151,7 @@ describe('POST /api/admin/generate-all', () => {
     // Deuxieme angle : generate ECHOUE
     mockGenerate.mockRejectedValueOnce(new Error('503 Service Unavailable'))
 
-    const response = await POST(makeRequest({ model_id: 'm1', fabric_id: 'f1' }) as never)
+    const response = await POST(makeRequest({ model_id: 'm1', fabric_id: 'f1' }))
     const json = await response.json()
 
     expect(response.status).toBe(200)
@@ -181,7 +180,7 @@ describe('POST /api/admin/generate-all', () => {
     })
     mockVisualInsertSingle.mockResolvedValueOnce({ data: { id: 'gv1' }, error: null })
 
-    const response = await POST(makeRequest({ model_id: 'm1', fabric_id: 'f1' }) as never)
+    const response = await POST(makeRequest({ model_id: 'm1', fabric_id: 'f1' }))
     const json = await response.json()
 
     expect(json).toHaveProperty('generated')
@@ -203,7 +202,7 @@ describe('POST /api/admin/generate-all', () => {
       ),
     })
 
-    const response = await POST(makeRequest({ model_id: 'm1', fabric_id: 'f1' }) as never)
+    const response = await POST(makeRequest({ model_id: 'm1', fabric_id: 'f1' }))
     expect(response.status).toBe(401)
     const json = await response.json()
     expect(json.error).toContain('authentifi')

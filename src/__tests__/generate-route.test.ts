@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 // Mock requireAdmin
 const mockSupabase = {
@@ -60,8 +60,8 @@ vi.mock('@/lib/utils', () => ({
 const { POST, maxDuration } = await import('@/app/api/admin/generate/route')
 const { ImageSafetyError } = await import('@/lib/ai/nano-banana')
 
-function makeRequest(body: Record<string, unknown>): Request {
-  return new Request('http://localhost:3000/api/admin/generate', {
+function makeRequest(body: Record<string, unknown>): NextRequest {
+  return new NextRequest('http://localhost:3000/api/admin/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -78,18 +78,17 @@ describe('POST /api/admin/generate', () => {
   })
 
   it('retourne 400 si body JSON invalide', async () => {
-    const req = new Request('http://localhost:3000/api/admin/generate', {
+    const response = await POST(new NextRequest('http://localhost:3000/api/admin/generate', {
       method: 'POST',
       body: 'not-json',
-    })
-    const response = await POST(req as never)
+    }))
     const json = await response.json()
     expect(response.status).toBe(400)
     expect(json.error).toContain('JSON invalide')
   })
 
   it('retourne 400 si champs requis manquants', async () => {
-    const response = await POST(makeRequest({ model_id: 'abc' }) as never)
+    const response = await POST(makeRequest({ model_id: 'abc' }))
     const json = await response.json()
     expect(response.status).toBe(400)
     expect(json.error).toContain('requis')
@@ -119,7 +118,7 @@ describe('POST /api/admin/generate', () => {
     mockGenerate.mockRejectedValueOnce(new ImageSafetyError())
 
     const response = await POST(
-      makeRequest({ model_id: 'm1', model_image_id: 'mi1', fabric_id: 'f1' }) as never
+      makeRequest({ model_id: 'm1', model_image_id: 'mi1', fabric_id: 'f1' })
     )
     const json = await response.json()
     expect(response.status).toBe(422)
@@ -151,7 +150,7 @@ describe('POST /api/admin/generate', () => {
     mockGenerate.mockRejectedValueOnce(abortErr)
 
     const response = await POST(
-      makeRequest({ model_id: 'm1', model_image_id: 'mi1', fabric_id: 'f1' }) as never
+      makeRequest({ model_id: 'm1', model_image_id: 'mi1', fabric_id: 'f1' })
     )
     const json = await response.json()
     expect(response.status).toBe(504)
@@ -169,7 +168,7 @@ describe('POST /api/admin/generate', () => {
       ),
     })
 
-    const response = await POST(makeRequest({ model_id: 'm1', model_image_id: 'mi1', fabric_id: 'f1' }) as never)
+    const response = await POST(makeRequest({ model_id: 'm1', model_image_id: 'mi1', fabric_id: 'f1' }))
     expect(response.status).toBe(401)
     const json = await response.json()
     expect(json.error).toContain('authentifi')

@@ -432,7 +432,7 @@ const { requireAdmin } = await import('@/lib/supabase/admin')
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **vi.useFakeTimers() + AbortSignal.timeout() dans happy-dom 20.8.9**
    - Ce qu'on sait : `sleep()` dans nano-banana utilise `setTimeout` — contrôlé par fake timers. `AbortSignal.timeout()` utilise l'implémentation WebAPI de happy-dom.

@@ -8,30 +8,55 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextResponse } from 'next/server'
 
-// Mock requireAdmin
-const mockSingle = vi.fn()
-const mockMaybeSingle = vi.fn()
-const mockOrder = vi.fn()
-const mockDelete = vi.fn(() => ({ eq: vi.fn().mockResolvedValue({}) }))
-const mockInsert = vi.fn(() => ({ select: vi.fn(() => ({ single: mockSingle })) }))
+// Mock requireAdmin — mocks par table pour eviter le chainage sequentiel fragile
+const mockModelSingle = vi.fn()
+const mockFabricSingle = vi.fn()
+const mockImageOrder = vi.fn()
+const mockVisualMaybeSingle = vi.fn()
+const mockVisualInsertSingle = vi.fn()
+const mockVisualDelete = vi.fn(() => ({ eq: vi.fn().mockResolvedValue({}) }))
 
 const mockSupabase = {
-  from: vi.fn(() => ({
-    select: vi.fn(() => ({
-      eq: vi.fn(() => ({
-        single: mockSingle,
-        maybeSingle: mockMaybeSingle,
-        eq: vi.fn(() => ({
-          single: mockSingle,
-          maybeSingle: mockMaybeSingle,
-          order: mockOrder,
+  from: vi.fn((table: string) => {
+    if (table === 'models') {
+      return {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({ single: mockModelSingle })),
         })),
-        order: mockOrder,
-      })),
-    })),
-    insert: mockInsert,
-    delete: mockDelete,
-  })),
+      }
+    }
+    if (table === 'fabrics') {
+      return {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({ single: mockFabricSingle })),
+        })),
+      }
+    }
+    if (table === 'model_images') {
+      return {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            order: mockImageOrder,
+          })),
+        })),
+      }
+    }
+    if (table === 'generated_visuals') {
+      return {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              maybeSingle: mockVisualMaybeSingle,
+            })),
+          })),
+        })),
+        insert: vi.fn(() => ({ select: vi.fn(() => ({ single: mockVisualInsertSingle })) })),
+        delete: mockVisualDelete,
+      }
+    }
+    // Fallback
+    return { select: vi.fn(), insert: vi.fn(), delete: vi.fn() }
+  }),
   storage: {
     from: vi.fn(() => ({
       upload: vi.fn().mockResolvedValue({ error: null }),
@@ -100,11 +125,10 @@ describe('POST /api/admin/generate-all', () => {
 
   it('retourne errors array quand un angle echoue', async () => {
     // Setup : model OK, fabric OK, 2 modelImages
-    mockSingle
-      .mockResolvedValueOnce({ data: { id: 'm1', slug: 'milano', name: 'Milano' }, error: null }) // model
-      .mockResolvedValueOnce({ data: { id: 'f1', name: 'Velours' }, error: null }) // fabric
+    mockModelSingle.mockResolvedValueOnce({ data: { id: 'm1', slug: 'milano', name: 'Milano' }, error: null })
+    mockFabricSingle.mockResolvedValueOnce({ data: { id: 'f1', name: 'Velours' }, error: null })
 
-    mockOrder.mockResolvedValueOnce({
+    mockImageOrder.mockResolvedValueOnce({
       data: [
         { id: 'mi1', view_type: 'front', image_url: 'https://ex.com/front.jpg' },
         { id: 'mi2', view_type: 'side', image_url: 'https://ex.com/side.jpg' },
@@ -113,7 +137,7 @@ describe('POST /api/admin/generate-all', () => {
     })
 
     // Premier angle : pas d'existant
-    mockMaybeSingle.mockResolvedValueOnce({ data: null, error: null })
+    mockVisualMaybeSingle.mockResolvedValueOnce({ data: null, error: null })
     // Premier angle : generate OK
     mockGenerate.mockResolvedValueOnce({
       imageBuffer: Buffer.from('img1'),
@@ -121,10 +145,10 @@ describe('POST /api/admin/generate-all', () => {
       extension: 'jpg',
     })
     // Premier angle : insert OK
-    mockSingle.mockResolvedValueOnce({ data: { id: 'gv1' }, error: null })
+    mockVisualInsertSingle.mockResolvedValueOnce({ data: { id: 'gv1' }, error: null })
 
     // Deuxieme angle : pas d'existant
-    mockMaybeSingle.mockResolvedValueOnce({ data: null, error: null })
+    mockVisualMaybeSingle.mockResolvedValueOnce({ data: null, error: null })
     // Deuxieme angle : generate ECHOUE
     mockGenerate.mockRejectedValueOnce(new Error('503 Service Unavailable'))
 
@@ -141,22 +165,21 @@ describe('POST /api/admin/generate-all', () => {
 
   it('retourne la structure {generated, total, success, errors}', async () => {
     // Setup : model OK, fabric OK, 1 modelImage OK
-    mockSingle
-      .mockResolvedValueOnce({ data: { id: 'm1', slug: 'milano', name: 'Milano' }, error: null })
-      .mockResolvedValueOnce({ data: { id: 'f1', name: 'Velours' }, error: null })
+    mockModelSingle.mockResolvedValueOnce({ data: { id: 'm1', slug: 'milano', name: 'Milano' }, error: null })
+    mockFabricSingle.mockResolvedValueOnce({ data: { id: 'f1', name: 'Velours' }, error: null })
 
-    mockOrder.mockResolvedValueOnce({
+    mockImageOrder.mockResolvedValueOnce({
       data: [{ id: 'mi1', view_type: 'front', image_url: 'https://ex.com/front.jpg' }],
       error: null,
     })
 
-    mockMaybeSingle.mockResolvedValueOnce({ data: null, error: null })
+    mockVisualMaybeSingle.mockResolvedValueOnce({ data: null, error: null })
     mockGenerate.mockResolvedValueOnce({
       imageBuffer: Buffer.from('img'),
       mimeType: 'image/jpeg',
       extension: 'jpg',
     })
-    mockSingle.mockResolvedValueOnce({ data: { id: 'gv1' }, error: null })
+    mockVisualInsertSingle.mockResolvedValueOnce({ data: { id: 'gv1' }, error: null })
 
     const response = await POST(makeRequest({ model_id: 'm1', fabric_id: 'f1' }) as never)
     const json = await response.json()

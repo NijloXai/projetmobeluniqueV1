@@ -71,6 +71,7 @@ describe('NanoBananaService', () => {
   })
 
   afterEach(() => {
+    vi.unstubAllGlobals()
     if (originalEnv === undefined) {
       delete process.env.NANO_BANANA_API_KEY
     } else {

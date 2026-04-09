@@ -51,7 +51,7 @@
 **Milestone Goal:** Remplacer le mock Sharp par Nano Banana 2 (Gemini) sur toute la chaîne IA, auditer l'ensemble du projet, et établir un filet de tests unitaires + E2E.
 
 - [x] **Phase 13: NanoBananaService** - Implémentation réelle du service IA Gemini avec retry, timeout, et deux chemins d'entrée image (completed 2026-04-08)
-- [ ] **Phase 14: Audit Code** - Audit complet du projet (sécurité, performance, dead code, bonnes pratiques)
+- [x] **Phase 14: Audit Code** - Audit complet du projet (sécurité, performance, dead code, bonnes pratiques) (completed 2026-04-09)
 - [ ] **Phase 15: Tests Unitaires Vitest** - Couverture tests unitaires et intégration (NanoBanana, utils, routes)
 - [ ] **Phase 16: Tests E2E + Corrections Audit** - Tests Playwright flux complets et corrections des problèmes identifiés
 
@@ -85,8 +85,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 14-01-PLAN.md — Outillage audit (installer knip, renforcer ESLint, creer script custom)
-- [ ] 14-02-PLAN.md — Execution audit et consolidation AUDIT.md
+- [x] 14-01-PLAN.md — Outillage audit (installer knip, renforcer ESLint, creer script custom)
+- [x] 14-02-PLAN.md — Execution audit et consolidation AUDIT.md
 
 ### Phase 15: Tests Unitaires Vitest
 **Goal**: Un filet de tests unitaires et d'intégration couvre NanoBananaService, les utils, et les routes critiques
@@ -137,7 +137,7 @@ Plans:
 | 11. Simulation IA Upload | v10.0 | 2/2 | Complete | 2026-04-07 |
 | 12. Simulation IA Affichage | v10.0 | 1/1 | Complete | 2026-04-07 |
 | 13. NanoBananaService | v11.0 | 2/2 | Complete   | 2026-04-08 |
-| 14. Audit Code | v11.0 | 0/2 | Not started | - |
+| 14. Audit Code | v11.0 | 2/2 | Complete    | 2026-04-09 |
 | 15. Tests Unitaires Vitest | v11.0 | 0/? | Not started | - |
 | 16. Tests E2E + Corrections Audit | v11.0 | 0/? | Not started | - |
 

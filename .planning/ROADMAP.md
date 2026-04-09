@@ -97,7 +97,11 @@ Plans:
   2. Les utils slugify, calculatePrice, et extractStoragePath ont des tests couvrant les cas limites (accents, prix premium, chemins malformés)
   3. requireAdmin() retourne 401 sur token absent/expiré — vérifié par test d'intégration route
   4. La route simulate retourne 422 HEIC et 400 taille > 15 Mo — vérifié par test avec mock provider
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 15-01-PLAN.md — Tests utils pures (slugify, calculatePrice, extractStoragePath) + timeout NanoBanana (D-07)
+- [ ] 15-02-PLAN.md — Tests requireAdmin unitaire (D-01) + tests 401 routes admin (D-02)
 
 ### Phase 15.1: Tests Intégration Supabase (INSERTED)
 
@@ -138,7 +142,7 @@ Plans:
 | 12. Simulation IA Affichage | v10.0 | 1/1 | Complete | 2026-04-07 |
 | 13. NanoBananaService | v11.0 | 2/2 | Complete   | 2026-04-08 |
 | 14. Audit Code | v11.0 | 2/2 | Complete    | 2026-04-09 |
-| 15. Tests Unitaires Vitest | v11.0 | 0/? | Not started | - |
+| 15. Tests Unitaires Vitest | v11.0 | 0/2 | Not started | - |
 | 16. Tests E2E + Corrections Audit | v11.0 | 0/? | Not started | - |
 
 ---

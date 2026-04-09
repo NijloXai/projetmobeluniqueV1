@@ -317,4 +317,49 @@ describe('NanoBananaService', () => {
       expect(mockComposite).toHaveBeenCalled()
     })
   })
+
+  // -------------------------------------------------------------------------
+  // timeout (D-07)
+  // -------------------------------------------------------------------------
+
+  describe('timeout (D-07)', () => {
+    beforeEach(() => {
+      vi.useFakeTimers()
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('produit une erreur apres 3 retries sur AbortError (timeout 30s)', async () => {
+      // Mock fetch pour resolveImagePart (URL path)
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: true,
+        arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
+        headers: new Headers({ 'content-type': 'image/jpeg' }),
+      }))
+
+      // AbortError est retryable dans isRetryableError() — 3 echecs attendus
+      const abortErr = new Error('The operation was aborted')
+      abortErr.name = 'AbortError'
+      mockGenerateContent.mockRejectedValue(abortErr)
+
+      const service = new NanoBananaService()
+      const generatePromise = service.generate({
+        modelName: 'Milano',
+        fabricName: 'Velours Bleu',
+        viewType: 'front',
+        sourceImageUrl: 'https://example.com/image.jpg',
+      })
+      // Attacher un handler vide immediatement pour eviter l'unhandled rejection
+      // pendant l'avance des timers
+      generatePromise.catch(() => undefined)
+
+      // Avancer tous les timers pour bypasser sleep() dans le retry loop
+      await vi.runAllTimersAsync()
+
+      await expect(generatePromise).rejects.toThrow()
+      expect(mockGenerateContent).toHaveBeenCalledTimes(3)
+    })
+  })
 })

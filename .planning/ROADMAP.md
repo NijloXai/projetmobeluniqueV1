@@ -52,7 +52,7 @@
 
 - [x] **Phase 13: NanoBananaService** - Implémentation réelle du service IA Gemini avec retry, timeout, et deux chemins d'entrée image (completed 2026-04-08)
 - [x] **Phase 14: Audit Code** - Audit complet du projet (sécurité, performance, dead code, bonnes pratiques) (completed 2026-04-09)
-- [ ] **Phase 15: Tests Unitaires Vitest** - Couverture tests unitaires et intégration (NanoBanana, utils, routes)
+- [x] **Phase 15: Tests Unitaires Vitest** - Couverture tests unitaires et intégration (NanoBanana, utils, routes) (completed 2026-04-09)
 - [ ] **Phase 16: Tests E2E + Corrections Audit** - Tests Playwright flux complets et corrections des problèmes identifiés
 
 ## Phase Details
@@ -100,8 +100,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 15-01-PLAN.md — Tests utils pures (slugify, calculatePrice, extractStoragePath) + timeout NanoBanana (D-07)
-- [ ] 15-02-PLAN.md — Tests requireAdmin unitaire (D-01) + tests 401 routes admin (D-02)
+- [x] 15-01-PLAN.md — Tests utils pures (slugify, calculatePrice, extractStoragePath) + timeout NanoBanana (D-07)
+- [x] 15-02-PLAN.md — Tests requireAdmin unitaire (D-01) + tests 401 routes admin (D-02)
 
 ### Phase 15.1: Tests Intégration Supabase (INSERTED)
 
@@ -142,7 +142,7 @@ Plans:
 | 12. Simulation IA Affichage | v10.0 | 1/1 | Complete | 2026-04-07 |
 | 13. NanoBananaService | v11.0 | 2/2 | Complete   | 2026-04-08 |
 | 14. Audit Code | v11.0 | 2/2 | Complete    | 2026-04-09 |
-| 15. Tests Unitaires Vitest | v11.0 | 0/2 | Not started | - |
+| 15. Tests Unitaires Vitest | v11.0 | 2/2 | Complete    | 2026-04-09 |
 | 16. Tests E2E + Corrections Audit | v11.0 | 0/? | Not started | - |
 
 ---

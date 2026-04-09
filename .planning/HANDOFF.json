@@ -1,31 +1,26 @@
 {
   "version": "1.0",
-  "timestamp": "2026-04-08T19:13:06.199Z",
-  "phase": "14",
-  "phase_name": "Audit Code",
-  "phase_dir": ".planning/phases/14-audit-code",
-  "plan": 0,
-  "task": 0,
+  "timestamp": "2026-04-09T10:18:36.528Z",
+  "phase": "15",
+  "phase_name": "tests-unitaires-vitest",
+  "phase_dir": ".planning/phases/15-tests-unitaires-vitest",
+  "plan": null,
+  "task": null,
   "total_tasks": 0,
-  "status": "paused",
+  "status": "phase_complete",
   "completed_tasks": [
-    {"id": 1, "name": "discuss-phase 14 (context gathering)", "status": "done", "commit": "96332ac"},
-    {"id": 2, "name": "research-phase 14 (ecosystem research)", "status": "done", "commit": "421d567"}
+    {"id": "15-01", "name": "Tests utils pures + timeout NanoBanana", "status": "done", "commit": "2c905ba"},
+    {"id": "15-02", "name": "Tests requireAdmin + 401 routes admin", "status": "done", "commit": "8982495"}
   ],
-  "remaining_tasks": [
-    {"id": 3, "name": "plan-phase 14 (create PLAN.md)", "status": "not_started"},
-    {"id": 4, "name": "execute-phase 14 (install ESLint+knip, run audit, write AUDIT.md)", "status": "not_started"}
-  ],
+  "remaining_tasks": [],
   "blockers": [],
   "human_actions_pending": [],
   "decisions": [
-    {"decision": "ESLint + knip comme outils permanents", "rationale": "Prévient les régressions, pas de linter actuellement", "phase": "14"},
-    {"decision": "Approche mixte : GSD code-review + script custom", "rationale": "Complémentarité review humain-like et vérification programmatique", "phase": "14"},
-    {"decision": "AUDIT.md unique, 3 niveaux (Critical/Warning/Info)", "rationale": "Simple, actionnable, format fichier:ligne", "phase": "14"},
-    {"decision": "Documenter seulement, corrections en Phase 16", "rationale": "Séparation analyse/fix, rapport exhaustif", "phase": "14"},
-    {"decision": "Audit exhaustif tout src/ + configs + CSS + scripts", "rationale": "Codebase assez petit (~77 fichiers) pour audit complet", "phase": "14"}
+    {"decision": "vi.useFakeTimers() + .catch(() => undefined) pour le test timeout NanoBanana", "rationale": "Evite PromiseRejectionHandledWarning pendant vi.runAllTimersAsync()", "phase": "15"},
+    {"decision": "Mock @/lib/supabase/server (pas admin) pour tester requireAdmin()", "rationale": "Sinon on court-circuite la fonction qu'on teste", "phase": "15"},
+    {"decision": "Code review fix WR-01/02/03 appliques", "rationale": "unstubAllGlobals, mocks par table, NextRequest au lieu de as never", "phase": "15"}
   ],
   "uncommitted_files": [],
-  "next_action": "/gsd-plan-phase 14 — créer le plan d'exécution basé sur CONTEXT.md et RESEARCH.md",
-  "context_notes": "Phase 14 prête à planifier. La recherche a révélé que ESLint est déjà configuré (via eslint-config-next) mais cassé (module node_modules corrompu). Seul ajout nécessaire : knip. Le codebase est déjà sain (0 any, 0 ts-ignore, 0 eval). L'audit trouvera surtout des warnings (security headers, dead code CSS, console.error)."
+  "next_action": "Planifier et executer Phase 15.1 (Tests Integration Supabase) — /gsd-discuss-phase 15.1 ou /gsd-plan-phase 15.1",
+  "context_notes": "Phase 15 entierement terminee : execute, code review + fix, UAT auto (5/5 pass), verification (9/9 must-haves), security (4 threats closed). 183 tests Vitest, 15 fichiers, 0 echec. Prochaine etape : Phase 15.1 tests integration Supabase."
 }

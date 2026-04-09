@@ -47,7 +47,7 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 
 - [ ] **IA-REAL-01**: Intégration Nano Banana 2 côté admin (rendus tissu × angle) remplace le mock Sharp
 - [ ] **IA-REAL-02**: Intégration Nano Banana 2 côté client (/api/simulate) simulation salon réelle
-- [ ] **AUDIT-01**: Audit code complet (sécurité, performance, dead code, bonnes pratiques)
+- [x] **AUDIT-01**: Audit code complet (sécurité, performance, dead code, bonnes pratiques) -- Validated in Phase 14
 - [ ] **TEST-01**: Tests unitaires + intégration (composants, hooks, utils, API routes)
 - [ ] **TEST-02**: Tests E2E Playwright (parcours catalogue → configurateur → simulation)
 - [ ] **FIX-01**: Corrections des problèmes identifiés par l'audit
@@ -141,4 +141,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-08 after v11.0 milestone start*
+*Last updated: 2026-04-09 after Phase 14 completion*

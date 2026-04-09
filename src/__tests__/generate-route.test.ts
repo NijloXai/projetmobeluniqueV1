@@ -5,6 +5,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { NextResponse } from 'next/server'
 
 // Mock requireAdmin
 const mockSupabase = {
@@ -155,5 +156,22 @@ describe('POST /api/admin/generate', () => {
     const json = await response.json()
     expect(response.status).toBe(504)
     expect(json.error).toContain('trop de temps')
+  })
+
+  it('retourne 401 si non authentifie', async () => {
+    const { requireAdmin } = await import('@/lib/supabase/admin')
+    vi.mocked(requireAdmin).mockResolvedValueOnce({
+      supabase: null,
+      user: null,
+      error: NextResponse.json(
+        { error: 'Non authentifie. Connectez-vous pour acceder a cette ressource.' },
+        { status: 401 }
+      ),
+    })
+
+    const response = await POST(makeRequest({ model_id: 'm1', model_image_id: 'mi1', fabric_id: 'f1' }) as never)
+    expect(response.status).toBe(401)
+    const json = await response.json()
+    expect(json.error).toContain('authentifi')
   })
 })

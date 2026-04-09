@@ -82,7 +82,11 @@ Plans:
   2. Les failles de sécurité potentielles (validation inputs, auth bypass, XSS) sont identifiées avec niveau de sévérité
   3. Les requêtes N+1 et assets non optimisés sont identifiés avec impact estimé
   4. Les violations TypeScript strict (any implicites, error handling manquant) sont listées avec localisation fichier:ligne
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 14-01-PLAN.md — Outillage audit (installer knip, renforcer ESLint, creer script custom)
+- [ ] 14-02-PLAN.md — Execution audit et consolidation AUDIT.md
 
 ### Phase 15: Tests Unitaires Vitest
 **Goal**: Un filet de tests unitaires et d'intégration couvre NanoBananaService, les utils, et les routes critiques
@@ -133,7 +137,7 @@ Plans:
 | 11. Simulation IA Upload | v10.0 | 2/2 | Complete | 2026-04-07 |
 | 12. Simulation IA Affichage | v10.0 | 1/1 | Complete | 2026-04-07 |
 | 13. NanoBananaService | v11.0 | 2/2 | Complete   | 2026-04-08 |
-| 14. Audit Code | v11.0 | 0/? | Not started | - |
+| 14. Audit Code | v11.0 | 0/2 | Not started | - |
 | 15. Tests Unitaires Vitest | v11.0 | 0/? | Not started | - |
 | 16. Tests E2E + Corrections Audit | v11.0 | 0/? | Not started | - |
 

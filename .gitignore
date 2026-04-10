@@ -79,3 +79,4 @@ fichier-mobelunique/
 
 # ── Supabase CLI runtime ──
 supabase/.temp/
+supabase/.branches/

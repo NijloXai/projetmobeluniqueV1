@@ -301,6 +301,64 @@ describe('GET /api/admin/models/[id]/visuals', () => {
   })
 })
 
+describe('DELETE /api/admin/models/[id]/visuals/[visualId]', () => {
+  it('supprime un visuel genere de la BDD', async () => {
+    // Creer un visuel temporaire via adminClient pour pouvoir le supprimer
+    // Utiliser model_image d0...02 + fabric c0...02 (Lin Inactif) pour eviter la contrainte UNIQUE
+    // avec le visuel seed (d0...01, c0...01)
+    const { data: visual } = await adminClient
+      .from('generated_visuals')
+      .insert({
+        model_id: 'b0000000-0000-0000-0000-000000000001',
+        model_image_id: 'd0000000-0000-0000-0000-000000000002',
+        fabric_id: 'c0000000-0000-0000-0000-000000000002',
+        generated_image_url: 'http://127.0.0.1:54321/storage/v1/object/public/generated-visuals/test-delete.jpg',
+        is_validated: false,
+        is_published: false,
+      })
+      .select('id')
+      .single()
+
+    expect(visual).toBeTruthy()
+
+    await testApiHandler({
+      appHandler: adminModelVisualByIdRoute,
+      params: { id: 'b0000000-0000-0000-0000-000000000001', visualId: visual!.id },
+      async test({ fetch }) {
+        const res = await fetch({
+          method: 'DELETE',
+          headers: { Cookie: cookieHeader },
+        })
+        expect(res.status).toBe(200)
+        const data = await res.json()
+        expect(data.success).toBe(true)
+
+        // Verifier suppression en BDD
+        const { data: row } = await adminClient
+          .from('generated_visuals')
+          .select('id')
+          .eq('id', visual!.id)
+          .maybeSingle()
+        expect(row).toBeNull()
+      },
+    })
+  })
+
+  it('retourne 404 pour un visuel inexistant', async () => {
+    await testApiHandler({
+      appHandler: adminModelVisualByIdRoute,
+      params: { id: 'b0000000-0000-0000-0000-000000000001', visualId: 'e9999999-9999-9999-9999-999999999999' },
+      async test({ fetch }) {
+        const res = await fetch({
+          method: 'DELETE',
+          headers: { Cookie: cookieHeader },
+        })
+        expect(res.status).toBe(404)
+      },
+    })
+  })
+})
+
 describe('DELETE /api/admin/models/[id]', () => {
   it('supprime le modele et cascade ses images', async () => {
     // Inserer une image de test pour verifier la cascade

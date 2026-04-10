@@ -74,6 +74,38 @@ describe('POST /api/admin/fabrics', () => {
     })
   })
 
+  it('cree un tissu avec upload swatch via FormData (D-10)', async () => {
+    const jpegBuffer = Buffer.from([
+      0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46,
+      0x00, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00,
+      0xFF, 0xD9,
+    ])
+    const file = new File([jpegBuffer], 'swatch.jpg', { type: 'image/jpeg' })
+
+    await testApiHandler({
+      appHandler: adminFabricsRoute,
+      async test({ fetch }) {
+        const formData = new FormData()
+        formData.append('name', 'Test Int Soie Rose')
+        formData.append('category', 'soie')
+        formData.append('is_premium', 'true')
+        formData.append('swatch', file)
+
+        const res = await fetch({
+          method: 'POST',
+          headers: { Cookie: cookieHeader },
+          body: formData,
+        })
+        expect(res.status).toBe(201)
+        const data = await res.json()
+        expect(data.name).toBe('Test Int Soie Rose')
+        expect(data.slug).toBe('test-int-soie-rose')
+        expect(data.swatch_url).toBeDefined()
+        expect(data.swatch_url).toContain('fabric-swatches')
+      },
+    })
+  })
+
   it('retourne 400 si le name est absent', async () => {
     await testApiHandler({
       appHandler: adminFabricsRoute,

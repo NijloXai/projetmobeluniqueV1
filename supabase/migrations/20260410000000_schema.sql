@@ -84,9 +84,13 @@ CREATE POLICY "model_photos_auth_delete" ON storage.objects FOR DELETE USING (bu
 
 CREATE POLICY "fabric_swatches_public_read" ON storage.objects FOR SELECT USING (bucket_id = 'fabric-swatches');
 CREATE POLICY "fabric_swatches_auth_write" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'fabric-swatches' AND auth.role() = 'authenticated');
+CREATE POLICY "fabric_swatches_auth_update" ON storage.objects FOR UPDATE USING (bucket_id = 'fabric-swatches' AND auth.role() = 'authenticated');
+CREATE POLICY "fabric_swatches_auth_delete" ON storage.objects FOR DELETE USING (bucket_id = 'fabric-swatches' AND auth.role() = 'authenticated');
 
 CREATE POLICY "fabric_refs_auth_read" ON storage.objects FOR SELECT USING (bucket_id = 'fabric-references' AND auth.role() = 'authenticated');
 CREATE POLICY "fabric_refs_auth_write" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'fabric-references' AND auth.role() = 'authenticated');
+CREATE POLICY "fabric_refs_auth_update" ON storage.objects FOR UPDATE USING (bucket_id = 'fabric-references' AND auth.role() = 'authenticated');
+CREATE POLICY "fabric_refs_auth_delete" ON storage.objects FOR DELETE USING (bucket_id = 'fabric-references' AND auth.role() = 'authenticated');
 
 CREATE POLICY "gen_visuals_public_read" ON storage.objects FOR SELECT USING (bucket_id = 'generated-visuals');
 CREATE POLICY "gen_visuals_auth_write" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'generated-visuals' AND auth.role() = 'authenticated');

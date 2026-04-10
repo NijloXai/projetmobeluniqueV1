@@ -1,9 +1,11 @@
 import { anonClient } from './supabase-admin'
 
 export async function loginAsAdmin(): Promise<{ accessToken: string; cookieHeader: string }> {
+  const email = process.env.TEST_ADMIN_EMAIL ?? 'admin@test.mobelunique.fr'
+  const password = process.env.TEST_ADMIN_PASSWORD ?? 'test-admin-secure-2024!'
   const { data, error } = await anonClient.auth.signInWithPassword({
-    email: process.env.TEST_ADMIN_EMAIL!,
-    password: process.env.TEST_ADMIN_PASSWORD!,
+    email,
+    password,
   })
   if (error || !data.session) {
     throw new Error(`Auth failed: ${error?.message ?? 'no session'}`)

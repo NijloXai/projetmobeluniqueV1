@@ -76,3 +76,6 @@ isolate-*-v8.log
 
 # ── Brand kit source (assets lourds, pas du code) ──
 fichier-mobelunique/
+
+# ── Supabase CLI runtime ──
+supabase/.temp/

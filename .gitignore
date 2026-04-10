@@ -77,6 +77,9 @@ isolate-*-v8.log
 # ── Brand kit source (assets lourds, pas du code) ──
 fichier-mobelunique/
 
+# ── MCP config (contient des tokens) ──
+.mcp.json
+
 # ── Supabase CLI runtime ──
 supabase/.temp/
 supabase/.branches/

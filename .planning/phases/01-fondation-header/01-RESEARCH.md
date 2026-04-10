@@ -1,48 +1,8 @@
-# Phase 1 : Fondation + Header (REDO brand assets) — Recherche
+# Phase 1 : Fondation + Header — Recherche
 
-**Researched:** 2026-03-27
-**Domain:** Next.js 16.2.1 App Router — Favicon/icon conventions, next/image logo conditionnel, conversion PNG→ICO, web manifest
+**Researched:** 2026-03-26
+**Domain:** Next.js 16.2.1 App Router — Client Component scroll, CSS Modules, accessibilité skip link, SEO metadata
 **Confidence:** HIGH
-
----
-
-<user_constraints>
-## User Constraints (from CONTEXT.md)
-
-### Locked Decisions
-
-**Choix du logo header**
-- D-01 : Logo complet (monogramme "mu" cursif + texte "MOBEL UNIQUE") en PNG via next/image, pas de SVG brut (les SVG source sont trop lourds — 2000x2000 export Illustrator avec backgrounds)
-- D-02 : Deux logos selon l'etat du header : Logo-04 (blanc) quand header transparent sur hero sombre, Logo-01 (noir) quand header scrolle sur fond blanc. Swap automatique lie a l'etat `scrolled`
-- D-03 : Source : `fichier-mobelunique/Logo Design/Logo-01.png` (noir) et `Logo-04.png` (blanc) copies dans `public/brand/`
-
-**Favicon et meta**
-- D-04 : Favicon = `fichier-mobelunique/Favicon/Favicon-04.png` (monogramme noir sur blanc, bonne taille) — copie dans `src/app/` pour convention Next.js App Router
-- D-05 : Setup complet : favicon.ico + apple-touch-icon.png + web manifest avec App Icon du dossier client `fichier-mobelunique/Appicon/`
-- D-06 : Les meta tags PWA sont configures dans le root layout ou via fichiers convention Next.js (icon.png, apple-icon.png, manifest)
-
-**Contenu header**
-- D-07 : Cote droit du header = lien "Retour a la boutique" uniquement (pas de navigation interne, pas de tagline)
-- D-08 : URL Shopify reelle : `https://www.mobelunique.fr/` (remplace le placeholder href="#")
-- D-09 : Le lien ouvre dans le meme onglet (pas target="_blank" — l'utilisateur quitte la SPA pour retourner a la boutique)
-
-**Assets dans public/**
-- D-10 : Dossier dedie `public/brand/` pour les assets de la marque
-- D-11 : Copier uniquement logos + favicon pour cette phase. Les icones meubles (18 SVG) et images ambiance seront ajoutees dans les phases futures
-- D-12 : Supprimer les fichiers Next.js par defaut dans public/ (file.svg, globe.svg, next.svg, vercel.svg, window.svg) — inutilises
-
-### Claude's Discretion
-- Taille exacte du logo dans le header (hauteur proportionnelle a --header-height: 64px)
-- Transition du swap logo blanc→noir (animation ou instantane)
-- Format exact du favicon.ico (conversion PNG→ICO, tailles multiples)
-- Configuration du web manifest (nom, couleurs, display mode)
-- Nommage des fichiers dans public/brand/ (garder noms originaux ou renommer)
-
-### Deferred Ideas (OUT OF SCOPE)
-- Icones meubles SVG (18 icones line-art) — a copier dans public/brand/ quand les sections catalogue/HowItWorks en auront besoin
-- Images ambiance Unsplash — pour le hero ou sections futures
-- Tagline "Crafted for Comfort, Built for Life." — pourrait etre ajoutee dans le hero ou footer, pas dans le header
-</user_constraints>
 
 ---
 
@@ -51,15 +11,27 @@
 
 | ID | Description | Research Support |
 |----|-------------|------------------|
-| FOND-01 | Page publique remplace le template Next.js par defaut | COMPLETE depuis Phase 1 initiale — page.tsx et page.module.css sont propres |
-| FOND-02 | Metadata publique (titre, description pour SEO) | COMPLETE depuis Phase 1 initiale — layout.tsx a le template correct, page.tsx exporte metadata |
-| FOND-03 | Responsive 4 breakpoints (mobile/tablet/desktop/large) | COMPLETE depuis Phase 1 initiale — breakpoints dans Header.module.css |
-| FOND-04 | scroll-padding-top et scroll-behavior smooth dans globals.css | COMPLETE depuis Phase 1 initiale — les deux proprietes sont presentes dans globals.css |
-| HEAD-01 | Header sticky fixed avec logo MU et lien retour Shopify | REDO : remplacer div "MU" par next/image conditionnel + mettre l'URL Shopify reelle |
-| HEAD-02 | Transition transparent vers blanc au scroll (seuil 80px, 300ms) | COMPLETE depuis Phase 1 initiale — ne change pas |
-| HEAD-03 | Effet glassmorphism sur le header au scroll (backdrop-blur 20px) | COMPLETE depuis Phase 1 initiale — ne change pas |
-| HEAD-04 | Skip link accessibilite "Aller au contenu" (visible au focus) | COMPLETE depuis Phase 1 initiale — ne change pas |
+| FOND-01 | Page publique remplace le template Next.js par défaut | Remplacement complet page.tsx + page.module.css (template confirmé pollué — dark mode, variables conflictuelles, font-geist-sans) |
+| FOND-02 | Metadata publique (titre, description pour SEO) | Pattern `export const metadata` dans page.tsx — hérite layout.tsx mais peut override. layout.tsx actuel contient "Back-office" — DOIT être mis à jour |
+| FOND-03 | Responsive 4 breakpoints (mobile/tablet/desktop/large) | Media queries CSS Modules dans globals.css html block + chaque module composant. Breakpoints 640/1024/1280px confirmés dans wireframe |
+| FOND-04 | scroll-padding-top et scroll-behavior smooth dans globals.css | 2 propriétés à ajouter au bloc `html {}` existant. Variables déjà disponibles : `--header-height: 64px` |
+| HEAD-01 | Header sticky fixed avec logo MU et lien retour Shopify | `position: fixed`, `z-index: 100`, `height: var(--header-height)`. Logo div 40x40px fond `--color-primary`. Lien externe Shopify |
+| HEAD-02 | Transition transparent -> blanc au scroll (seuil 80px, 300ms) | `useState(false)` + `useEffect` scroll listener avec `{ passive: true }` + classe CSS conditionnelle. `--transition-fast: 300ms ease` déjà défini |
+| HEAD-03 | Effet glassmorphism sur le header au scroll (backdrop-blur 20px) | `-webkit-backdrop-filter: blur(20px)` + `backdrop-filter: blur(20px)` dans `.scrolled`. Background `rgba(252,249,245,0.8)` |
+| HEAD-04 | Skip link accessibilité "Aller au contenu" (visible au focus) | Lien avant `<header>`, CSS visually-hidden + visible on `:focus`. `href="#main-content"`. `<main id="main-content">` dans page.tsx |
 </phase_requirements>
+
+---
+
+## Résumé
+
+Phase 1 établit la fondation CSS et le premier composant interactif de la SPA publique. Elle touche 4 fichiers existants (globals.css, layout.tsx, page.tsx, page.module.css) et crée 2 nouveaux fichiers (Header.tsx + Header.module.css).
+
+La partie la plus délicate est le Header `'use client'` avec scroll detection : le SSR de Next.js rend d'abord le HTML serveur (scrolled = false), puis React hydrate côté client. Si l'utilisateur recharge la page en milieu de scroll, le header sera brièvement dans le mauvais état. Le pattern `mounted` résout ce flash mais ajoute un cycle de rendu. Pour ce projet (transition de couleur subtilement visible), le risque de flash est faible — l'initialisation à `false` est acceptable sans `mounted`.
+
+Aucune nouvelle dépendance npm. Tout est faisable avec Next.js 16.2.1, React 19, CSS Modules et l'API browser native `window.scrollY`.
+
+**Recommandation principale :** Header en Client Component isolé avec `useState(false)` + scroll listener passif. Comparer la valeur avant `setState` pour éviter les re-renders inutiles (état binaire). `page.tsx` reste Server Component.
 
 ---
 
@@ -67,23 +39,13 @@
 
 | Directive | Impact sur cette phase |
 |-----------|----------------------|
-| PAS de Tailwind, PAS de shadcn/ui — CSS Modules uniquement | Styles du logo image dans Header.module.css uniquement |
-| TypeScript strict (aucun `any`) | next/image props typees correctement |
-| Composants PascalCase, un fichier par composant | Header.tsx inchange comme composant 'use client' |
-| Design tokens dans src/app/globals.css | Taille logo en rem ou via variable CSS, pas hardcode |
-| Langue francaise | alt du logo en francais, manifest.name en francais |
-
----
-
-## Resume
-
-Ce REDO de Phase 1 est une mise a jour chirurgicale du Header existant pour remplacer le placeholder "MU" par les vrais assets brand client. Toutes les fonctionnalites FOND et HEAD sont deja implementees — seul HEAD-01 (logo) est modifie en code, et les fichiers favicon/manifest sont nouveaux.
-
-Le travail se decompose en 3 blocs independants : (1) copie des PNG de logo dans `public/brand/` et modification de Header.tsx pour utiliser `next/image` avec src conditionnel selon l'etat `scrolled`, (2) generation des fichiers icone via sips (natif macOS, confirme disponible sur cette machine) et placement dans `src/app/` selon la convention Next.js App Router, (3) creation du manifest.ts et nettoyage des assets Next.js par defaut dans `public/`.
-
-Aucune dependance npm supplementaire n'est requise. `sharp` est deja installe pour l'optimisation next/image. `sips` (macOS natif, confirme disponible) suffit pour la conversion PNG→ICO et les redimensionnements.
-
-**Recommandation principale :** Approche fichiers-convention Next.js App Router — placer `favicon.ico`, `icon.png`, `apple-icon.png` directement dans `src/app/`. Ne pas utiliser la Metadata API `icons:` en parallele (conflit documente). Creer `src/app/manifest.ts` pour le web manifest TypeScript.
+| PAS de Tailwind, PAS de shadcn/ui — CSS Modules uniquement | Toutes les classes dans `.module.css` dédiés, aucune classe utilitaire |
+| Un fichier `.module.css` par composant | `Header.module.css` séparé, nouveau `page.module.css` propre |
+| Design tokens dans `src/app/globals.css` | Ne pas hardcoder de couleurs/espacements dans les modules |
+| Composants en PascalCase, un fichier par composant | `Header.tsx` dans `src/components/public/Header/` |
+| Messages d'erreur en français | N/A (pas d'erreurs utilisateur dans cette phase) |
+| TypeScript strict (aucun `any`) | Typer l'état scroll : `useState<boolean>(false)` |
+| Supabase client direct | N/A (phase sans API) |
 
 ---
 
@@ -93,351 +55,578 @@ Aucune dependance npm supplementaire n'est requise. `sharp` est deja installe po
 
 | Librairie | Version | Usage | Pourquoi standard |
 |-----------|---------|-------|-------------------|
-| next/image | integre Next.js 16.2.1 | Affichage logo PNG optimise | Optimisation automatique WebP, srcset, lazy loading |
-| sips | macOS natif (confirme disponible) | Conversion PNG→ICO et resize PNG | Aucune installation, supporte ICO en ecriture |
-| sharp | ^0.34.5 (deja installe) | Resize PNG en build next/image | Deja dans le projet |
+| Next.js | 16.2.1 | App Router, métadonnées, `next/image` | Déjà installé — convention projet |
+| React | 19.2.4 | `useState`, `useEffect`, hooks | Déjà installé |
+| CSS Modules | Natif Next.js | Isolation des styles par composant | Convention stricte projet |
 
-### Aucune dependance a ajouter
+### APIs browser utilisées
+
+| API | Usage | Support |
+|-----|-------|---------|
+| `window.scrollY` | Détecter le scroll > 80px | Universel |
+| `addEventListener('scroll', handler, { passive: true })` | Listener non-bloquant | Chrome 51+, Firefox 49+, Safari 10+ |
+| `removeEventListener` | Cleanup dans `useEffect` return | Universel |
+
+### Aucune dépendance à ajouter
 
 ```bash
-# RIEN a installer — tout est disponible dans le projet
+# RIEN à installer — tout est disponible dans le projet
 ```
 
 ---
 
 ## Architecture Patterns
 
-### Structure de fichiers cible apres REDO Phase 1
+### Structure de fichiers cible après Phase 1
 
 ```
 src/
   app/
-    favicon.ico                          # NOUVEAU : convention Next.js
-    icon.png                             # NOUVEAU : 32x32, <link rel="icon"> moderne
-    apple-icon.png                       # NOUVEAU : 180x180, <link rel="apple-touch-icon">
-    manifest.ts                          # NOUVEAU : web manifest TypeScript
-    layout.tsx                           # INCHANGE (pas de metadata.icons a ajouter)
-    globals.css                          # INCHANGE
+    globals.css                          # MODIFIÉ : +scroll-behavior, +scroll-padding-top
+    layout.tsx                           # MODIFIÉ : metadata template public vs admin
+    page.tsx                             # REMPLACÉ : template Next.js → page publique squelette
+    page.module.css                      # REMPLACÉ : template pollué → propre et minimal
   components/
-    public/
+    admin/                               # INCHANGÉ
+    public/                              # NOUVEAU dossier
       Header/
-        Header.tsx                       # MODIFIE : div "MU" + span brandName → <Image> conditionnel
-        Header.module.css                # MODIFIE : .logo et .brandName → .logoImage
-
-public/
-  brand/
-    logo-noir.png                        # NOUVEAU : Logo-01.png copie
-    logo-blanc.png                       # NOUVEAU : Logo-04.png copie
-    icon-192.png                         # NOUVEAU : App Icon 192x192 pour manifest PWA
-    icon-512.png                         # NOUVEAU : App Icon 512x512 pour manifest PWA
-  # file.svg, globe.svg, next.svg, vercel.svg, window.svg  SUPPRIMES (D-12)
+        Header.tsx                       # NOUVEAU : 'use client', scroll listener
+        Header.module.css                # NOUVEAU : fixed, transition, glassmorphism
 ```
 
-### Pattern 1 : next/image avec src conditionnel
+### Pattern 1 : Header Client Component avec scroll state
 
-**Ce que c'est :** Dans le Client Component `'use client'` existant, le state `scrolled` conditionne la prop `src` du composant `<Image>`. Deux PNG sont dans `public/brand/` — le composant reference leurs chemins publics en string (pas de static import pour eviter le bundle).
+**Ce que c'est :** Composant `'use client'` isolé qui écoute le scroll et bascule une classe CSS.
 
-**Pourquoi path string et non static import :** Les logos source sont 4168x4167px / 130-142KB. Avec un static import, le build emballe l'image dans le JS client. Avec un path string `/brand/logo-blanc.png`, next/image optimise et sert un WebP redimensionne a la demande.
+**Quand l'utiliser :** Toute interaction avec `window`, `document`, ou des événements browser dans Next.js App Router.
 
-```tsx
-// Source: nextjs.org/docs/app/api-reference/components/image (v16.2.1, verifie 2026-03-25)
-import Image from 'next/image'
+**Code de référence :**
+```typescript
+// src/components/public/Header/Header.tsx
+'use client'
 
-// Dans le JSX, remplace div .logo + span .brandName :
-<Link href="/" className={styles.brand} aria-label="Möbel Unique — Accueil">
-  <Image
-    src={scrolled ? '/brand/logo-noir.png' : '/brand/logo-blanc.png'}
-    alt="Möbel Unique"
-    width={144}
-    height={144}
-    className={styles.logoImage}
-    priority
-  />
-</Link>
-```
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import styles from './Header.module.css'
 
-**Props cles :**
-- `width={144} height={144}` : ratio 1:1 = ratio du canvas source PNG (4168x4167, quasi-carre). Evite tout recadrage involontaire.
-- `priority` : desactive le lazy loading (image above-the-fold, toujours visible). Empeche le flash logo.
-- `className={styles.logoImage}` : CSS controle la taille rendue (height: 36px; width: auto).
-- `alt="Möbel Unique"` : le lien parent a `aria-label` complet — alt court suffit.
+export function Header() {
+  const [scrolled, setScrolled] = useState(false)
 
-**CSS dans Header.module.css :**
+  useEffect(() => {
+    const handleScroll = () => {
+      const isScrolled = window.scrollY > 80
+      // Comparaison avant setState — évite re-renders si état inchangé
+      setScrolled(prev => prev !== isScrolled ? isScrolled : prev)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
-```css
-.logoImage {
-  height: 36px;
-  width: auto;
-  object-fit: contain;
-  display: block;
+  return (
+    <>
+      <a href="#main-content" className={styles.skipLink}>
+        Aller au contenu
+      </a>
+      <header
+        className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}
+        role="banner"
+      >
+        {/* Logo + lien retour Shopify */}
+      </header>
+    </>
+  )
 }
 ```
 
-**Note `width: auto` :** next/image injecte des attributs HTML `width` et `height` sur le `<img>` pour la prevention CLS. CSS `width: auto` prend le dessus pour l'affichage reel. Le browser calcule la largeur proportionnelle a la hauteur 36px.
+**Pourquoi `useState(false)` et non `useState(window.scrollY > 80)` :** `window` n'existe pas côté serveur. L'initialisation à `false` est la seule valeur sûre pour le SSR — voir Pitfall 1.
 
-### Pattern 2 : Convention fichiers Next.js App Router pour les icones
+### Pattern 2 : Metadata dans page.tsx (pas layout.tsx)
 
-**Regles documentation officielle (verifie nextjs.org v16.2.1, 2026-03-25) :**
+**Ce que c'est :** Export `metadata` au niveau de `page.tsx` pour la page publique, sans toucher `layout.tsx`.
 
-| Fichier | Emplacement | Format | HTML genere automatiquement |
-|---------|-------------|--------|----------------------------|
-| `favicon.ico` | `app/` uniquement | `.ico` | `<link rel="icon" href="/favicon.ico" sizes="any" />` |
-| `icon.png` | `app/` | `.ico .jpg .jpeg .png .svg` | `<link rel="icon" href="/icon?..." type="image/png" sizes="32x32" />` |
-| `apple-icon.png` | `app/` | `.jpg .jpeg .png` | `<link rel="apple-touch-icon" href="/apple-icon?..." type="image/png" sizes="180x180" />` |
-| `manifest.ts` | `app/` | `.ts .js` | `<link rel="manifest" href="/manifest.webmanifest" />` |
-
-**IMPORTANT — Conflit a eviter :** Ne pas utiliser simultanement `metadata.icons` dans `layout.tsx` ET les fichiers convention. Les deux mecanismes s'additionnent et generent des balises `<link>` dupliques. Choisir l'approche fichiers-convention uniquement (recommandee).
-
-### Pattern 3 : Conversion PNG→ICO avec sips
-
-**Confirme en live sur cette machine (Darwin 24.6.0) :**
-
-```bash
-# sips supporte com.microsoft.ico en ecriture (verifie avec sips --formats)
-# Test live reussi : 4414 bytes generes
-
-# Etape 1 : Redimensionner vers 32x32
-sips -z 32 32 "fichier-mobelunique/Favicon/Favicon-04.png" --out /tmp/favicon-32.png
-
-# Etape 2 : Convertir PNG 32x32 en ICO
-sips -s format ico /tmp/favicon-32.png --out src/app/favicon.ico
-```
-
-**Fallback si sips echoue :** `npm install to-ico` (package v1.1.5) + script Node.js utilisant sharp pour les buffers. Non requis sauf probleme.
-
-### Pattern 4 : manifest.ts TypeScript
+**Quand l'utiliser :** Chaque page qui a besoin de son propre titre/description SEO.
 
 ```typescript
-// src/app/manifest.ts
-// Source: nextjs.org/docs/app/api-reference/file-conventions/metadata/manifest (v16.2.1, 2026-03-25)
-import type { MetadataRoute } from 'next'
+// src/app/page.tsx
+import type { Metadata } from 'next'
 
-export default function manifest(): MetadataRoute.Manifest {
-  return {
-    name: 'Möbel Unique — Canapés personnalisables Paris',
-    short_name: 'Möbel Unique',
-    description: 'Configurateur IA de canapés personnalisables.',
-    start_url: '/',
-    display: 'standalone',
-    background_color: '#FFFFFF',
-    theme_color: '#E49400',
-    icons: [
-      {
-        src: '/brand/icon-192.png',
-        sizes: '192x192',
-        type: 'image/png',
-      },
-      {
-        src: '/brand/icon-512.png',
-        sizes: '512x512',
-        type: 'image/png',
-      },
-    ],
-  }
+export const metadata: Metadata = {
+  title: 'Möbel Unique — Canapés personnalisables Paris',
+  description: 'Visualisez votre canapé personnalisé dans le tissu de votre choix grâce à notre configurateur IA. Livraison Paris et Île-de-France.',
+}
+
+export default function HomePage() {
+  return (
+    <>
+      <Header />
+      <main id="main-content">
+        {/* sections Phase 2+ */}
+      </main>
+    </>
+  )
 }
 ```
 
-### Anti-Patterns a eviter
+**Note sur layout.tsx :** Le metadata actuel de `layout.tsx` dit "Back-office". Deux options :
+- Option A (recommandée) : Mettre à jour le `default` dans layout.tsx avec les métadonnées publiques, et chaque page admin override avec ses propres métadonnées. Plus propre.
+- Option B : Garder layout.tsx inchangé, laisser page.tsx override. Fonctionne mais layout.tsx restera avec un titre trompeur.
 
-- **`metadata.icons` + fichiers convention en parallele** : duplique les `<link>` dans `<head>`. Choisir une seule approche.
-- **Static import de PNG 130KB+ dans Header.tsx** : emballe l'image dans le JS client. Utiliser un path string.
-- **Omettre `priority` sur le logo header** : lazy loading par defaut provoquerait un flash visible sur l'image above-the-fold.
-- **`width/height` de next/image en pixels CSS** : ces props definissent le ratio intrinseque (prevention CLS), pas la taille rendue. La taille rendue est en CSS.
-- **Placer `favicon.ico` dans `public/` au lieu de `src/app/`** : servi statiquement mais sans balise `<link>` automatique par Next.js.
+**Option A — pattern title.template dans layout.tsx :**
+```typescript
+export const metadata: Metadata = {
+  title: {
+    template: '%s | Möbel Unique',
+    default: 'Möbel Unique — Canapés personnalisables Paris',
+  },
+  description: 'Configurateur IA de canapés personnalisables.',
+}
+```
+Avec ce pattern, `page.tsx` peut exporter juste `title: "Accueil"` et obtenir "Accueil | Möbel Unique".
+
+### Pattern 3 : Skip link accessibilité
+
+**Ce que c'est :** Lien "Aller au contenu" visible uniquement au focus clavier, permettant de bypasser le header (WCAG 2.4.1).
+
+```typescript
+// Dans Header.tsx — avant le <header>
+<a href="#main-content" className={styles.skipLink}>
+  Aller au contenu
+</a>
+```
+
+```css
+/* Header.module.css */
+.skipLink {
+  position: absolute;
+  top: -100%;
+  left: var(--spacing-md);
+  background: var(--color-primary);
+  color: var(--color-text);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  z-index: 200;
+  /* visible uniquement au focus */
+  transition: top 0.2s ease;
+}
+
+.skipLink:focus {
+  top: var(--spacing-md);
+}
+```
+
+La cible `<main id="main-content">` est dans `page.tsx`.
+
+### Pattern 4 : CSS glassmorphism avec compatibilité Safari
+
+**Ce que c'est :** Effet de transparence floutée sur le header scrollé.
+
+```css
+/* Header.module.css */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-height); /* 64px */
+  z-index: 100;
+  background: transparent;
+  color: var(--color-background);
+  transition:
+    background var(--transition-fast),
+    box-shadow var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.scrolled {
+  background: rgba(252, 249, 245, 0.92);
+  -webkit-backdrop-filter: blur(20px); /* Safari < 17, iOS */
+  backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-header);
+  color: var(--color-text);
+}
+```
+
+**Attention texture du glassmorphism :** `rgba(252, 249, 245, 0.92)` = `--surface` (#FCF9F5) avec opacity. Une valeur inférieure à 0.85 rend le texte derrière trop visible et nuit à la lisibilité.
+
+### Anti-patterns à éviter
+
+- **`'use client'` sur page.tsx** : Désactive SSR pour toute la page. Header doit porter seul la directive.
+- **Styles inline pour la transition** : `style={{ background: scrolled ? '#fff' : 'transparent' }}` — pas de GPU acceleration, recalcul à chaque render.
+- **Header dans layout.tsx** : Exposerait le header public sur `/admin/*`.
+- **`window.scrollY` dans l'initialisation du state** : `ReferenceError: window is not defined` côté serveur.
+- **`preload` et `priority` ensemble** : Next.js 16.2.1 lance une erreur (vérifié dans `get-img-props.js`).
 
 ---
 
 ## Don't Hand-Roll
 
-| Probleme | Ne pas construire | Utiliser | Pourquoi |
-|----------|-------------------|----------|----------|
-| Optimisation PNG logo | Servir les 130KB bruts | next/image path string | Conversion WebP automatique, resize adaptatif, cache |
-| Conversion PNG→ICO | Script Node.js custom | sips (natif macOS) | Confirme disponible, 0 installation requise |
-| Tags favicon/apple-touch dans `<head>` | Balises `<link>` manuelles dans layout.tsx | Fichiers convention `src/app/` | Next.js genere les bons attributs automatiquement |
-| Web manifest | `public/manifest.json` statique | `src/app/manifest.ts` TypeScript | Type-safe MetadataRoute.Manifest, `<link>` genere auto |
+| Problème | Ne pas construire | Utiliser plutôt | Pourquoi |
+|----------|-------------------|-----------------|----------|
+| Transition CSS | Système de transition JS custom | CSS transition + classe conditionnelle | GPU-acceleré, 0 JavaScript supplémentaire |
+| Font loading | Imports Google Fonts manuel | `next/font/google` (déjà configuré) | Optimisation automatique, pas de flash FOUT |
+| Scroll throttle complexe | rAF + ticking pattern | Comparaison de valeur avant setState | Cas binaire (true/false), la comparaison suffit |
+| Metadata SEO | `<head>` manuel avec `<title>` | `export const metadata` Next.js | Gestion automatique deduplication, Open Graph |
 
 ---
 
-## Inventaire des assets brand
+## Common Pitfalls
 
-### Assets source (dossier non git : fichier-mobelunique/)
+### Pitfall 1 : `window is not defined` au SSR
+**Ce qui se passe :** `useState(window.scrollY > 80)` crash au build — `window` n'existe pas côté serveur.
+**Pourquoi :** Même avec `'use client'`, Next.js fait une passe SSR pour générer le HTML initial.
+**Comment éviter :** Toujours initialiser à `false`. Accéder à `window` uniquement dans `useEffect`.
+**Signes d'alerte :** `ReferenceError: window is not defined` au `npm run build`.
 
-| Source | Dimensions | Taille | Destination | Usage |
-|--------|-----------|--------|-------------|-------|
-| `Logo Design/Logo-01.png` | 4168x4167px | 142KB | `public/brand/logo-noir.png` | Header scrolle (fond blanc) |
-| `Logo Design/Logo-04.png` | 4168x4167px | 130KB | `public/brand/logo-blanc.png` | Header transparent (fond sombre) |
-| `Favicon/Favicon-04.png` | 268x267px | 5KB | Base pour `src/app/favicon.ico` et `src/app/icon.png` | Favicon navigateur |
-| `Appicon/Appicon 1024X1024-01.png` | 2134x2134px | 61KB | `src/app/apple-icon.png` (180px) + `public/brand/icon-192.png` + `public/brand/icon-512.png` | Apple touch icon + manifest PWA |
+### Pitfall 2 : Hydration mismatch au rechargement milieu de page
+**Ce qui se passe :** HTML serveur a header transparent, mais si rechargement > 80px, React détecte discordance.
+**Pourquoi :** Le serveur ne connaît pas la position de scroll du client.
+**Comment éviter :** Pour ce projet, `useState(false)` + `useEffect` est suffisant. Le flash est de ~50ms, imperceptible. Si visible en production, ajouter le pattern `mounted` : initialiser classes CSS uniquement après `useEffect(() => setMounted(true), [])`.
+**Signes d'alerte :** Warning React "Hydration failed because the initial UI does not match" en console.
 
-**Note canvas logo :** Les logos sont sur un canvas quasi-carre 4168x4167. Le logo visible (monogramme cursif + texte) est landscape avec du clear space autour. Specifier `width={144} height={144}` sur `<Image>` (ratio 1:1 = ratio canvas) + CSS `height: 36px; width: auto; object-fit: contain` est l'approche la plus fiable pour eviter tout recadrage.
+### Pitfall 3 : Fuite mémoire — listener sans cleanup
+**Ce qui se passe :** Le scroll listener continue après démontage du composant.
+**Pourquoi :** Sans `return () => removeEventListener(...)` dans `useEffect`, le listener vit dans `window` indéfiniment.
+**Comment éviter :** Toujours retourner une fonction de cleanup. Passer la même référence de fonction à `add` et `remove`.
+**Signes d'alerte :** Warning "Can't perform a React state update on an unmounted component".
+
+### Pitfall 4 : page.module.css template pollué
+**Ce qui se passe :** Le `page.module.css` existant définit `--background`, `--foreground` (shadow des tokens globals), un block `@media (prefers-color-scheme: dark)`, et référence `--font-geist-sans` non chargée.
+**Pourquoi :** C'est le template généré par `create-next-app`, jamais nettoyé.
+**Comment éviter :** Supprimer entièrement et recréer un `page.module.css` minimal.
+**Signes d'alerte :** Fond noir en dark mode système, ou texte blanc sur fond blanc.
+
+### Pitfall 5 : Titre "Back-office" hérité sur la page publique
+**Ce qui se passe :** layout.tsx a `title: "Möbel Unique — Back-office"` — la page publique hérite ce titre si elle ne définit pas le sien.
+**Pourquoi :** Le metadata de `layout.tsx` est le fallback pour toutes les routes sans metadata propre.
+**Comment éviter :** Exporter `metadata` depuis `page.tsx` ET mettre à jour le default dans `layout.tsx`.
+**Signes d'alerte :** Onglet navigateur affiche "Back-office" sur `/`.
+
+### Pitfall 6 : `backdrop-filter` sans préfixe `-webkit-`
+**Ce qui se passe :** L'effet glassmorphism n'apparaît pas sur Safari iOS (Chrome OS X < 17).
+**Pourquoi :** Safari < 17 nécessite le préfixe vendor.
+**Comment éviter :** Toujours écrire les deux lignes : `-webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);`.
+**Signes d'alerte :** Header opaque sur iPhone/Mac Safari sans l'effet de flou.
+
+### Pitfall 7 : Scroll listener sans `{ passive: true }`
+**Ce qui se passe :** Le navigateur attend que le handler JS termine avant de laisser défiler — lag perceptible sur mobile.
+**Pourquoi :** Sans `passive`, le browser attend un potentiel `preventDefault()`.
+**Comment éviter :** `window.addEventListener('scroll', handler, { passive: true })`.
+**Signes d'alerte :** Chrome DevTools > Performance affiche "Added non-passive event listener to a scroll-blocking event".
+
+### Pitfall 8 : Ancres masquées par le header fixe
+**Ce qui se passe :** Le CTA du hero cible `#comment-ca-marche` mais le titre de la section se retrouve derrière le header de 64px.
+**Pourquoi :** Le scroll natif ne tient pas compte d'un header fixe.
+**Comment éviter :** `scroll-padding-top: var(--header-height)` sur `html` dans globals.css.
+**Signes d'alerte :** Titre de section coupé derrière le header après clic sur une ancre.
 
 ---
 
-## Pitfalls communs
+## Code Examples
 
-### Pitfall 1 : Conflit metadata API + fichiers convention
+### globals.css — Ajouts Phase 1
 
-**Ce qui se passe :** Si `layout.tsx` contient `metadata.icons` OU `metadata.manifest` en meme temps que des fichiers `src/app/favicon.ico` / `src/app/icon.png`, Next.js genere des balises `<link>` dupliques.
-
-**Comment eviter :** Choisir l'approche fichiers-convention uniquement. Ne pas toucher `metadata.icons` dans `layout.tsx`. Verifier avec `curl localhost:3000 | grep 'rel="icon"'` apres implementation.
-
-### Pitfall 2 : Logo visible rogne ou distordu
-
-**Ce qui se passe :** Canvas source 1:1 mais logo visible est ~3:1. Si `width=160 height=40` est specifie sur `<Image>`, next/image suppose un ratio 4:1 et peut renvoyer une image mal cadree selon la largeur de viewport.
-
-**Comment eviter :** Specifier `width={144} height={144}` (1:1 = ratio du canvas source) + CSS `height: 36px; width: auto; object-fit: contain`. Le logo entier est preserve avec le clear space naturel.
-
-### Pitfall 3 : Flash logo blanc au rechargement a mi-page
-
-**Ce qui se passe :** SSR rend `scrolled = false` donc logo blanc. Rechargement en milieu de page = bref flash logo blanc avant hydration.
-
-**Statut :** Accepte dans ce projet (cf. STATE.md). Ne pas ajouter de pattern `mounted`. Le flash est invisible dans 95% des cas d'usage normaux (acces via URL depuis Shopify = toujours depuis le haut).
-
-### Pitfall 4 : favicon.ico dans public/ au lieu de src/app/
-
-**Ce qui se passe :** Le fichier est accessible via URL mais Next.js n'injecte pas le `<link rel="icon">` tag automatiquement.
-
-**Comment eviter :** Placer tous les fichiers convention (`favicon.ico`, `icon.png`, `apple-icon.png`, `manifest.ts`) dans `src/app/` uniquement.
-
-### Pitfall 5 : sips ICO mono-taille
-
-**Impact :** sips produit un ICO a une seule taille (32x32). Acceptable pour navigateurs modernes. L'ICO multi-taille n'est necessaire que pour IE11 et bookmarks Windows anciens — hors scope.
-
----
-
-## Script de preparation des assets
-
-```bash
-# Executer depuis la racine du projet (/Users/salah/Desktop/projetmobelunique)
-
-# 1. Dossier public/brand/
-mkdir -p public/brand
-
-# 2. Logos header
-cp "fichier-mobelunique/Logo Design/Logo-01.png" public/brand/logo-noir.png
-cp "fichier-mobelunique/Logo Design/Logo-04.png" public/brand/logo-blanc.png
-
-# 3. favicon.ico (32x32, convention app/)
-sips -z 32 32 "fichier-mobelunique/Favicon/Favicon-04.png" --out /tmp/mu-favicon-32.png
-sips -s format ico /tmp/mu-favicon-32.png --out src/app/favicon.ico
-rm /tmp/mu-favicon-32.png
-
-# 4. icon.png (32x32, convention app/)
-sips -z 32 32 "fichier-mobelunique/Favicon/Favicon-04.png" --out src/app/icon.png
-
-# 5. apple-icon.png (180x180, convention app/)
-sips -z 180 180 "fichier-mobelunique/Appicon/Appicon 1024X1024-01.png" --out src/app/apple-icon.png
-
-# 6. Icones manifest PWA
-sips -z 192 192 "fichier-mobelunique/Appicon/Appicon 1024X1024-01.png" --out public/brand/icon-192.png
-sips -z 512 512 "fichier-mobelunique/Appicon/Appicon 1024X1024-01.png" --out public/brand/icon-512.png
-
-# 7. Supprimer assets Next.js par defaut (D-12)
-rm public/file.svg public/globe.svg public/next.svg public/vercel.svg public/window.svg
+```css
+/* À ajouter dans le bloc html {} existant */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;                       /* AJOUT Phase 1 */
+  scroll-padding-top: var(--header-height);      /* AJOUT Phase 1 — 64px */
+}
 ```
+
+Note : le bloc `html {}` existe déjà dans globals.css avec `-webkit-font-smoothing`. Il faut y ajouter les 2 propriétés, pas créer un nouveau bloc.
+
+### Header.module.css — Structure complète
+
+```css
+/* Lien skip accessibilité */
+.skipLink {
+  position: absolute;
+  top: -100%;
+  left: var(--spacing-md);
+  background: var(--color-primary);
+  color: var(--color-text);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  z-index: 200;
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+
+.skipLink:focus {
+  top: var(--spacing-md);
+}
+
+/* Header principal */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-height); /* 64px */
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--container-padding-mobile);
+  background: transparent;
+  color: var(--color-background); /* texte blanc sur hero */
+  transition:
+    background var(--transition-fast),
+    box-shadow var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.scrolled {
+  background: rgba(252, 249, 245, 0.92);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-header);
+  color: var(--color-text); /* texte sombre après scroll */
+}
+
+/* Logo monogramme MU */
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--color-primary);
+  color: var(--color-text);
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  text-decoration: none;
+  color: inherit;
+}
+
+.brandName {
+  font-weight: 600;
+  font-size: var(--font-size-lg);
+  letter-spacing: -0.01em;
+}
+
+/* Lien retour Shopify */
+.shopifyLink {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.85;
+  transition: opacity var(--transition-fast);
+}
+
+.shopifyLink:hover {
+  opacity: 1;
+}
+
+/* Responsive */
+@media (min-width: 1024px) {
+  .header {
+    padding: 0 var(--container-padding-desktop);
+  }
+}
+
+@media (min-width: 1280px) {
+  .header {
+    padding: 0 var(--container-padding-large);
+  }
+}
+```
+
+### layout.tsx — Metadata mise à jour (Option A recommandée)
+
+```typescript
+import type { Metadata } from "next";
+import { Montserrat } from "next/font/google";
+import "./globals.css";
+
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+export const metadata: Metadata = {
+  title: {
+    template: '%s | Möbel Unique',
+    default: 'Möbel Unique — Canapés personnalisables Paris',
+  },
+  description: 'Configurateur IA de canapés personnalisables. Visualisez votre canapé dans le tissu de votre choix.',
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="fr" className={montserrat.variable}>
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+### page.tsx — Squelette Phase 1
+
+```typescript
+// src/app/page.tsx
+import type { Metadata } from 'next'
+import { Header } from '@/components/public/Header/Header'
+import styles from './page.module.css'
+
+export const metadata: Metadata = {
+  title: 'Accueil',
+  description: 'Visualisez votre canapé personnalisé avec notre configurateur IA. Choisissez votre tissu et simulez le rendu dans votre salon.',
+}
+
+export default function HomePage() {
+  return (
+    <div className={styles.page}>
+      <Header />
+      <main id="main-content" className={styles.main}>
+        {/* Phase 2 : <Hero /> */}
+        {/* Phase 3 : <HowItWorks /> */}
+      </main>
+    </div>
+  )
+}
+```
+
+Avec le `title.template` de layout.tsx, ceci affichera "Accueil | Möbel Unique".
 
 ---
 
 ## State of the Art
 
-| Ancienne approche | Approche actuelle | Quand change | Impact |
-|-------------------|------------------|--------------|--------|
-| `<link rel="icon">` manuel dans `_document.tsx` (Pages Router) | Fichiers convention `favicon.ico`, `icon.png` dans `app/` | Next.js 13.3 (App Router) | Zero config, tags generes automatiquement |
-| ICO multi-taille obligatoire | ICO mono-taille + `icon.png` moderne | ~2021 (navigateurs modernes) | Workflow simplifie — sips suffit |
-| `public/manifest.json` statique | `app/manifest.ts` TypeScript | Next.js 13.3 | Type-safe, `<link>` auto |
+| Ancienne approche | Approche actuelle | Changé | Impact |
+|-------------------|-------------------|--------|--------|
+| `priority` seul pour images LCP | `priority` OU `preload` (pas les deux) | Next.js 16+ | `preload` est le nouveau nom — `priority` fonctionne encore mais ne peut pas coexister avec `preload` |
+| `100vh` pour sections plein écran | `100svh` avec fallback | CSS 2022 | Corrige le bug barre d'adresse mobile iOS/Chrome — s'applique au Hero (Phase 2) |
+| `window.scroll` + throttle manuel | `window.scroll` avec comparaison avant setState | React 19 | Suffisant pour état binaire — moins verbeux que rAF |
+| Export default pour composants | Export nommé (convention projet) | Établi | Cohérence avec composants admin existants |
 
-**Deprecie :**
-- Pages Router `_document.tsx` avec `<Head>` manuel — remplace par conventions App Router
-- Favicon multi-taille complexe — les navigateurs modernes preferent PNG ou SVG
+**Deprecated/obsolète :**
+- `window.scroll` avec `requestAnimationFrame` ticking : sur-ingénierie pour un état binaire. La comparaison avant setState suffit.
+- Pattern `typeof window !== 'undefined'` pour guard état initial : provoque hydration mismatch, ne pas utiliser.
 
 ---
 
-## Questions ouvertes
+## Open Questions
 
-1. **Dimensions CSS exactes du logo dans le header**
-   - Ce que l'on sait : header-height = 64px, clear space = hauteur du "M" selon Brand Style Guide
-   - Ce qui est flou : la hauteur exacte du "M" dans le logo source (necessite inspection visuelle)
-   - Recommandation : commencer avec `height: 36px` (56% de 64px), ajuster visuellement
+1. **URL du lien retour Shopify**
+   - Ce qu'on sait : Le header doit avoir un lien "Retour à la boutique" vers Shopify
+   - Ce qui est flou : L'URL Shopify réelle n'est pas documentée dans le projet. Faut-il une variable d'environnement `NEXT_PUBLIC_SHOPIFY_URL` ?
+   - Recommandation : Créer une constante dans `src/lib/constants.ts` avec `export const SHOPIFY_URL = process.env.NEXT_PUBLIC_SHOPIFY_URL ?? '#'`. Utiliser `'#'` comme fallback temporaire.
 
-2. **Transition swap logo blanc/noir**
-   - Ce que l'on sait : la transition couleur du header est 300ms ease (`--transition-fast`)
-   - Ce qui est flou : est-ce que le swap d'image doit aussi etre anime (cross-fade) ou instantane ?
-   - Recommandation : instantane par defaut (le header lui-meme s'anime, le logo suit). Ajouter `transition: opacity 0.3s ease` sur `.logoImage` si le flash est visible en test
+2. **Comportement du texte du header sur fond transparent**
+   - Ce qu'on sait : Sur le hero (fond sombre avec image), le texte doit être blanc. Après scroll, il doit être sombre.
+   - Ce qui est flou : Si Phase 2 n'est pas encore implémentée, le hero sera vide et le fond de page sera blanc — le header transparent avec texte blanc sera invisible.
+   - Recommandation : Pour Phase 1, appliquer temporairement `color: var(--color-text)` par défaut (texte sombre) et ignorer l'état "blanc sur fond d'image" jusqu'à Phase 2.
 
 ---
 
 ## Environment Availability
 
-| Dependance | Requise pour | Disponible | Version | Fallback |
-|------------|-------------|------------|---------|----------|
-| sips | Conversion PNG→ICO, resize | oui | macOS natif (Darwin 24.6.0, confirme) | to-ico npm v1.1.5 |
-| sharp | Optimisation next/image (build) | oui | ^0.34.5 | — |
-| next/image | Logo header optimise | oui | integre Next.js 16.2.1 | — |
-| fichier-mobelunique/ | Assets brand source | oui (non git, confirme present) | — | Bloquant si absent |
-
-**Aucune dependance manquante bloquante.**
+Step 2.6: SKIPPED — Phase 1 est une phase code/CSS pure sans dépendances externes. Node.js 22.22.1 disponible, Next.js 16.2.1 installé, aucun outil CLI additionnel requis.
 
 ---
 
 ## Validation Architecture
 
-> workflow.nyquist_validation absent de .planning/config.json — traite comme enabled.
+> `workflow.nyquist_validation` absent de config.json — section incluse.
 
-### Cadre de test
+### Test Framework
 
-| Propriete | Valeur |
+| Propriété | Valeur |
 |-----------|--------|
-| Framework | Aucun framework de test installe (pas de jest.config, vitest.config detectes) |
-| Config | — |
-| Commande rapide | `npx tsc --noEmit` + `npm run build` |
-| Suite complete | `npx tsc --noEmit` |
+| Framework | Aucun framework de test configuré dans le projet |
+| Config file | Aucun (pas de jest.config.*, vitest.config.*, pytest.ini) |
+| Quick run command | `npx tsc --noEmit` (vérification types) |
+| Full suite command | `npx tsx scripts/audit-full.ts` (44 checks) + `npm run build` |
 
-### Map Requirements → Tests
+### Phase Requirements → Test Map
 
-| ID | Comportement | Type | Commande automatisee | Fichier existe ? |
-|----|-------------|------|---------------------|-----------------|
-| HEAD-01 | Logo PNG s'affiche dans le header | Visuel | `npm run build` sans erreur TypeScript | Header.tsx (a modifier) |
-| HEAD-01 | Logo blanc quand header transparent | Visuel manuel | Inspection browser `localhost:3000` scroll en haut | N/A |
-| HEAD-01 | Logo noir quand header scrolle 80px+ | Visuel manuel | Inspection browser `localhost:3000` scroll bas | N/A |
-| D-08 | URL Shopify reelle dans lien droit | Integration | `curl -s localhost:3000 \| grep 'mobelunique.fr'` | N/A |
-| D-04 | favicon.ico genere le bon tag `<link>` | Integration | `curl -s localhost:3000 \| grep 'favicon'` | N/A (a creer) |
-| D-05 | apple-icon.png genere `<link rel="apple-touch-icon">` | Integration | `curl -s localhost:3000 \| grep 'apple-touch-icon'` | N/A (a creer) |
-| D-06 | manifest.ts genere `<link rel="manifest">` | Integration | `curl -s localhost:3000 \| grep 'manifest'` | N/A (a creer) |
-| D-12 | Assets Next.js par defaut supprimes de public/ | Filesystem | `ls public/*.svg 2>/dev/null \| wc -l` doit retourner 0 | Oui (5 fichiers a supprimer) |
+| Req ID | Comportement | Type de test | Commande automatisée | Fichier existe ? |
+|--------|--------------|--------------|---------------------|-----------------|
+| FOND-01 | page.tsx ne contient plus le template Next.js | Build smoke | `npm run build` | ✅ (build vérifie l'absence d'erreurs) |
+| FOND-02 | Onglet navigateur affiche le bon titre SEO | Manuel | Vérification navigateur | N/A |
+| FOND-03 | Responsive 4 breakpoints actifs | Manuel | DevTools responsive mode | N/A |
+| FOND-04 | scroll-padding-top actif dans globals.css | Manuel | Clic sur ancre + vérifier offset | N/A |
+| HEAD-01 | Header visible, fixe, logo MU + lien Shopify | Manuel | Navigation visuelle | N/A |
+| HEAD-02 | Transition transparent→blanc au scroll 80px | Manuel | Scroll lent > 80px | N/A |
+| HEAD-03 | Glassmorphism actif sur Safari + Chrome | Manuel (cross-browser) | Test sur Safari iOS | N/A |
+| HEAD-04 | Skip link visible au focus Tab | Manuel (accessibilité) | Tab key sur la page | N/A |
+
+### Type check continu
+
+```bash
+npx tsc --noEmit   # Après chaque fichier TypeScript modifié
+npm run build      # Validation finale de phase
+```
 
 ### Wave 0 Gaps
 
-Aucun test unitaire requis pour cette phase (manipulation d'assets et modification composant visuel). Les validations `curl` et `npm run build` sont executables sans framework.
+Aucun framework de test automatisé n'est configuré et les requirements de Phase 1 sont tous vérifiables visuellement ou par build. Le gap principal est :
+
+- [ ] Validation TypeScript automatique : `npx tsc --noEmit` après chaque composant
+- [ ] Build smoke : `npm run build` avant de déclarer la phase terminée
+
+*(Pas de test unitaire à créer — pas d'interactions testables automatiquement dans cette phase)*
 
 ---
 
 ## Sources
 
-### Primaires (confiance HIGH)
+### Primaires (HIGH confidence)
 
-- [nextjs.org/docs/app/api-reference/file-conventions/metadata/app-icons](https://nextjs.org/docs/app/api-reference/file-conventions/metadata/app-icons) — conventions favicon, icon, apple-icon (v16.2.1, date doc 2026-03-25)
-- [nextjs.org/docs/app/api-reference/file-conventions/metadata/manifest](https://nextjs.org/docs/app/api-reference/file-conventions/metadata/manifest) — manifest.ts TypeScript (v16.2.1, date doc 2026-03-25)
-- [nextjs.org/docs/app/api-reference/components/image](https://nextjs.org/docs/app/api-reference/components/image) — next/image props src, width, height, priority (v16.2.1, date doc 2026-03-25)
-- Test live sips sur la machine (Darwin 24.6.0) — conversion PNG→ICO confirmee, ICO 4414 bytes genere
-- Dimensions PNG lues directement depuis les fichiers source (bytes 16-23 header PNG) — confirme 4168x4167 logos, 268x267 favicon, 2134x2134 appicons
+- Code source analysé directement : `src/app/globals.css`, `src/app/layout.tsx`, `src/app/page.tsx`, `src/components/admin/AdminHeader.tsx`
+- `node_modules/next/dist/client/image-component.d.ts` — confirmé : `priority` et `preload` coexistent en Next.js 16.2.1 mais ne peuvent pas être utilisés ensemble
+- `node_modules/next/dist/shared/lib/get-img-props.js` — confirmé : erreur lancée si `preload && priority` simultanément
+- `.planning/research/PITFALLS.md` — pitfalls vérifiés cross-project
+- `.planning/research/STACK.md` — stack confirmé, aucune dépendance supplémentaire
+- `.planning/research/ARCHITECTURE.md` — architecture patterns confirmés
 
-### Secondaires (confiance MEDIUM)
+### Secondaires (MEDIUM confidence)
 
-- [unwrite.co/blog/nextjs-15-favicon-app-router-guide/](https://unwrite.co/blog/nextjs-15-favicon-app-router-guide/) — guide pratique favicon Next.js 15/16, verifie contre docs officielles
+- `.planning/maquette/wireframe-page-unique.md` — spécifications Header (seuil 80px, z-index 100, transition 0.3s, texte blanc→sombre)
+- `.planning/REQUIREMENTS.md` — requirements FOND-01 à HEAD-04 avec critères de succès
+- `.planning/ROADMAP.md` — Phase 1 = fondation CSS + Header uniquement
 
-### Tertiaires (confiance LOW — non utilisees dans les recommandations)
+### Points vérifiés vs hypothèses
 
-- WebSearch "sips macOS PNG to ICO" — sources contradictoires sur le support ICO natif (remplacees par test live)
+| Affirmation | Statut | Source |
+|-------------|--------|--------|
+| `priority` est deprecated en Next.js 16 | **FAUX** — `priority` fonctionne, mais `priority + preload` ensemble throw une erreur | `get-img-props.js` inspecté |
+| CSS Modules support `@keyframes` natif | **VRAI** | Comportement Next.js 16 standard |
+| `--header-height: 64px` déjà défini | **VRAI** | `globals.css` ligne 78 |
+| `--transition-fast: 300ms ease` déjà défini | **VRAI** | `globals.css` ligne 81 |
+| `--shadow-header` déjà défini | **VRAI** | `globals.css` ligne 70 |
+| layout.tsx a le titre "Back-office" | **VRAI** | `layout.tsx` ligne 12 |
+| `page.module.css` contient dark mode media query | **VRAI** | `page.module.css` inspecté |
 
 ---
 
 ## Metadata
 
 **Confidence breakdown :**
-- Conventions Next.js favicon/manifest : HIGH — documentation officielle v16.2.1 consultee le 2026-03-25
-- next/image props conditionnel : HIGH — documentation officielle v16.2.1
-- Conversion sips PNG→ICO : HIGH — confirme par test live sur cette machine
-- Dimensions des assets brand : HIGH — lues directement depuis les bytes PNG
+- Standard stack : HIGH — code source inspecté directement, aucune incertitude
+- Architecture : HIGH — patterns confirmés dans le code existant (AdminHeader, layout)
+- Pitfalls : HIGH — vérifiés dans le code source et la recherche projet préexistante
+- Metadata Next.js : HIGH — type definitions inspectées dans node_modules
 
-**Research date :** 2026-03-27
-**Valide jusqu'a :** 2026-04-27 (stack stable, pas de changements breaking attendus sur Next.js 16.x)
+**Research date :** 2026-03-26
+**Valid until :** 2026-06-26 (stack stable, Next.js 16 LTS)

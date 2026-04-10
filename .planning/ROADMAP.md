@@ -53,6 +53,7 @@
 - [x] **Phase 13: NanoBananaService** - Implémentation réelle du service IA Gemini avec retry, timeout, et deux chemins d'entrée image (completed 2026-04-08)
 - [x] **Phase 14: Audit Code** - Audit complet du projet (sécurité, performance, dead code, bonnes pratiques) (completed 2026-04-09)
 - [x] **Phase 15: Tests Unitaires Vitest** - Couverture tests unitaires et intégration (NanoBanana, utils, routes) (completed 2026-04-09)
+- [ ] **Phase 15.1: Tests Intégration Supabase** - Tests d'intégration contre Supabase CLI local (20 routes, auth réelle, RLS, Storage)
 - [ ] **Phase 16: Tests E2E + Corrections Audit** - Tests Playwright flux complets et corrections des problèmes identifiés
 
 ## Phase Details
@@ -64,7 +65,7 @@
 **Success Criteria** (what must be TRUE):
   1. Quand NANO_BANANA_API_KEY est définie, generate() appelle Gemini (pas Sharp mock) et retourne un buffer JPEG valide
   2. Une image simulate est redimensionnée à max 1024px avant envoi — Gemini ne reçoit jamais de payload > 20 Mo
-  3. Un appel Gemini qui retourne 429 est automatiquement retenté (1s → 2s → 4s) sans erreur visible côté client
+  3. Un appel Gemini qui retourne 429 est automatiquement retenté (1s → 2s → 4s) sans erreur visible c��té client
   4. Un finishReason IMAGE_SAFETY retourne une erreur explicite sans crash (pas d'accès à parts[0].inlineData.data)
   5. La route generate-all ne timeout pas sur Vercel (maxDuration = 300 exporté)
 **Plans**: 2 plans
@@ -105,13 +106,23 @@ Plans:
 
 ### Phase 15.1: Tests Intégration Supabase (INSERTED)
 
-**Goal:** [Urgent work - to be planned]
-**Requirements**: TBD
+**Goal:** Les 20 routes API sont testées en intégration contre une instance Supabase locale (Docker CLI) avec auth réelle (JWT), vérification RLS, et opérations Storage
+**Requirements**: D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-12
 **Depends on:** Phase 15
-**Plans:** 2/2 plans complete
+**Success Criteria** (what must be TRUE):
+  1. supabase start démarre une instance locale avec les 4 tables et 4 buckets
+  2. npm run test:integration passe au vert avec des tests contre la vraie BDD Supabase locale
+  3. requireAdmin() avec un vrai JWT (signInWithPassword) retourne 200 sur les routes admin
+  4. Les routes publiques filtrent is_active=true (RLS vérifié en intégration)
+  5. Les uploads Storage et suppressions cascade fonctionnent dans les 4 buckets
+  6. Le rate-limit simulate retourne 429 après 5 appels rapides
+**Plans:** 4 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 15.1 to break down)
+- [ ] 15.1-01-PLAN.md — Infrastructure Supabase CLI + Vitest projects + helpers
+- [ ] 15.1-02-PLAN.md — Routes publiques + auth réelle + RLS
+- [ ] 15.1-03-PLAN.md — CRUD admin modèles + tissus + Storage
+- [ ] 15.1-04-PLAN.md — Visuels workflow + génération IA + simulate + middleware
 
 ### Phase 16: Tests E2E + Corrections Audit
 **Goal**: Les parcours utilisateur critiques sont couverts par des tests E2E Playwright et les problèmes de l'audit sont corrigés
@@ -143,6 +154,7 @@ Plans:
 | 13. NanoBananaService | v11.0 | 2/2 | Complete   | 2026-04-08 |
 | 14. Audit Code | v11.0 | 2/2 | Complete    | 2026-04-09 |
 | 15. Tests Unitaires Vitest | v11.0 | 2/2 | Complete    | 2026-04-09 |
+| 15.1. Tests Int��gration Supabase | v11.0 | 0/4 | In progress | - |
 | 16. Tests E2E + Corrections Audit | v11.0 | 0/? | Not started | - |
 
 ---

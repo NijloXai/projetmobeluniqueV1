@@ -190,7 +190,7 @@ export class NanoBananaService implements IAService {
       }
     }
 
-    throw lastError!
+    throw lastError ?? new Error('Echec de la generation apres tous les essais')
   }
 
   // -------------------------------------------------------------------------
@@ -218,6 +218,9 @@ export class NanoBananaService implements IAService {
       )
     }
     const buffer = await res.arrayBuffer()
+    if (buffer.byteLength > 20 * 1024 * 1024) {
+      throw new Error('Image source trop volumineuse (max 20 Mo)')
+    }
     const data = Buffer.from(buffer).toString('base64')
     const mimeType = res.headers.get('content-type') || 'image/jpeg'
     return { inlineData: { mimeType, data } }

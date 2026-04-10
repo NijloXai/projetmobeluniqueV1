@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/supabase/admin'
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
 /**
  * PUT /api/admin/visuals/[id]/publish
  * Publie un visuel généré (is_published = true).
@@ -14,6 +16,9 @@ export async function PUT(
   if (authError) return authError
 
   const { id } = await params
+  if (!UUID_REGEX.test(id)) {
+    return NextResponse.json({ error: 'ID invalide' }, { status: 400 })
+  }
 
   // Vérifier que le visuel existe et récupérer son état
   const { data: visual, error: fetchError } = await supabase!

@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v11.0
 milestone_name: Intégration IA Réelle + Audit Qualité
 status: executing
-stopped_at: Phase 15 context gathered
-last_updated: "2026-04-09T09:21:56.700Z"
+stopped_at: Phase 15.1 context gathered
+last_updated: "2026-04-10T09:27:07.130Z"
 last_activity: 2026-04-09
 progress:
   total_phases: 5
@@ -72,6 +72,6 @@ _(vide)_
 
 ## Session Continuity
 
-Last session: 2026-04-09T07:24:04.737Z
-Stopped at: Phase 15 context gathered
-Resume file: .planning/phases/15-tests-unitaires-vitest/15-CONTEXT.md
+Last session: 2026-04-10T09:27:07.128Z
+Stopped at: Phase 15.1 context gathered
+Resume file: .planning/phases/15.1-tests-int-gration-supabase/15.1-CONTEXT.md

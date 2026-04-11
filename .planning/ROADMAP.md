@@ -54,7 +54,7 @@
 - [x] **Phase 14: Audit Code** - Audit complet du projet (sécurité, performance, dead code, bonnes pratiques) (completed 2026-04-09)
 - [x] **Phase 15: Tests Unitaires Vitest** - Couverture tests unitaires et intégration (NanoBanana, utils, routes) (completed 2026-04-09)
 - [x] **Phase 15.1: Tests Intégration Supabase** - Tests d'intégration contre Supabase CLI local (20 routes, auth réelle, RLS, Storage) (completed 2026-04-10)
-- [ ] **Phase 16: Tests E2E + Corrections Audit** - Tests Playwright flux complets et corrections des problèmes identifiés
+- [x] **Phase 16: Tests E2E + Corrections Audit** - Tests Playwright flux complets et corrections des problèmes identifiés (completed 2026-04-11)
 
 ## Phase Details
 
@@ -155,7 +155,7 @@ Plans:
 | 14. Audit Code | v11.0 | 2/2 | Complete    | 2026-04-09 |
 | 15. Tests Unitaires Vitest | v11.0 | 2/2 | Complete    | 2026-04-09 |
 | 15.1. Tests Int��gration Supabase | v11.0 | 4/4 | Complete    | 2026-04-10 |
-| 16. Tests E2E + Corrections Audit | v11.0 | 0/? | Not started | - |
+| 16. Tests E2E + Corrections Audit | v11.0 | 3/3 | Complete    | 2026-04-11 |
 
 ---
 *Roadmap created: 2026-03-26*

@@ -11,11 +11,11 @@ import { NanoBananaService } from './nano-banana'
 
 export function getIAService(): IAService {
   if (process.env.NANO_BANANA_API_KEY) {
-    console.log('[IA] Using NanoBanana provider')
+    console.info('[IA] Using NanoBanana provider')
     return new NanoBananaService()
   }
 
-  console.log('[IA] Using mock provider')
+  console.info('[IA] Using mock provider')
   return new MockIAService()
 }
 

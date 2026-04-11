@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/supabase/admin'
 import { getIAService } from '@/lib/ai'
 import { ImageSafetyError } from '@/lib/ai/nano-banana'
+import { generateSchema } from '@/lib/schemas'
 
 /**
  * POST /api/admin/generate
@@ -14,7 +15,7 @@ export async function POST(request: NextRequest) {
   const { supabase, error: authError } = await requireAdmin()
   if (authError) return authError
 
-  let body: { model_id?: string; model_image_id?: string; fabric_id?: string }
+  let body: unknown
   try {
     body = await request.json()
   } catch {
@@ -24,14 +25,14 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const { model_id, model_image_id, fabric_id } = body
-
-  if (!model_id || !model_image_id || !fabric_id) {
+  const parseResult = generateSchema.safeParse(body)
+  if (!parseResult.success) {
     return NextResponse.json(
-      { error: 'Les champs model_id, model_image_id et fabric_id sont requis.' },
+      { error: parseResult.error.issues[0]?.message ?? 'Donnees invalides' },
       { status: 400 }
     )
   }
+  const { model_id, model_image_id, fabric_id } = parseResult.data
 
   try {
     // Récupérer le modèle (besoin du slug pour le chemin storage + nom pour le prompt)
@@ -159,7 +160,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log(
+    console.info(
       `[POST /api/admin/generate] Généré en ${duration}ms, ${result.imageBuffer.length} octets — ${model.name} / ${fabric.name} / ${modelImage.view_type}`
     )
 

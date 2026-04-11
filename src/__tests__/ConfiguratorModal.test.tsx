@@ -340,8 +340,6 @@ describe('Phase 8 — configurateur', () => {
   })
 
   it('[CONF-05] affiche la photo originale avec badge quand pas de rendu pour le tissu', async () => {
-    const user = userEvent.setup()
-
     // Tissu sans visual associe pour ce modele
     const fabricNoVisual: Fabric = {
       id: 'fabric-modal-no-visual',

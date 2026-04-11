@@ -129,7 +129,7 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
       return 'Format non supporte. Utilisez JPEG, PNG ou HEIC.'
     }
     return null
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleFileSelected = useCallback((file: File) => {
     const error = validateFile(file)
@@ -506,9 +506,8 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
                       src={displayImageUrl}
                       alt={imageAlt}
                       fill
-                      style={{ objectFit: 'cover' }}
                       sizes="(max-width: 640px) 100vw, 50vw"
-                      className={styles.imageMain}
+                      className={`${styles.imageMain} ${styles.coverImage}`}
                     />
                     {isOriginalFallback && (
                       <span className={styles.badgeOriginalPhoto}>Photo originale</span>
@@ -537,8 +536,8 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
                           src={img.image_url}
                           alt=""
                           fill
-                          style={{ objectFit: 'cover' }}
                           sizes="72px"
+                          className={styles.coverImage}
                         />
                       </button>
                     ))}
@@ -593,8 +592,8 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
                             src={fabric.swatch_url!}
                             alt=""
                             fill
-                            style={{ objectFit: 'cover' }}
                             sizes="56px"
+                            className={styles.coverImage}
                           />
                           {fabric.is_premium && (
                             <span className={styles.badgePremium} aria-hidden="true">Premium</span>
@@ -825,7 +824,7 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
                     {/* Bandeau rappel config (D-05) */}
                     <div className={styles.configRecap}>
                       {selectedFabric?.swatch_url ? (
-                        <img src={selectedFabric.swatch_url} alt="" className={styles.configRecapSwatch} />
+                        <Image src={selectedFabric.swatch_url} alt="" width={24} height={24} className={styles.configRecapSwatch} />
                       ) : (
                         <div className={styles.configRecapSwatch} style={{ background: 'var(--surface-container)' }} />
                       )}

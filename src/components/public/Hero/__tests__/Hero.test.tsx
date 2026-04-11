@@ -5,13 +5,11 @@ import { Hero } from '../Hero'
 // Mock motion/react — rendu simple sans animations
 vi.mock('motion/react', () => ({
   motion: {
-    div: ({ children, initial, animate, transition, ...props }: {
-      children: React.ReactNode
-      initial?: Record<string, unknown>
-      animate?: Record<string, unknown>
-      transition?: Record<string, unknown>
-      [key: string]: unknown
-    }) => <div {...props}>{children}</div>,
+    div: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { initial, animate, transition, ...rest } = props
+      return <div {...(rest as React.HTMLAttributes<HTMLDivElement>)}>{children}</div>
+    },
   },
   useReducedMotion: () => false,
 }))

@@ -79,7 +79,7 @@ export class NanoBananaService implements IAService {
       )
     }
     this.ai = new GoogleGenAI({ apiKey })
-    console.log(`[IA] NanoBananaService initialise (modele: ${MODEL})`)
+    console.info(`[IA] NanoBananaService initialise (modele: ${MODEL})`)
   }
 
   // -------------------------------------------------------------------------
@@ -150,7 +150,7 @@ export class NanoBananaService implements IAService {
           .toBuffer()
 
         const duration = Date.now() - startTime
-        console.log(
+        console.info(
           `[IA] generate OK -- model=${MODEL} attempt=${attempt + 1} duration=${duration}ms size=${imageBuffer.length}b viewType=${viewType}`
         )
 
@@ -190,7 +190,7 @@ export class NanoBananaService implements IAService {
       }
     }
 
-    throw lastError!
+    throw lastError ?? new Error('Echec de la generation apres tous les essais')
   }
 
   // -------------------------------------------------------------------------
@@ -218,6 +218,9 @@ export class NanoBananaService implements IAService {
       )
     }
     const buffer = await res.arrayBuffer()
+    if (buffer.byteLength > 20 * 1024 * 1024) {
+      throw new Error('Image source trop volumineuse (max 20 Mo)')
+    }
     const data = Buffer.from(buffer).toString('base64')
     const mimeType = res.headers.get('content-type') || 'image/jpeg'
     return { inlineData: { mimeType, data } }

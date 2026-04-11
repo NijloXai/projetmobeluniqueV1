@@ -43,28 +43,34 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 - [x] **SIM-02**: Generation IA via POST /api/simulate avec watermark -- Validated in Phase 11
 - [x] **SIM-03**: Resultat avec telecharger, partager WhatsApp, CTA Shopify -- Validated in Phase 12
 
+- [x] **IA-REAL-01**: Intégration Nano Banana 2 côté admin (rendus tissu × angle) remplace le mock Sharp -- Validated in Phase 13 (v11.0)
+- [x] **IA-REAL-02**: Intégration Nano Banana 2 côté client (/api/simulate) simulation salon réelle -- Validated in Phase 13 (v11.0)
+- [x] **AUDIT-01**: Audit code complet (sécurité, performance, dead code, bonnes pratiques) -- Validated in Phase 14 (v11.0)
+- [x] **TEST-01**: Tests unitaires + intégration (composants, hooks, utils, API routes) -- Validated in Phase 15.1 (v11.0)
+- [x] **TEST-02**: Tests E2E Playwright (parcours catalogue → configurateur → simulation) -- Validated in Phase 16 (v11.0)
+- [x] **FIX-01**: Corrections des problèmes identifiés par l'audit -- Validated in Phase 16 (v11.0)
+
 ### Active
 
-- [ ] **IA-REAL-01**: Intégration Nano Banana 2 côté admin (rendus tissu × angle) remplace le mock Sharp
-- [ ] **IA-REAL-02**: Intégration Nano Banana 2 côté client (/api/simulate) simulation salon réelle
-- [x] **AUDIT-01**: Audit code complet (sécurité, performance, dead code, bonnes pratiques) -- Validated in Phase 14
-- [x] **TEST-01**: Tests unitaires + intégration (composants, hooks, utils, API routes) -- Validated in Phase 15.1
-- [ ] **TEST-02**: Tests E2E Playwright (parcours catalogue → configurateur → simulation)
-- [ ] **FIX-01**: Corrections des problèmes identifiés par l'audit
+_(aucun requirement actif — utiliser `/gsd:new-milestone` pour definir v12.0)_
 
 ### Out of Scope
 
-- Integration Nano Banana reelle -- M012+ (mock Sharp suffit pour le dev)
 - Tailwind / shadcn/ui -- Interdit par conventions projet
-- Historique/galerie de simulations -- Complexite sans valeur ajoutee pour v10
+- Historique/galerie de simulations -- Complexite sans valeur ajoutee
 - Streaming SSE pour la generation -- Pas necessaire avec le mock
+- Queue asynchrone batch -- Complexite sans valeur pour le volume actuel
+- Multi-providers IA (fallback) -- Un seul provider suffit
+- Integration Nano Banana reelle en CI -- Tests mockent le provider
 
 ## Context
 
-- Backend complet (~5350 lignes, M001-M006)
-- Frontend v7.0-v10.0 complets (shipped) : Header + Hero + HowItWorks + Catalogue + Configurateur tissu + Simulation IA (upload, generation, affichage resultat, telecharger/partager) — 12 phases, 12 plans
+- ~12 500 lignes TypeScript (backend + frontend)
+- v7.0-v11.0 complets (shipped) : 16 phases, 26 plans, 5 milestones
 - Flux E2E complet : page accueil → catalogue → modal configurateur → upload photo → generation IA → resultat → telecharger/partager/commander
-- Factory pattern IA en place : NANO_BANANA_API_KEY set → Nano Banana 2, sinon Mock Sharp
+- Service IA reel Nano Banana 2 (Gemini) en place via factory pattern (fallback Mock Sharp sans API key)
+- 183 tests unitaires Vitest, 71 tests integration Supabase, 18 tests E2E Playwright
+- Audit code complet : 74 findings documentes, corrections appliquees (security headers, UUID, Zod, MIME)
 - Brand assets client integres depuis `fichier-mobelunique/` (logos, favicon, app icons)
 - URL Shopify reelle : https://www.mobelunique.fr/
 - Maquette Stitch "Mobel Unique -- SPA Desktop" (project ID: 16534774796210155266)
@@ -103,6 +109,12 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 | Web Share API + fallback WhatsApp | canShare({files}) sur mobile, wa.me sur desktop | ✓ Good |
 | Boutons dupliques mobile/desktop | CSS hide/show par breakpoint, pas de JS resize listener | ✓ Good |
 | Mock Sharp pour dev | Service IA interchangeable via factory pattern, pas de dependance Nano Banana | ✓ Good |
+| NanoBananaService @google/genai | SDK officiel Gemini, retry exponentiel 1s/2s/4s + jitter, timeout 30s | ✓ Good |
+| Rate-limit IP simulate uniquement | Route publique seule exposee, admin protege par auth | ✓ Good |
+| Resize 1024px avant Gemini | Evite payload > 20 Mo, qualite suffisante pour generation | ✓ Good |
+| Vitest projects (unit + integration) | Separation claire, integration necessite Docker/Supabase CLI | ✓ Good |
+| Playwright storageState auth | Auth une seule fois via setup project, reutilisee par tous les tests | ✓ Good |
+| knip + ESLint renforce pour audit | Detection automatique dead code, securite, bonnes pratiques | ✓ Good |
 
 ## Completed Milestones
 
@@ -110,18 +122,11 @@ Le client peut visualiser un canape dans le tissu de son choix et le simuler dan
 - **v8.0** Catalogue Produits (shipped 2026-03-29)
 - **v9.0** Configurateur Tissu (shipped 2026-03-30)
 - **v10.0** Simulation IA Salon (shipped 2026-04-07)
+- **v11.0** Integration IA Reelle + Audit Qualite (shipped 2026-04-11)
 
-## Current Milestone: v11.0 Intégration IA Réelle + Audit Qualité
+## Current Milestone
 
-**Goal:** Remplacer le mock Sharp par Nano Banana 2 (Gemini) sur toute la chaîne IA, puis auditer et tester l'ensemble du projet.
-
-**Target features:**
-- Intégration Nano Banana 2 côté admin (rendus tissu × angle)
-- Intégration Nano Banana 2 côté client (/api/simulate)
-- Audit code complet (sécurité, performance, dead code)
-- Tests unitaires + intégration
-- Tests E2E Playwright
-- Corrections issues audit
+_(aucun — utiliser `/gsd:new-milestone` pour demarrer v12.0)_
 
 ## Evolution
 
@@ -141,4 +146,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-11 after Phase 16 completion — tests E2E Playwright + corrections audit*
+*Last updated: 2026-04-11 after v11.0 milestone completion*

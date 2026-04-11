@@ -1,5 +1,21 @@
 # Milestones
 
+## v11.0 Intégration IA Réelle + Audit Qualité (Shipped: 2026-04-11)
+
+**Phases completed:** 5 phases, 13 plans, 15 tasks
+
+**Key accomplishments:**
+
+- NanoBananaService complet via @google/genai : generate() Gemini avec retry exponentiel (1s/2s/4s + jitter), timeout 30s, IMAGE_SAFETY, deux chemins image, conversion PNG→JPEG, et watermark Sharp
+- Routes IA adaptees : maxDuration Vercel 300s, rate-limit IP 5/min sur simulate, resize Sharp 1024px, gestion errors batch generate-all
+- Audit code complet : 74 findings documentes (11 securite, 13 performance, 20 dead code, 16 TypeScript) via ESLint + knip + script custom
+- Tests unitaires Vitest : 183 tests couvrant NanoBanana, utils, requireAdmin, routes admin
+- Tests integration Supabase : 71 tests contre instance locale avec auth reelle JWT, RLS, Storage 4 buckets, 20 routes API
+- Corrections audit : security headers CSP, validation MIME + UUID, schemas Zod admin POST, suppression 10 deps inutilisees
+- Tests E2E Playwright : 18 tests couvrant parcours public (catalogue, configurateur, simulation IA, WCAG) et admin (workflow generate/validate/publish)
+
+---
+
 ## v10.0 Simulation IA Salon (Shipped: 2026-04-07)
 
 **Phases completed:** 3 phases, 3 plans, 4 tasks
@@ -65,8 +81,8 @@
 | v5.0 | Generation IA | 2026-03-25 | Service IA mock/Nano Banana, workflow validate/publish |
 | v6.0 | Export ZIP | 2026-03-25 | Export ZIP visuels publies par modele |
 
+| v11.0 | Intégration IA Réelle + Audit Qualité | 2026-04-11 | Service IA Gemini, audit 74 findings, 183 tests unitaires, 71 integration, 18 E2E |
+
 ## Current
 
-| Version | Name | Started | Status |
-|---------|------|---------|--------|
-| v7.0 | Header + Hero + Comment ca marche | 2026-03-26 | Defining requirements |
+_(aucun milestone actif — utiliser `/gsd:new-milestone` pour demarrer v12.0)_

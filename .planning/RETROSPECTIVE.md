@@ -2,6 +2,55 @@
 
 *A living document updated after each milestone. Lessons feed forward into future planning.*
 
+## Milestone: v11.0 — Integration IA Reelle + Audit Qualite
+
+**Shipped:** 2026-04-11
+**Phases:** 5 | **Plans:** 13 | **Tasks:** 15
+**Timeline:** 4 jours (8 avril → 11 avril)
+**Git range:** 114 commits, 157 fichiers modifies, +20 788 / -8 835 lignes
+
+### What Was Built
+- NanoBananaService complet via @google/genai : generate() Gemini avec retry exponentiel, IMAGE_SAFETY, deux chemins image, conversion PNG→JPEG, watermark Sharp
+- Audit code complet : 74 findings documentes (securite, performance, dead code, TypeScript) via ESLint + knip + script custom
+- 183 tests unitaires Vitest (utils, NanoBanana mock, requireAdmin, routes admin, simulate)
+- 71 tests integration Supabase contre instance locale (auth reelle JWT, RLS, Storage 4 buckets, 20 routes)
+- 18 tests E2E Playwright (parcours public + admin complets, WCAG axe-core)
+- Corrections audit : security headers CSP, validation MIME + UUID, Zod safeParse, 10 deps supprimees
+
+### What Worked
+- Factory pattern IA deja en place : Phase 13 n'a modifie qu'un seul fichier (nano-banana.ts) pour le service reel
+- Phase 14 (audit) purement documentaire, zero code modifie : feedback clair pour Phase 16 (corrections)
+- Tests integration avec testApiHandler (next-test-api-route-handler) : routes testees sans serveur HTTP
+- Phase 15.1 inseree dynamiquement (decimal) : scope bien defini, 71 tests en 4 plans
+- Re-verification automatique (Phase 15.1) : 2 gaps trouves, corriges, re-verifies dans le meme cycle
+
+### What Was Inefficient
+- Phase 13 n'avait pas de VERIFICATION.md — decouvert seulement lors de l'audit milestone, a necessite une generation retroactive
+- SUMMARY frontmatter requirements_completed absent dans les phases 14, 15, 15.1 — 9 requirements marques "partial" dans l'audit 3-sources
+- Phase 16 plans TBD dans ROADMAP.md jamais mis a jour (indiquait "TBD" meme apres completion des 3 plans)
+- REQUIREMENTS.md checkboxes non mises a jour incrementalement (12/19 encore "Pending" a la fin)
+
+### Patterns Established
+- Rate-limit IP avec Map en memoire (eviction periodique) — suffisant pour Vercel serverless
+- UUID_REGEX en constante module-level dans chaque fichier route admin
+- Zod safeParse avec `.issues[0]?.message` pour messages d'erreur structures
+- Vitest projects (unit + integration) avec setup.ts separe pour dotenv
+- Playwright fixture axe-core WCAG (wcag2a/2aa/21a/21aa) pour tous les tests E2E
+- AbortSignal.timeout() cree DANS chaque tentative retry (pas avant la boucle)
+
+### Key Lessons
+1. Toujours generer VERIFICATION.md a la fin de chaque phase — l'audit milestone est bloque par les phases non-verifiees
+2. Les SUMMARY frontmatter doivent lister requirements_completed systematiquement — sinon l'audit 3-sources produit des faux "partial"
+3. Les tests integration Supabase CLI local sont tres puissants mais necessitent Docker — documenter les prerequisites
+4. L'audit code avant les corrections (phase separee) donne un rapport objectif et complet comme base de travail
+
+### Cost Observations
+- Model mix: ~25% opus (planners), ~75% sonnet (executors, verifiers, checkers, integration)
+- Sessions: ~6 sessions sur 4 jours
+- Notable: Phase 15.1 (4 plans, 71 tests) la plus volumineuse du projet — justifiee par la couverture exhaustive des 20 routes
+
+---
+
 ## Milestone: v10.0 — Simulation IA Salon
 
 **Shipped:** 2026-04-07
@@ -93,6 +142,7 @@
 | v8.0 | 3 | 5 | TDD systematique, UAT automatisee via MCP |
 | v9.0 | 3 | 3 | Configurateur tissu complet, navigation angles |
 | v10.0 | 3 | 3 | Simulation IA E2E, plans ultra-detailles, state machine |
+| v11.0 | 5 | 13 | Service IA reel Gemini, audit complet, filet de tests 3 niveaux |
 
 ### Cumulative Quality
 
@@ -102,6 +152,7 @@
 | v8.0 | 74 | @testing-library/user-event (dev only) |
 | v9.0 | 74 | aucune |
 | v10.0 | 74 | aucune |
+| v11.0 | 272 (183 unit + 71 integration + 18 E2E) | @google/genai, @playwright/test, knip, axe-core |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -109,3 +160,5 @@
 2. Server Components async + Suspense = pattern optimal pour les sections data-driven (confirme v8.0)
 3. Les plans avec code inline dans les actions produisent zero deviation a l'execution (confirme v10.0)
 4. State machines explicites simplifient debug et verification (confirme v9.0 + v10.0)
+5. L'audit documentaire separe (sans modifier le code) puis corrections en phase dediee = workflow propre (confirme v11.0)
+6. VERIFICATION.md doit etre genere systematiquement a chaque phase — l'audit milestone en depend (confirme v11.0)

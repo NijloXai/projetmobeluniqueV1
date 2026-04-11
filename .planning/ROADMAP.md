@@ -6,7 +6,7 @@
 - **v8.0 Catalogue Produits** — Phases 4-6 (shipped 2026-03-29)
 - **v9.0 Configurateur Tissu** — Phases 7-9 (shipped 2026-03-30)
 - **v10.0 Simulation IA Salon** — Phases 10-12 (shipped 2026-04-07)
-- **v11.0 Intégration IA Réelle + Audit Qualité** — Phases 13-16 (in progress)
+- **v11.0 Intégration IA Réelle + Audit Qualité** — Phases 13-16 (shipped 2026-04-11)
 
 ## Phases
 
@@ -46,94 +46,16 @@
 
 </details>
 
-### v11.0 Intégration IA Réelle + Audit Qualité (In Progress)
+<details>
+<summary>v11.0 Intégration IA Réelle + Audit Qualité (Phases 13-16) -- SHIPPED 2026-04-11</summary>
 
-**Milestone Goal:** Remplacer le mock Sharp par Nano Banana 2 (Gemini) sur toute la chaîne IA, auditer l'ensemble du projet, et établir un filet de tests unitaires + E2E.
+- [x] Phase 13: NanoBananaService (2/2 plans) -- completed 2026-04-08
+- [x] Phase 14: Audit Code (2/2 plans) -- completed 2026-04-09
+- [x] Phase 15: Tests Unitaires Vitest (2/2 plans) -- completed 2026-04-09
+- [x] Phase 15.1: Tests Intégration Supabase (4/4 plans) -- completed 2026-04-10
+- [x] Phase 16: Tests E2E + Corrections Audit (3/3 plans) -- completed 2026-04-11
 
-- [x] **Phase 13: NanoBananaService** - Implémentation réelle du service IA Gemini avec retry, timeout, et deux chemins d'entrée image (completed 2026-04-08)
-- [x] **Phase 14: Audit Code** - Audit complet du projet (sécurité, performance, dead code, bonnes pratiques) (completed 2026-04-09)
-- [x] **Phase 15: Tests Unitaires Vitest** - Couverture tests unitaires et intégration (NanoBanana, utils, routes) (completed 2026-04-09)
-- [x] **Phase 15.1: Tests Intégration Supabase** - Tests d'intégration contre Supabase CLI local (20 routes, auth réelle, RLS, Storage) (completed 2026-04-10)
-- [x] **Phase 16: Tests E2E + Corrections Audit** - Tests Playwright flux complets et corrections des problèmes identifiés (completed 2026-04-11)
-
-## Phase Details
-
-### Phase 13: NanoBananaService
-**Goal**: Le service IA réel Nano Banana 2 remplace le mock Sharp sur toute la chaîne de génération
-**Depends on**: Phase 12 (v10.0 complete)
-**Requirements**: IA-01, IA-02, IA-03, IA-04, IA-05, IA-06, IA-07
-**Success Criteria** (what must be TRUE):
-  1. Quand NANO_BANANA_API_KEY est définie, generate() appelle Gemini (pas Sharp mock) et retourne un buffer JPEG valide
-  2. Une image simulate est redimensionnée à max 1024px avant envoi — Gemini ne reçoit jamais de payload > 20 Mo
-  3. Un appel Gemini qui retourne 429 est automatiquement retenté (1s → 2s → 4s) sans erreur visible c��té client
-  4. Un finishReason IMAGE_SAFETY retourne une erreur explicite sans crash (pas d'accès à parts[0].inlineData.data)
-  5. La route generate-all ne timeout pas sur Vercel (maxDuration = 300 exporté)
-**Plans**: 2 plans
-
-Plans:
-- [x] 13-01-PLAN.md — NanoBananaService core (generate + addWatermark + retry + Gemini SDK)
-- [x] 13-02-PLAN.md — Adaptation routes (maxDuration + rate-limit + resize + error handling)
-
-### Phase 14: Audit Code
-**Goal**: Les problèmes de sécurité, performance, dead code, et bonnes pratiques sont identifiés et documentés
-**Depends on**: Phase 13
-**Requirements**: AUDIT-01, AUDIT-02, AUDIT-03, AUDIT-04
-**Success Criteria** (what must be TRUE):
-  1. Un rapport d'audit liste tous les imports inutilisés, fichiers orphelins, et exports morts du projet
-  2. Les failles de sécurité potentielles (validation inputs, auth bypass, XSS) sont identifiées avec niveau de sévérité
-  3. Les requêtes N+1 et assets non optimisés sont identifiés avec impact estimé
-  4. Les violations TypeScript strict (any implicites, error handling manquant) sont listées avec localisation fichier:ligne
-**Plans**: 2 plans
-
-Plans:
-- [x] 14-01-PLAN.md — Outillage audit (installer knip, renforcer ESLint, creer script custom)
-- [x] 14-02-PLAN.md — Execution audit et consolidation AUDIT.md
-
-### Phase 15: Tests Unitaires Vitest
-**Goal**: Un filet de tests unitaires et d'intégration couvre NanoBananaService, les utils, et les routes critiques
-**Depends on**: Phase 14
-**Requirements**: TEST-01, TEST-02, TEST-03, TEST-04
-**Success Criteria** (what must be TRUE):
-  1. npm test passe au vert avec des tests NanoBananaService mockant @google/genai (retry, timeout, IMAGE_SAFETY, deux chemins image)
-  2. Les utils slugify, calculatePrice, et extractStoragePath ont des tests couvrant les cas limites (accents, prix premium, chemins malformés)
-  3. requireAdmin() retourne 401 sur token absent/expiré — vérifié par test d'intégration route
-  4. La route simulate retourne 422 HEIC et 400 taille > 15 Mo — vérifié par test avec mock provider
-**Plans**: 2 plans
-
-Plans:
-- [x] 15-01-PLAN.md — Tests utils pures (slugify, calculatePrice, extractStoragePath) + timeout NanoBanana (D-07)
-- [x] 15-02-PLAN.md — Tests requireAdmin unitaire (D-01) + tests 401 routes admin (D-02)
-
-### Phase 15.1: Tests Intégration Supabase (INSERTED)
-
-**Goal:** Les 20 routes API sont testées en intégration contre une instance Supabase locale (Docker CLI) avec auth réelle (JWT), vérification RLS, et opérations Storage
-**Requirements**: D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-12
-**Depends on:** Phase 15
-**Success Criteria** (what must be TRUE):
-  1. supabase start démarre une instance locale avec les 4 tables et 4 buckets
-  2. npm run test:integration passe au vert avec des tests contre la vraie BDD Supabase locale
-  3. requireAdmin() avec un vrai JWT (signInWithPassword) retourne 200 sur les routes admin
-  4. Les routes publiques filtrent is_active=true (RLS vérifié en intégration)
-  5. Les uploads Storage et suppressions cascade fonctionnent dans les 4 buckets
-  6. Le rate-limit simulate retourne 429 après 5 appels rapides
-**Plans:** 4/4 plans complete
-
-Plans:
-- [x] 15.1-01-PLAN.md — Infrastructure Supabase CLI + Vitest projects + helpers
-- [x] 15.1-02-PLAN.md — Routes publiques + auth réelle + RLS
-- [x] 15.1-03-PLAN.md — CRUD admin modèles + tissus + Storage
-- [x] 15.1-04-PLAN.md — Visuels workflow + génération IA + simulate + middleware
-
-### Phase 16: Tests E2E + Corrections Audit
-**Goal**: Les parcours utilisateur critiques sont couverts par des tests E2E Playwright et les problèmes de l'audit sont corrigés
-**Depends on**: Phase 15
-**Requirements**: E2E-01, E2E-02, E2E-03, FIX-01
-**Success Criteria** (what must be TRUE):
-  1. npx playwright test passe au vert — setup auth admin globaleSetup inclus
-  2. Le parcours public catalogue → configurateur → simulation (mock provider) s'exécute sans erreur E2E
-  3. Le parcours admin generate → validate → publish s'exécute sans erreur E2E
-  4. Les corrections appliquées depuis l'audit font passer npm run build et npx tsc --noEmit sans erreur
-**Plans**: TBD
+</details>
 
 ## Progress
 
@@ -163,4 +85,4 @@ Plans:
 *v8.0 shipped: 2026-03-29*
 *v9.0 shipped: 2026-03-30*
 *v10.0 shipped: 2026-04-07*
-*v11.0 started: 2026-04-08*
+*v11.0 shipped: 2026-04-11*

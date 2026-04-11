@@ -1,5 +1,14 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV === 'development'
+
+// CSP script-src : unsafe-eval uniquement en dev (requis par Turbopack HMR).
+// En production, seul 'self' est autorise pour script-src.
+const scriptSrc = [
+  "'self'",
+  ...(isDev ? ["'unsafe-eval'", "'unsafe-inline'"] : []),
+].join(' ')
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -27,7 +36,7 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+              `script-src ${scriptSrc}`,
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' https://*.supabase.co data: blob:",

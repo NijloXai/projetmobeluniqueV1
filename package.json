@@ -11,7 +11,9 @@
     "test:watch": "vitest",
     "test:unit": "vitest run --project unit",
     "test:integration": "vitest run --project integration --passWithNoTests",
-    "test:all": "vitest run"
+    "test:all": "vitest run",
+    "test:e2e": "npx playwright test",
+    "test:e2e:ui": "npx playwright test --ui"
   },
   "dependencies": {
     "@google/genai": "^1.48.0",
@@ -30,6 +32,8 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.1",
+    "@playwright/test": "^1.59.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",

@@ -141,4 +141,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-10 after Phase 15.1 completion*
+*Last updated: 2026-04-11 after Phase 16 completion — tests E2E Playwright + corrections audit*

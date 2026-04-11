@@ -4,14 +4,16 @@ import path from 'path'
 const authFile = path.join(__dirname, '../playwright/.auth/admin.json')
 
 setup('authenticate admin', async ({ page }) => {
+  const email = process.env.TEST_ADMIN_EMAIL
+  const password = process.env.TEST_ADMIN_PASSWORD
+  if (!email || !password) {
+    throw new Error('TEST_ADMIN_EMAIL et TEST_ADMIN_PASSWORD doivent etre definis dans .env.test.local')
+  }
+
   await page.goto('/admin/login')
 
-  await page.getByLabel('Email').fill(
-    process.env.TEST_ADMIN_EMAIL ?? 'admin@test.mobelunique.fr'
-  )
-  await page.getByLabel('Mot de passe').fill(
-    process.env.TEST_ADMIN_PASSWORD ?? 'test-admin-secure-2024!'
-  )
+  await page.getByLabel('Email').fill(email)
+  await page.getByLabel('Mot de passe').fill(password)
   await page.getByRole('button', { name: /se connecter/i }).click()
 
   // Attendre la redirection vers /admin (le layout admin protege)

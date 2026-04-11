@@ -84,8 +84,16 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
   const dragCounterRef = useRef(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Refs pour tracker les Object URLs courantes (eviter fuite memoire — WR-03)
+  const previewUrlRef = useRef<string | null>(null)
+  const resultBlobUrlRef = useRef<string | null>(null)
+
   // Track previous model ID to distinguish reopen (null→sameID) from model change (D-15 vs D-16)
   const previousModelIdRef = useRef<string | undefined>(undefined)
+
+  // Synchroniser les refs Object URL avec le state (WR-03)
+  useEffect(() => { previewUrlRef.current = previewUrl }, [previewUrl])
+  useEffect(() => { resultBlobUrlRef.current = resultBlobUrl }, [resultBlobUrl])
 
   // Reset selection quand le modele change (RESEARCH.md Pattern 2) — Phase 8 + Phase 9 (D-16)
   useEffect(() => {
@@ -98,9 +106,9 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
     setModalStep('configurator')
     setSimulationState('idle')
     setSelectedFile(null)
-    if (previewUrl) URL.revokeObjectURL(previewUrl)
+    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current)
     setPreviewUrl(null)
-    if (resultBlobUrl) URL.revokeObjectURL(resultBlobUrl)
+    if (resultBlobUrlRef.current) URL.revokeObjectURL(resultBlobUrlRef.current)
     setResultBlobUrl(null)
     setProgress(0)
     setProgressStage(0)

@@ -19,24 +19,24 @@ Requirements pour ce milestone. Chaque requirement mappe à une phase du roadmap
 
 ### Tests Unitaires + Intégration
 
-- [ ] **TEST-01**: Tests Vitest NanoBananaService avec vi.mock('@google/genai')
-- [ ] **TEST-02**: Tests Vitest utils (slugify, calculatePrice, extractStoragePath)
-- [ ] **TEST-03**: Tests Vitest routes admin generate + requireAdmin()
-- [ ] **TEST-04**: Tests Vitest route simulate avec mock provider
+- [x] **TEST-01**: Tests Vitest NanoBananaService avec vi.mock('@google/genai')
+- [x] **TEST-02**: Tests Vitest utils (slugify, calculatePrice, extractStoragePath)
+- [x] **TEST-03**: Tests Vitest routes admin generate + requireAdmin()
+- [x] **TEST-04**: Tests Vitest route simulate avec mock provider
 
 ### Tests E2E Playwright
 
-- [ ] **E2E-01**: Setup Playwright (install, config, globalSetup auth admin)
-- [ ] **E2E-02**: Parcours public catalogue → configurateur → simulation (mock provider)
-- [ ] **E2E-03**: Parcours admin generate → validate → publish
+- [x] **E2E-01**: Setup Playwright (install, config, globalSetup auth admin)
+- [x] **E2E-02**: Parcours public catalogue → configurateur → simulation (mock provider)
+- [x] **E2E-03**: Parcours admin generate → validate → publish
 
 ### Audit + Corrections
 
-- [ ] **AUDIT-01**: Audit sécurité (injection, XSS, auth bypass, validation inputs)
-- [ ] **AUDIT-02**: Audit performance (N+1 queries, bundles, images non-optimisées)
-- [ ] **AUDIT-03**: Audit dead code (imports inutilisés, fichiers orphelins, exports morts)
-- [ ] **AUDIT-04**: Audit bonnes pratiques (TypeScript strict, error handling, accessibilité)
-- [ ] **FIX-01**: Corrections des problèmes identifiés par l'audit
+- [x] **AUDIT-01**: Audit sécurité (injection, XSS, auth bypass, validation inputs)
+- [x] **AUDIT-02**: Audit performance (N+1 queries, bundles, images non-optimisées)
+- [x] **AUDIT-03**: Audit dead code (imports inutilisés, fichiers orphelins, exports morts)
+- [x] **AUDIT-04**: Audit bonnes pratiques (TypeScript strict, error handling, accessibilité)
+- [x] **FIX-01**: Corrections des problèmes identifiés par l'audit
 
 ## v12+ Requirements
 
@@ -73,24 +73,25 @@ Reportés aux milestones suivants.
 | IA-05 | Phase 13 | Complete |
 | IA-06 | Phase 13 | Complete |
 | IA-07 | Phase 13 | Complete |
-| AUDIT-01 | Phase 14 | Pending |
-| AUDIT-02 | Phase 14 | Pending |
-| AUDIT-03 | Phase 14 | Pending |
-| AUDIT-04 | Phase 14 | Pending |
-| TEST-01 | Phase 15 | Pending |
-| TEST-02 | Phase 15 | Pending |
-| TEST-03 | Phase 15 | Pending |
-| TEST-04 | Phase 15 | Pending |
-| E2E-01 | Phase 16 | Pending |
-| E2E-02 | Phase 16 | Pending |
-| E2E-03 | Phase 16 | Pending |
-| FIX-01 | Phase 16 | Pending |
+| AUDIT-01 | Phase 14 | Complete |
+| AUDIT-02 | Phase 14 | Complete |
+| AUDIT-03 | Phase 14 | Complete |
+| AUDIT-04 | Phase 14 | Complete |
+| TEST-01 | Phase 15 | Complete |
+| TEST-02 | Phase 15 | Complete |
+| TEST-03 | Phase 15 | Complete |
+| TEST-04 | Phase 15 | Complete |
+| E2E-01 | Phase 16 | Complete |
+| E2E-02 | Phase 16 | Complete |
+| E2E-03 | Phase 16 | Complete |
+| FIX-01 | Phase 16 | Complete |
 
 **Coverage:**
 - v11.0 requirements: 19 total
 - Mapped to phases: 19
 - Unmapped: 0 ✓
+- Complete: 19/19 ✓
 
 ---
 *Requirements defined: 2026-04-08*
-*Last updated: 2026-04-08 after roadmap creation*
+*Last updated: 2026-04-11 after milestone audit*

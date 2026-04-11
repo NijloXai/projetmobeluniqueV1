@@ -3,6 +3,8 @@ import { requireAdmin } from '@/lib/supabase/admin'
 import { extractStoragePath } from '@/lib/utils'
 import type { ModelImageUpdate } from '@/types/database'
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
 /**
  * PUT /api/admin/models/[id]/images/[imageId]
  * Met à jour les métadonnées d'une image (view_type, sort_order).
@@ -15,6 +17,10 @@ export async function PUT(
   if (authError) return authError
 
   const { id, imageId } = await params
+
+  if (!UUID_REGEX.test(id) || !UUID_REGEX.test(imageId)) {
+    return NextResponse.json({ error: 'ID invalide' }, { status: 400 })
+  }
 
   // Parser le body JSON
   let body: Record<string, unknown>
@@ -108,6 +114,10 @@ export async function DELETE(
   if (authError) return authError
 
   const { id, imageId } = await params
+
+  if (!UUID_REGEX.test(id) || !UUID_REGEX.test(imageId)) {
+    return NextResponse.json({ error: 'ID invalide' }, { status: 400 })
+  }
 
   // Récupérer l'image pour obtenir l'URL storage
   const { data: image, error: fetchError } = await supabase!

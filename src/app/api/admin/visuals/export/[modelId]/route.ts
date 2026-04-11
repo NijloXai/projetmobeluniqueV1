@@ -3,6 +3,8 @@ import { requireAdmin } from '@/lib/supabase/admin'
 import archiver from 'archiver'
 import { Readable } from 'node:stream'
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
 export const runtime = 'nodejs'
 
 /**
@@ -18,6 +20,10 @@ export async function GET(
   if (authError) return authError
 
   const { modelId } = await params
+
+  if (!UUID_REGEX.test(modelId)) {
+    return NextResponse.json({ error: 'ID invalide' }, { status: 400 })
+  }
 
   // Fetch model for slug + name (used in filename)
   const { data: model, error: modelError } = await supabase!

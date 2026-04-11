@@ -46,7 +46,7 @@ function checkRateLimit(ip: string): { allowed: boolean; retryAfter: number } {
 export async function POST(request: NextRequest) {
   // Extraction IP en amont (necessaire pour le rate-limit)
   const ip =
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+    request.headers.get('x-forwarded-for')?.split(',').at(-1)?.trim() ??
     request.headers.get('x-real-ip') ??
     '127.0.0.1'
 

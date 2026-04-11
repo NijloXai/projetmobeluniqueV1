@@ -18,7 +18,7 @@ function checkRateLimit(ip: string): { allowed: boolean; retryAfter: number } {
   const now = Date.now()
 
   // Eviction periodique des entrees expirees (seuil 1000 entrees)
-  if (rateMap.size > 100) {
+  if (rateMap.size > 1000) {
     for (const [key, val] of rateMap) {
       if (now > val.resetAt) rateMap.delete(key)
     }
@@ -46,7 +46,7 @@ function checkRateLimit(ip: string): { allowed: boolean; retryAfter: number } {
 export async function POST(request: NextRequest) {
   // Extraction IP en amont (necessaire pour le rate-limit)
   const ip =
-    request.headers.get('x-forwarded-for')?.split(',').at(-1)?.trim() ??
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
     request.headers.get('x-real-ip') ??
     '127.0.0.1'
 
@@ -79,14 +79,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: "L'image ne doit pas dépasser 15 Mo." },
       { status: 400 }
-    )
-  }
-
-  const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-  if (!ALLOWED_MIME.includes(image.type)) {
-    return NextResponse.json(
-      { error: 'Format non supporte. Formats acceptes : JPEG, PNG, WebP, GIF.' },
-      { status: 422 }
     )
   }
 

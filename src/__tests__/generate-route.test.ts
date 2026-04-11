@@ -91,7 +91,7 @@ describe('POST /api/admin/generate', () => {
     const response = await POST(makeRequest({ model_id: 'abc' }))
     const json = await response.json()
     expect(response.status).toBe(400)
-    expect(json.error).toBeTruthy()
+    expect(json.error).toContain('requis')
   })
 
   it('retourne 422 sur ImageSafetyError', async () => {
@@ -118,7 +118,7 @@ describe('POST /api/admin/generate', () => {
     mockGenerate.mockRejectedValueOnce(new ImageSafetyError())
 
     const response = await POST(
-      makeRequest({ model_id: '00000000-0000-4000-8000-000000000001', model_image_id: '00000000-0000-4000-8000-000000000002', fabric_id: '00000000-0000-4000-8000-000000000003' })
+      makeRequest({ model_id: 'm1', model_image_id: 'mi1', fabric_id: 'f1' })
     )
     const json = await response.json()
     expect(response.status).toBe(422)
@@ -150,7 +150,7 @@ describe('POST /api/admin/generate', () => {
     mockGenerate.mockRejectedValueOnce(abortErr)
 
     const response = await POST(
-      makeRequest({ model_id: '00000000-0000-4000-8000-000000000001', model_image_id: '00000000-0000-4000-8000-000000000002', fabric_id: '00000000-0000-4000-8000-000000000003' })
+      makeRequest({ model_id: 'm1', model_image_id: 'mi1', fabric_id: 'f1' })
     )
     const json = await response.json()
     expect(response.status).toBe(504)
@@ -168,7 +168,7 @@ describe('POST /api/admin/generate', () => {
       ),
     })
 
-    const response = await POST(makeRequest({ model_id: '00000000-0000-4000-8000-000000000001', model_image_id: '00000000-0000-4000-8000-000000000002', fabric_id: '00000000-0000-4000-8000-000000000003' }))
+    const response = await POST(makeRequest({ model_id: 'm1', model_image_id: 'mi1', fabric_id: 'f1' }))
     expect(response.status).toBe(401)
     const json = await response.json()
     expect(json.error).toContain('authentifi')

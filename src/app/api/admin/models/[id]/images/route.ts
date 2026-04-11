@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/supabase/admin'
-import { imagesUploadBodySchema } from '@/lib/schemas'
 import type { ModelImageInsert } from '@/types/database'
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5 Mo
@@ -89,7 +88,7 @@ export async function POST(
   }
 
   const image = formData.get('image') as File | null
-  const viewTypeRaw = (formData.get('view_type') as string | null)?.trim()
+  const viewType = (formData.get('view_type') as string | null)?.trim()
   const sortOrderRaw = formData.get('sort_order') as string | null
 
   // Validation : fichier requis
@@ -108,19 +107,22 @@ export async function POST(
     )
   }
 
-  // Validation view_type et sort_order via Zod
-  const bodyParse = imagesUploadBodySchema.safeParse({
-    view_type: viewTypeRaw,
-    sort_order: sortOrderRaw ? parseInt(sortOrderRaw, 10) : undefined,
-  })
-  if (!bodyParse.success) {
+  // Validation : view_type requis et non vide
+  if (!viewType) {
     return NextResponse.json(
-      { error: bodyParse.error.issues[0]?.message ?? 'Donnees invalides' },
+      { error: 'Le champ view_type est requis.' },
       { status: 400 }
     )
   }
-  const viewType = bodyParse.data.view_type
-  const sortOrder = bodyParse.data.sort_order ?? 0
+
+  // Validation : sort_order (entier ≥ 0, défaut 0)
+  const sortOrder = sortOrderRaw ? parseInt(sortOrderRaw, 10) : 0
+  if (isNaN(sortOrder) || sortOrder < 0) {
+    return NextResponse.json(
+      { error: 'Le champ sort_order doit être un entier positif ou nul.' },
+      { status: 400 }
+    )
+  }
 
   // Upload vers le bucket model-photos
   const ext = image.name.split('.').pop() || 'jpg'

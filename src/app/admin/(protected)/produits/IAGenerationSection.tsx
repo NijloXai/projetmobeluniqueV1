@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useMemo, useCallback } from 'react'
-import Image from 'next/image'
 import type { ModelImage, Fabric, GeneratedVisual } from '@/types/database'
 import styles from './form.module.css'
 
@@ -191,6 +190,9 @@ export function IAGenerationSection({
   }, [filteredVisuals, onVisualsChange])
 
   // --- Compteurs pour les boutons bulk ---
+  const countUngenerated = selectedFabricId
+    ? images.filter((img) => !visualByImageId.has(img.id)).length
+    : 0
   const countUnvalidated = filteredVisuals.filter((v) => !v.is_validated).length
   const countUnpublished = filteredVisuals.filter(
     (v) => v.is_validated && !v.is_published
@@ -280,11 +282,9 @@ export function IAGenerationSection({
                 <div key={image.id} className={styles.iaCard}>
                   <div className={styles.iaCardImageWrap}>
                     {visual ? (
-                      <Image
+                      <img
                         src={visual.generated_image_url}
                         alt={`Rendu IA — ${image.view_type}`}
-                        width={200}
-                        height={150}
                         className={styles.iaCardImage}
                       />
                     ) : (

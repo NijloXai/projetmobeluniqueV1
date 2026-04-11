@@ -199,10 +199,18 @@ export type FabricUpdate = Database['public']['Tables']['fabrics']['Update']
 
 export type GeneratedVisual = Database['public']['Tables']['generated_visuals']['Row']
 export type GeneratedVisualInsert = Database['public']['Tables']['generated_visuals']['Insert']
+export type GeneratedVisualUpdate = Database['public']['Tables']['generated_visuals']['Update']
 
 // Types enrichis (avec relations)
 export type ModelWithImages = Model & {
   model_images: ModelImage[]
+}
+
+export type ModelWithImagesAndVisuals = Model & {
+  model_images: ModelImage[]
+  generated_visuals: (GeneratedVisual & {
+    fabric: Fabric
+  })[]
 }
 
 export type VisualWithFabricAndImage = GeneratedVisual & {

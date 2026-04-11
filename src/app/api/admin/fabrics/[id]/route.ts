@@ -4,8 +4,6 @@ import { updateFabricSchema } from '@/lib/schemas'
 import { slugify, extractStoragePath } from '@/lib/utils'
 import type { FabricUpdate } from '@/types/database'
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-
 /**
  * GET /api/admin/fabrics/[id]
  * Détail d'un tissu (admin).
@@ -18,9 +16,6 @@ export async function GET(
   if (authError) return authError
 
   const { id } = await params
-  if (!UUID_REGEX.test(id)) {
-    return NextResponse.json({ error: 'ID invalide' }, { status: 400 })
-  }
 
   const { data, error } = await supabase!
     .from('fabrics')
@@ -50,10 +45,6 @@ export async function PUT(
   if (authError) return authError
 
   const { id } = await params
-  if (!UUID_REGEX.test(id)) {
-    return NextResponse.json({ error: 'ID invalide' }, { status: 400 })
-  }
-
   const contentType = request.headers.get('content-type') ?? ''
   let body: Record<string, unknown>
 
@@ -201,9 +192,6 @@ export async function DELETE(
   if (authError) return authError
 
   const { id } = await params
-  if (!UUID_REGEX.test(id)) {
-    return NextResponse.json({ error: 'ID invalide' }, { status: 400 })
-  }
 
   // Récupérer le tissu pour connaître les URLs des images à supprimer
   const { data: fabric, error: fetchError } = await supabase!

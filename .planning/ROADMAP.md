@@ -65,7 +65,7 @@
 **Success Criteria** (what must be TRUE):
   1. Quand NANO_BANANA_API_KEY est définie, generate() appelle Gemini (pas Sharp mock) et retourne un buffer JPEG valide
   2. Une image simulate est redimensionnée à max 1024px avant envoi — Gemini ne reçoit jamais de payload > 20 Mo
-  3. Un appel Gemini qui retourne 429 est automatiquement retenté (1s → 2s → 4s) sans erreur visible côté client
+  3. Un appel Gemini qui retourne 429 est automatiquement retenté (1s → 2s → 4s) sans erreur visible c��té client
   4. Un finishReason IMAGE_SAFETY retourne une erreur explicite sans crash (pas d'accès à parts[0].inlineData.data)
   5. La route generate-all ne timeout pas sur Vercel (maxDuration = 300 exporté)
 **Plans**: 2 plans
@@ -133,12 +133,7 @@ Plans:
   2. Le parcours public catalogue → configurateur → simulation (mock provider) s'exécute sans erreur E2E
   3. Le parcours admin generate → validate → publish s'exécute sans erreur E2E
   4. Les corrections appliquées depuis l'audit font passer npm run build et npx tsc --noEmit sans erreur
-**Plans**: 3 plans
-
-Plans:
-- [ ] 16-01-PLAN.md — Corrections audit (security headers, validation, dead code, deps, Zod schemas)
-- [ ] 16-02-PLAN.md — Setup Playwright (install, config, auth setup, fixture axe)
-- [ ] 16-03-PLAN.md — Tests E2E parcours public + admin (catalogue, configurateur, simulation, generate/validate/publish)
+**Plans**: TBD
 
 ## Progress
 
@@ -159,8 +154,8 @@ Plans:
 | 13. NanoBananaService | v11.0 | 2/2 | Complete   | 2026-04-08 |
 | 14. Audit Code | v11.0 | 2/2 | Complete    | 2026-04-09 |
 | 15. Tests Unitaires Vitest | v11.0 | 2/2 | Complete    | 2026-04-09 |
-| 15.1. Tests Intégration Supabase | v11.0 | 4/4 | Complete    | 2026-04-10 |
-| 16. Tests E2E + Corrections Audit | v11.0 | 0/3 | Not started | - |
+| 15.1. Tests Int��gration Supabase | v11.0 | 4/4 | Complete    | 2026-04-10 |
+| 16. Tests E2E + Corrections Audit | v11.0 | 0/? | Not started | - |
 
 ---
 *Roadmap created: 2026-03-26*

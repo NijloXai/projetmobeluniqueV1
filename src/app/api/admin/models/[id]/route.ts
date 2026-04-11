@@ -4,8 +4,6 @@ import { updateModelSchema } from '@/lib/schemas'
 import { slugify, extractStoragePath } from '@/lib/utils'
 import type { ModelUpdate } from '@/types/database'
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-
 /**
  * GET /api/admin/models/[id]
  * Détail d'un modèle avec ses images (triées par sort_order).
@@ -18,9 +16,6 @@ export async function GET(
   if (authError) return authError
 
   const { id } = await params
-  if (!UUID_REGEX.test(id)) {
-    return NextResponse.json({ error: 'ID invalide' }, { status: 400 })
-  }
 
   const { data, error } = await supabase!
     .from('models')
@@ -55,9 +50,6 @@ export async function PUT(
   if (authError) return authError
 
   const { id } = await params
-  if (!UUID_REGEX.test(id)) {
-    return NextResponse.json({ error: 'ID invalide' }, { status: 400 })
-  }
 
   let body: Record<string, unknown>
   try {
@@ -134,9 +126,6 @@ export async function DELETE(
   if (authError) return authError
 
   const { id } = await params
-  if (!UUID_REGEX.test(id)) {
-    return NextResponse.json({ error: 'ID invalide' }, { status: 400 })
-  }
 
   // Vérifier que le modèle existe
   const { data: model, error: fetchError } = await supabase!

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/supabase/admin'
-import { bulkSchema } from '@/lib/schemas'
 
 /**
  * PUT /api/admin/visuals/bulk-publish
@@ -12,7 +11,7 @@ export async function PUT(request: NextRequest) {
   const { supabase, error: authError } = await requireAdmin()
   if (authError) return authError
 
-  let body: unknown
+  let body: { visual_ids?: string[] }
   try {
     body = await request.json()
   } catch {
@@ -22,14 +21,14 @@ export async function PUT(request: NextRequest) {
     )
   }
 
-  const parseResult = bulkSchema.safeParse(body)
-  if (!parseResult.success) {
+  const { visual_ids } = body
+
+  if (!visual_ids || !Array.isArray(visual_ids) || visual_ids.length === 0) {
     return NextResponse.json(
-      { error: parseResult.error.issues[0]?.message ?? 'Donnees invalides' },
+      { error: 'Le champ visual_ids (tableau non vide) est requis.' },
       { status: 400 }
     )
   }
-  const { visual_ids } = parseResult.data
 
   // Publier uniquement les visuels déjà validés
   const { data, error } = await supabase!
@@ -47,7 +46,7 @@ export async function PUT(request: NextRequest) {
     )
   }
 
-  console.info(
+  console.log(
     `[PUT /api/admin/visuals/bulk-publish] ${data?.length ?? 0}/${visual_ids.length} visuels publiés (seuls les validés)`
   )
 

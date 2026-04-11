@@ -119,13 +119,13 @@ describe('POST /api/admin/generate-all', () => {
     const response = await POST(makeRequest({ model_id: 'abc' }))
     const json = await response.json()
     expect(response.status).toBe(400)
-    expect(json.error).toBeTruthy()
+    expect(json.error).toContain('requis')
   })
 
   it('retourne errors array quand un angle echoue', async () => {
     // Setup : model OK, fabric OK, 2 modelImages
-    mockModelSingle.mockResolvedValueOnce({ data: { id: '00000000-0000-4000-8000-000000000001', slug: 'milano', name: 'Milano' }, error: null })
-    mockFabricSingle.mockResolvedValueOnce({ data: { id: '00000000-0000-4000-8000-000000000003', name: 'Velours' }, error: null })
+    mockModelSingle.mockResolvedValueOnce({ data: { id: 'm1', slug: 'milano', name: 'Milano' }, error: null })
+    mockFabricSingle.mockResolvedValueOnce({ data: { id: 'f1', name: 'Velours' }, error: null })
 
     mockImageOrder.mockResolvedValueOnce({
       data: [
@@ -151,7 +151,7 @@ describe('POST /api/admin/generate-all', () => {
     // Deuxieme angle : generate ECHOUE
     mockGenerate.mockRejectedValueOnce(new Error('503 Service Unavailable'))
 
-    const response = await POST(makeRequest({ model_id: '00000000-0000-4000-8000-000000000001', fabric_id: '00000000-0000-4000-8000-000000000003' }))
+    const response = await POST(makeRequest({ model_id: 'm1', fabric_id: 'f1' }))
     const json = await response.json()
 
     expect(response.status).toBe(200)
@@ -164,8 +164,8 @@ describe('POST /api/admin/generate-all', () => {
 
   it('retourne la structure {generated, total, success, errors}', async () => {
     // Setup : model OK, fabric OK, 1 modelImage OK
-    mockModelSingle.mockResolvedValueOnce({ data: { id: '00000000-0000-4000-8000-000000000001', slug: 'milano', name: 'Milano' }, error: null })
-    mockFabricSingle.mockResolvedValueOnce({ data: { id: '00000000-0000-4000-8000-000000000003', name: 'Velours' }, error: null })
+    mockModelSingle.mockResolvedValueOnce({ data: { id: 'm1', slug: 'milano', name: 'Milano' }, error: null })
+    mockFabricSingle.mockResolvedValueOnce({ data: { id: 'f1', name: 'Velours' }, error: null })
 
     mockImageOrder.mockResolvedValueOnce({
       data: [{ id: 'mi1', view_type: 'front', image_url: 'https://ex.com/front.jpg' }],
@@ -180,7 +180,7 @@ describe('POST /api/admin/generate-all', () => {
     })
     mockVisualInsertSingle.mockResolvedValueOnce({ data: { id: 'gv1' }, error: null })
 
-    const response = await POST(makeRequest({ model_id: '00000000-0000-4000-8000-000000000001', fabric_id: '00000000-0000-4000-8000-000000000003' }))
+    const response = await POST(makeRequest({ model_id: 'm1', fabric_id: 'f1' }))
     const json = await response.json()
 
     expect(json).toHaveProperty('generated')
@@ -202,7 +202,7 @@ describe('POST /api/admin/generate-all', () => {
       ),
     })
 
-    const response = await POST(makeRequest({ model_id: '00000000-0000-4000-8000-000000000001', fabric_id: '00000000-0000-4000-8000-000000000003' }))
+    const response = await POST(makeRequest({ model_id: 'm1', fabric_id: 'f1' }))
     expect(response.status).toBe(401)
     const json = await response.json()
     expect(json.error).toContain('authentifi')

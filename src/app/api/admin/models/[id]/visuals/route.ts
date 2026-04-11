@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/supabase/admin'
-import { z } from 'zod'
 import type { GeneratedVisualInsert } from '@/types/database'
-
-const visualUploadSchema = z.object({
-  fabric_id: z.string().uuid('fabric_id doit etre un UUID valide'),
-  model_image_id: z.string().uuid('model_image_id doit etre un UUID valide'),
-})
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5 Mo
 
@@ -118,30 +112,32 @@ export async function POST(
     )
   }
 
-  // Validation fabric_id + model_image_id via Zod
-  const fieldsParse = visualUploadSchema.safeParse({
-    fabric_id: fabricId,
-    model_image_id: modelImageId,
-  })
-  if (!fieldsParse.success) {
+  // Validation : fabric_id requis
+  if (!fabricId) {
     return NextResponse.json(
-      { error: fieldsParse.error.issues[0]?.message ?? 'Donnees invalides' },
+      { error: 'Le champ fabric_id est requis.' },
       { status: 400 }
     )
   }
-  const validFabricId = fieldsParse.data.fabric_id
-  const validModelImageId = fieldsParse.data.model_image_id
+
+  // Validation : model_image_id requis
+  if (!modelImageId) {
+    return NextResponse.json(
+      { error: 'Le champ model_image_id est requis.' },
+      { status: 400 }
+    )
+  }
 
   // Vérifier que le model_image_id appartient bien à ce modèle
   const { data: modelImage, error: imageError } = await supabase!
     .from('model_images')
     .select('id')
-    .eq('id', validModelImageId)
+    .eq('id', modelImageId)
     .eq('model_id', id)
     .single()
 
   if (imageError || !modelImage) {
-    console.error('[POST /api/admin/models/:id/visuals] model_image_id invalide:', validModelImageId, 'pour modèle:', id)
+    console.error('[POST /api/admin/models/:id/visuals] model_image_id invalide:', modelImageId, 'pour modèle:', id)
     return NextResponse.json(
       { error: "L'angle sélectionné n'appartient pas à ce modèle." },
       { status: 400 }
@@ -150,7 +146,7 @@ export async function POST(
 
   // Upload vers le bucket generated-visuals
   const ext = image.name.split('.').pop() || 'jpg'
-  const storagePath = `${model.slug}/${validFabricId}-${validModelImageId}.${ext}`
+  const storagePath = `${model.slug}/${fabricId}-${modelImageId}.${ext}`
 
   const { error: uploadError } = await supabase!.storage
     .from('generated-visuals')
@@ -172,8 +168,8 @@ export async function POST(
   // Insérer en base de données — mode classique : validé et publié immédiatement
   const insertData: GeneratedVisualInsert = {
     model_id: id,
-    fabric_id: validFabricId,
-    model_image_id: validModelImageId,
+    fabric_id: fabricId,
+    model_image_id: modelImageId,
     generated_image_url: urlData.publicUrl,
     is_validated: true,
     is_published: true,

@@ -274,6 +274,11 @@
   outline-offset: 2px;
 }
 
+/* Object-fit cover pour images Next.js avec fill (PERF-07) */
+.coverImage {
+  object-fit: cover;
+}
+
 /* Crossfade 200ms — NE PAS utiliser --transition-fast (300ms) */
 .imageMain {
   animation: imageFadeIn 200ms ease;

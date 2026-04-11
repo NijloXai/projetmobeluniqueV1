@@ -79,7 +79,7 @@ export class NanoBananaService implements IAService {
       )
     }
     this.ai = new GoogleGenAI({ apiKey })
-    console.log(`[IA] NanoBananaService initialise (modele: ${MODEL})`)
+    console.info(`[IA] NanoBananaService initialise (modele: ${MODEL})`)
   }
 
   // -------------------------------------------------------------------------
@@ -150,7 +150,7 @@ export class NanoBananaService implements IAService {
           .toBuffer()
 
         const duration = Date.now() - startTime
-        console.log(
+        console.info(
           `[IA] generate OK -- model=${MODEL} attempt=${attempt + 1} duration=${duration}ms size=${imageBuffer.length}b viewType=${viewType}`
         )
 

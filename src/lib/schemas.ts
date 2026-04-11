@@ -45,16 +45,6 @@ export const generatedVisualSchema = z.object({
   created_at: z.string(),
 })
 
-// === Schemas enrichis ===
-
-export const modelWithImagesSchema = modelSchema.extend({
-  model_images: z.array(modelImageSchema),
-})
-
-export const visualWithFabricSchema = generatedVisualSchema.extend({
-  fabric: fabricSchema,
-})
-
 // === Schemas d'input (création / modification) ===
 
 export const createModelSchema = z.object({
@@ -79,9 +69,24 @@ export const createFabricSchema = z.object({
 
 export const updateFabricSchema = createFabricSchema.partial()
 
-// === Types inférés ===
+// === Schemas admin POST (SEC-09) ===
 
-export type ModelInput = z.infer<typeof createModelSchema>
-export type ModelUpdateInput = z.infer<typeof updateModelSchema>
-export type FabricInput = z.infer<typeof createFabricSchema>
-export type FabricUpdateInput = z.infer<typeof updateFabricSchema>
+export const generateSchema = z.object({
+  model_id: z.string().uuid('model_id doit etre un UUID valide'),
+  model_image_id: z.string().uuid('model_image_id doit etre un UUID valide'),
+  fabric_id: z.string().uuid('fabric_id doit etre un UUID valide'),
+})
+
+export const generateAllSchema = z.object({
+  model_id: z.string().uuid('model_id doit etre un UUID valide'),
+  fabric_id: z.string().uuid('fabric_id doit etre un UUID valide'),
+})
+
+export const bulkSchema = z.object({
+  visual_ids: z.array(z.string().uuid()).min(1, 'Au moins un ID requis'),
+})
+
+export const imagesUploadBodySchema = z.object({
+  view_type: z.enum(['face', '3/4', 'profil', 'dos']),
+  sort_order: z.number().int().min(0).optional(),
+})

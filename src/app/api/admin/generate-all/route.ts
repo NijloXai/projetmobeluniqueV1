@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/supabase/admin'
 import { getIAService } from '@/lib/ai'
 import { extractStoragePath } from '@/lib/utils'
+import { generateAllSchema } from '@/lib/schemas'
 
 /**
  * POST /api/admin/generate-all
@@ -14,7 +15,7 @@ export async function POST(request: NextRequest) {
   const { supabase, error: authError } = await requireAdmin()
   if (authError) return authError
 
-  let body: { model_id?: string; fabric_id?: string }
+  let body: unknown
   try {
     body = await request.json()
   } catch {
@@ -24,14 +25,14 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const { model_id, fabric_id } = body
-
-  if (!model_id || !fabric_id) {
+  const parseResult = generateAllSchema.safeParse(body)
+  if (!parseResult.success) {
     return NextResponse.json(
-      { error: 'Les champs model_id et fabric_id sont requis.' },
+      { error: parseResult.error.issues[0]?.message ?? 'Donnees invalides' },
       { status: 400 }
     )
   }
+  const { model_id, fabric_id } = parseResult.data
 
   try {
     // Récupérer le modèle
@@ -173,7 +174,7 @@ export async function POST(request: NextRequest) {
     }
 
     const duration = Date.now() - startTime
-    console.log(
+    console.info(
       `[POST /api/admin/generate-all] ${results.length}/${modelImages.length} visuels generes en ${duration}ms — ${model.name} / ${fabric.name}`
     )
 

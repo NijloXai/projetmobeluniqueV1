@@ -83,3 +83,8 @@ fichier-mobelunique/
 # ── Supabase CLI runtime ──
 supabase/.temp/
 supabase/.branches/
+
+# ── Playwright ──
+playwright/.auth/
+playwright-report/
+test-results/

@@ -167,20 +167,14 @@ describe('POST /api/simulate', () => {
     )
   })
 
-  it('retourne 422 pour erreur HEIC non supportee', async () => {
+  it('retourne 422 pour format MIME non supporte (SEC-02)', async () => {
     const image = createFakeImage(1024, 'image/heic', 'photo.heic')
     const fd = createFormData({ image, model_id: 'model-001' })
-
-    // Mock model lookup
-    mockSingle.mockResolvedValueOnce({ data: { id: 'model-001', name: 'Milano' }, error: null })
-
-    // Mock IA generate qui echoue avec erreur HEIC
-    mockGenerate.mockRejectedValueOnce(new Error('unsupported image format: heic compression format'))
 
     const response = await POST(makeRequest(fd) as never)
     const json = await response.json()
     expect(response.status).toBe(422)
-    expect(json.error).toContain('HEIC')
+    expect(json.error).toContain('Format non supporte')
     expect(json.error).toContain('JPEG')
   })
 

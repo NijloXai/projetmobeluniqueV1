@@ -71,19 +71,24 @@ export const updateFabricSchema = createFabricSchema.partial()
 
 // === Schemas admin POST (SEC-09) ===
 
+const uuidString = z.string().regex(
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+  'Doit etre un UUID valide'
+)
+
 export const generateSchema = z.object({
-  model_id: z.string().uuid('model_id doit etre un UUID valide'),
-  model_image_id: z.string().uuid('model_image_id doit etre un UUID valide'),
-  fabric_id: z.string().uuid('fabric_id doit etre un UUID valide'),
+  model_id: uuidString,
+  model_image_id: uuidString,
+  fabric_id: uuidString,
 })
 
 export const generateAllSchema = z.object({
-  model_id: z.string().uuid('model_id doit etre un UUID valide'),
-  fabric_id: z.string().uuid('fabric_id doit etre un UUID valide'),
+  model_id: uuidString,
+  fabric_id: uuidString,
 })
 
 export const bulkSchema = z.object({
-  visual_ids: z.array(z.string().uuid()).min(1, 'Au moins un ID requis'),
+  visual_ids: z.array(uuidString).min(1, 'Au moins un ID requis'),
 })
 
 export const imagesUploadBodySchema = z.object({

@@ -643,6 +643,16 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
             <div className={styles.simulationStep}>
               <div className={styles.leftColumn}>
 
+                {/* Input file unique, hors des blocs conditionnels (WR-04) */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/heic,image/heif"
+                  className={styles.uploadHiddenInput}
+                  onChange={handleInputChange}
+                  aria-label="Selectionner une photo de votre salon"
+                />
+
                 {/* Etat idle : zone upload DnD */}
                 {simulationState === 'idle' && (
                   <div
@@ -663,15 +673,6 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
                       Choisir une photo
                     </button>
                     <span className={styles.uploadFormats} id="upload-formats">JPEG, PNG, HEIC — max 15 Mo</span>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/jpeg,image/png,image/heic,image/heif"
-                      className={styles.uploadHiddenInput}
-                      onChange={handleInputChange}
-                      aria-label="Selectionner une photo de votre salon"
-                      aria-describedby="upload-formats"
-                    />
                   </div>
                 )}
 
@@ -690,14 +691,6 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
                           Changer de photo
                         </button>
                       </div>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/jpeg,image/png,image/heic,image/heif"
-                        className={styles.uploadHiddenInput}
-                        onChange={handleInputChange}
-                        aria-label="Selectionner une autre photo"
-                      />
                     </div>
                     {simulationState === 'error' && errorMessage && (
                       <p className={styles.errorMessage} role="alert" aria-live="assertive">{errorMessage}</p>

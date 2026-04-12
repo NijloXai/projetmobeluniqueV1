@@ -1,0 +1,24 @@
+.container { display: flex; flex-direction: column; gap: var(--spacing-lg); height: 100%; }
+.title { font-size: var(--font-size-2xl); font-weight: 600; color: var(--color-text); }
+.subtitle { font-size: var(--font-size-sm); color: var(--color-muted); }
+
+.thumbnailRow { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 4px 0; }
+.thumbnailRow::-webkit-scrollbar { display: none; }
+
+.thumbnail { flex-shrink: 0; width: 72px; height: 54px; border-radius: var(--radius-sm); border: 2px solid transparent; overflow: hidden; cursor: pointer; position: relative; padding: 0; background: none; transition: border-color 300ms ease; }
+.thumbnail:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.thumbnailActive { border-color: var(--color-primary); }
+.thumbnailImage { width: 100%; height: 100%; object-fit: cover; }
+
+.priceRow { display: flex; justify-content: space-between; align-items: center; padding: var(--spacing-md) 0; border-top: 1px solid rgba(216, 195, 173, 0.15); }
+.priceLabel { font-size: var(--font-size-sm); color: var(--color-muted); }
+.priceValue { font-size: var(--font-size-xl); font-weight: 700; color: var(--color-primary); }
+
+.actions { margin-top: auto; display: flex; flex-direction: column; gap: var(--spacing-sm); }
+.ctaPrimary { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary)); color: #ffffff; border: none; border-radius: var(--radius-sm); font-weight: 600; font-size: var(--font-size-sm); text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; font-family: inherit; transition: transform 300ms ease, box-shadow 300ms ease; }
+.ctaPrimary:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.ctaPrimary:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 4px; }
+
+.ctaSecondary { width: 100%; padding: 12px; background: transparent; border: 1px solid var(--color-primary); color: var(--color-primary); border-radius: var(--radius-sm); font-weight: 600; font-size: var(--font-size-sm); cursor: pointer; font-family: inherit; text-decoration: none; text-align: center; transition: background-color 300ms ease, color 300ms ease; }
+.ctaSecondary:hover { background: var(--color-primary); color: #ffffff; }
+.ctaSecondary:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 4px; }

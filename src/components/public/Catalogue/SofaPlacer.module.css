@@ -8,13 +8,19 @@
 .container {
   position: relative;
   width: 100%;
-  aspect-ratio: 4 / 3;
+  max-height: 40vh;
   overflow: hidden;
   border-radius: var(--radius-md);
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
   background: var(--surface-alt);
+}
+
+@media (min-width: 640px) {
+  .container {
+    max-height: 50vh;
+  }
 }
 
 .roomImage {

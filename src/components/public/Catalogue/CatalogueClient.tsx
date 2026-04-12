@@ -133,11 +133,12 @@ export function CatalogueClient({ models, fabrics, visuals }: CatalogueClientPro
         ) : (
           /* Grille de cards filtrées */
           <div className={styles.grid}>
-            {filteredModels.map((model) => (
+            {filteredModels.map((model, index) => (
               <ProductCard
                 key={model.id}
                 model={model}
                 onConfigure={handleConfigure}
+                index={index}
               />
             ))}
           </div>

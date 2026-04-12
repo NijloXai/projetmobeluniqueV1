@@ -15,9 +15,10 @@ Langue : **français uniquement** (UI, messages d'erreur, données).
 | BDD | Supabase PostgreSQL (4 tables, RLS) |
 | Auth | Supabase Auth (email/password, JWT cookies) |
 | Storage | Supabase Storage (4 buckets) |
-| UI | Radix UI (headless) + CSS Modules |
+| UI | CSS Modules (pas de Tailwind, pas de shadcn/ui) |
 | Validation | Zod 4 + react-hook-form |
-| State | Zustand + Immer |
+| Animation | Motion (Framer Motion) |
+| Icônes | Lucide React |
 | IA | Mock (Sharp) / Nano Banana 2 (Gemini) via env var |
 | Export | Archiver (ZIP) |
 | Node | v22 (.nvmrc) |
@@ -52,8 +53,14 @@ src/
       admin/visuals/      → Validate, publish, bulk, export ZIP
       simulate/           → Simulation publique (watermark)
     layout.tsx            → Root layout (Montserrat, lang=fr)
-    page.tsx              → Page d'accueil (à construire)
-  components/admin/       → Composants admin réutilisables
+    page.tsx              → Page d'accueil
+  components/
+    admin/                → Composants admin (Header, Sidebar, ConfirmDialog, ImageUpload, ToggleSwitch)
+    public/
+      Header/             → Header site public
+      Hero/               → Section hero plein écran
+      HowItWorks/         → Section "Comment ça marche"
+      Catalogue/          → Catalogue produits + ProductCard + ConfiguratorModal + Skeleton
   lib/
     supabase/             → Clients (browser, server, middleware, admin)
     ai/                   → Service IA (types, mock, nano-banana, prompts)
@@ -61,6 +68,12 @@ src/
     utils.ts              → Utilitaires (slugify, calculatePrice, extractStoragePath)
   types/database.ts       → Types auto-générés Supabase
   proxy.ts                → Middleware Next.js 16 (token refresh)
+public/
+  brand/                  → Logos et icônes PWA
+supabase/
+  config.toml             → Config Supabase locale
+  migrations/             → Schema SQL
+  seed.sql                → Données de test
 ```
 
 ## Base de données
@@ -84,28 +97,25 @@ Cascade DELETE sur toutes les FK.
 ## Design tokens
 
 - Primary: `#E49400` (ambre)
+- Primary dark: `#845400`
 - Secondary: `#EFC806` (jaune vif)
 - Text: `#1D1D1B`
+- Muted: `#888888`
 - Background: `#FFFFFF` / Alt: `#F8F4EE`
+- Error: `#BA1A1A`
 - Font: Montserrat (400, 500, 600, 700)
 - Radius: sm 4px, md 8px, lg 12px, xl 16px
+
+Référence complète : `CHARTE-GRAPHIQUE.md`
 
 ## Scripts
 
 ```bash
 npm run dev          # Dev server (localhost:3000)
 npm run build        # Build production
+npm run lint         # ESLint
 npx tsc --noEmit     # Vérification types
-npx tsx scripts/audit-full.ts      # Audit complet (44 checks)
-npx tsx scripts/verify-ia-mock.ts  # Test service IA (8 checks)
-npx tsx scripts/verify-e2e-m005.ts # Test E2E (15 checks)
 ```
-
-## État actuel
-
-Backend complet (M001–M006 terminés, ~5350 lignes).
-Frontend public à construire — une seule page avec la maquette.
-Prochaine étape : intégrer la maquette front et relier aux API existantes, milestone par milestone.
 
 ## Environnement
 
@@ -116,9 +126,3 @@ SUPABASE_PROJECT_REF            → Ref projet (MCP)
 SUPABASE_ACCESS_TOKEN           → Token accès (MCP)
 NANO_BANANA_API_KEY             → (optionnel) Active le vrai service IA
 ```
-
-## GSD
-
-Ce projet utilise GSD (Get Shit Done) pour le workflow de développement.
-Documentation milestones dans `.gsd/milestones/`.
-Utiliser `/gsd` pour les commandes GSD.

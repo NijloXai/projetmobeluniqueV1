@@ -1,0 +1,248 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* Upload zone */
+.uploadZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-2xl);
+  border: 2px dashed var(--outline-variant);
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-low);
+  cursor: pointer;
+  transition: border-color 400ms ease-in-out, background-color 400ms ease-in-out;
+  min-height: 200px;
+}
+
+.uploadZone:hover,
+.uploadZoneDragging {
+  border-color: var(--color-primary);
+  background: var(--surface-container);
+}
+
+.uploadIcon {
+  width: 40px;
+  height: 40px;
+  color: var(--color-muted);
+}
+
+.uploadText {
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.uploadOr {
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+}
+
+.uploadButton {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary));
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.uploadFormats {
+  font-size: var(--font-size-xs);
+  color: var(--color-muted);
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.errorMessage {
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+/* Guidance (used by PhotoGuidance component) */
+.guidance {
+  padding: var(--spacing-md);
+  background: var(--surface-container-low);
+  border-radius: var(--radius-md);
+}
+
+.guidanceTitle {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-muted);
+  margin-bottom: var(--spacing-sm);
+}
+
+.guidanceGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.guidanceItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text);
+}
+
+.guidanceGood {
+  color: var(--color-success);
+}
+
+.guidanceBad {
+  color: var(--color-error);
+}
+
+/* Presets (used by PresetRooms component) */
+.presets {
+  padding-top: var(--spacing-md);
+}
+
+.presetsLabel {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-muted);
+  margin-bottom: var(--spacing-sm);
+}
+
+.presetsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-sm);
+}
+
+.presetCard {
+  border: 1px solid rgba(216, 195, 173, 0.15);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  background: none;
+  padding: 0;
+  font-family: inherit;
+  transition: border-color 300ms ease, transform 300ms ease;
+}
+
+.presetCard:hover {
+  transform: translateY(-2px);
+}
+
+.presetCard:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.presetCardActive {
+  border-color: var(--color-primary);
+  border-width: 2px;
+}
+
+.presetImage {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+.presetLabel {
+  display: block;
+  padding: 6px 8px;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-text);
+  text-align: center;
+}
+
+/* Generating overlay */
+.generatingContainer {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.generatingImage {
+  width: 100%;
+  display: block;
+  filter: brightness(0.6);
+}
+
+.generatingOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xl);
+}
+
+.stepList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.stepItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.stepItemActive {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.stepItemDone {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: line-through;
+}
+
+.stepIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.cancelButton {
+  margin-top: var(--spacing-md);
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  font-family: inherit;
+}

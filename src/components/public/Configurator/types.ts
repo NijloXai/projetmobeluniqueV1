@@ -81,7 +81,7 @@ export interface StepSimulationProps {
   progressStage: string | null
   onFileSelected: (file: File) => void
   onPresetSelected: (presetId: string) => void
-  onLaunch: () => void
+  onLaunch: (rect: PlacementRect) => void
   onChangePhoto: () => void
   onCancel: () => void
   fabricName: string

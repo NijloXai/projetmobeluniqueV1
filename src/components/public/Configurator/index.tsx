@@ -388,90 +388,96 @@ export default function Configurator({ model, onClose, fabrics, visuals }: Confi
             onNavigate={navigateToStep}
           />
 
+          <h2 id="configurator-title" className={styles.srOnly}>
+            Configurateur {model.name}
+          </h2>
+
           <div className={styles.content}>
-            {/* ---- Left column ---- */}
-            <div className={styles.leftColumn}>
-              {showImagePreview && displayImageUrl && (
-                <div className={styles.imageWrapper}>
-                  <Image
-                    key={displayImageUrl}
-                    src={displayImageUrl}
-                    alt={`Canape ${model.name}`}
-                    fill
-                    sizes="(max-width: 1023px) 100vw, 60vw"
-                    className={styles.imageMain}
-                  />
-                  {isOriginalFallback && (
-                    <span className={styles.badgeOriginal}>Photo originale</span>
+            {showImagePreview ? (
+              <>
+                {/* ---- Left column (tissu / apercu) ---- */}
+                <div className={styles.leftColumn}>
+                  {displayImageUrl && (
+                    <div className={styles.imageWrapper}>
+                      <Image
+                        src={displayImageUrl}
+                        alt={`Canape ${model.name}`}
+                        fill
+                        sizes="(max-width: 1023px) 100vw, 60vw"
+                        className={styles.imageMain}
+                      />
+                      {isOriginalFallback && (
+                        <span className={styles.badgeOriginal}>Photo originale</span>
+                      )}
+                    </div>
                   )}
                 </div>
-              )}
 
-              {step === 'simulation' && (
-                <StepSimulation
-                  model={model}
-                  previewUrl={previewUrl}
-                  simulationStatus={simulationStatus}
-                  errorMessage={errorMessage}
-                  progress={progress}
-                  progressStage={progressStage}
-                  onFileSelected={handleFileSelected}
-                  onPresetSelected={handlePresetSelected}
-                  onLaunch={handleLaunch}
-                  onChangePhoto={handleChangePhoto}
-                  onCancel={handleCancel}
-                  fabricName={selectedFabric?.name ?? ''}
-                  selectedFabricId={selectedFabricId}
-                />
-              )}
+                {/* ---- Right column (tissu / apercu) ---- */}
+                <div className={styles.rightColumn}>
+                  {step === 'tissu' && (
+                    <StepTissu
+                      model={model}
+                      fabrics={fabrics}
+                      visuals={visuals}
+                      selectedFabricId={selectedFabricId}
+                      selectedAngle={selectedAngle}
+                      onSelectFabric={setSelectedFabricId}
+                      onSelectAngle={setSelectedAngle}
+                      onNext={goToApercu}
+                    />
+                  )}
 
-              {step === 'resultat' && (
-                <StepResultat
-                  model={model}
-                  previewUrl={previewUrl}
-                  resultBlobUrl={resultBlobUrl}
-                  fabricName={selectedFabric?.name ?? ''}
-                  onDownload={handleDownload}
-                  onShare={handleShare}
-                  onRetry={handleRetry}
-                  shopifyUrl={model.shopify_url}
-                />
-              )}
-            </div>
+                  {step === 'apercu' && (
+                    <StepApercu
+                      model={model}
+                      visuals={visuals}
+                      selectedFabricId={selectedFabricId}
+                      selectedAngle={selectedAngle}
+                      onSelectAngle={setSelectedAngle}
+                      onSimulate={goToSimulation}
+                      fabricName={selectedFabric?.name ?? ''}
+                      isPremium={selectedFabric?.is_premium ?? false}
+                      totalPrice={totalPrice}
+                    />
+                  )}
+                </div>
+              </>
+            ) : (
+              /* ---- Full width (simulation / resultat) ---- */
+              <div className={styles.fullColumn}>
+                {step === 'simulation' && (
+                  <StepSimulation
+                    model={model}
+                    previewUrl={previewUrl}
+                    simulationStatus={simulationStatus}
+                    errorMessage={errorMessage}
+                    progress={progress}
+                    progressStage={progressStage}
+                    onFileSelected={handleFileSelected}
+                    onPresetSelected={handlePresetSelected}
+                    onLaunch={handleLaunch}
+                    onChangePhoto={handleChangePhoto}
+                    onCancel={handleCancel}
+                    fabricName={selectedFabric?.name ?? ''}
+                    selectedFabricId={selectedFabricId}
+                  />
+                )}
 
-            {/* ---- Right column ---- */}
-            <div className={styles.rightColumn}>
-              <h2 id="configurator-title" className={styles.srOnly}>
-                Configurateur {model.name}
-              </h2>
-
-              {step === 'tissu' && (
-                <StepTissu
-                  model={model}
-                  fabrics={fabrics}
-                  visuals={visuals}
-                  selectedFabricId={selectedFabricId}
-                  selectedAngle={selectedAngle}
-                  onSelectFabric={setSelectedFabricId}
-                  onSelectAngle={setSelectedAngle}
-                  onNext={goToApercu}
-                />
-              )}
-
-              {step === 'apercu' && (
-                <StepApercu
-                  model={model}
-                  visuals={visuals}
-                  selectedFabricId={selectedFabricId}
-                  selectedAngle={selectedAngle}
-                  onSelectAngle={setSelectedAngle}
-                  onSimulate={goToSimulation}
-                  fabricName={selectedFabric?.name ?? ''}
-                  isPremium={selectedFabric?.is_premium ?? false}
-                  totalPrice={totalPrice}
-                />
-              )}
-            </div>
+                {step === 'resultat' && (
+                  <StepResultat
+                    model={model}
+                    previewUrl={previewUrl}
+                    resultBlobUrl={resultBlobUrl}
+                    fabricName={selectedFabric?.name ?? ''}
+                    onDownload={handleDownload}
+                    onShare={handleShare}
+                    onRetry={handleRetry}
+                    shopifyUrl={model.shopify_url}
+                  />
+                )}
+              </div>
+            )}
           </div>
 
           {/* ---- Sticky bar mobile ---- */}

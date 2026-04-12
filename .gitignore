@@ -53,6 +53,7 @@ next-env.d.ts
 .bg-shell/
 .artifacts/
 .playwright-mcp/
+.superpowers/
 
 # Brand kit source (assets lourds)
 fichier-mobelunique/

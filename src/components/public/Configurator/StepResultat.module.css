@@ -1,4 +1,4 @@
-.container { display: flex; flex-direction: column; gap: var(--spacing-lg); }
+.container { display: flex; flex-direction: column; gap: var(--spacing-lg); width: 100%; max-width: 640px; }
 .title { font-size: var(--font-size-2xl); font-weight: 600; color: var(--color-text); }
 .subtitle { font-size: var(--font-size-sm); color: var(--color-muted); margin-top: 4px; }
 .disclaimer { font-size: var(--font-size-xs); color: var(--color-muted); font-style: italic; text-align: center; }

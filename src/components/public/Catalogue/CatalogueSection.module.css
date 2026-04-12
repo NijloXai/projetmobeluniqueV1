@@ -3,7 +3,7 @@
 
 /* Section fond blanc per D-07 — alternance avec HowItWorks beige */
 .section {
-  background-color: var(--color-background); /* #FFFFFF */
+  background-color: var(--surface); /* fond unifie */
   padding: var(--spacing-section) var(--container-padding-mobile); /* 112px 24px mobile */
 }
 
@@ -37,6 +37,42 @@
   max-width: 480px;
   margin-left: auto;
   margin-right: auto;
+}
+
+/* Barre de filtres pills */
+.filterBar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-lg);
+}
+
+.filterPill {
+  padding: 8px 16px;
+  border-radius: 9999px;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  font-family: inherit;
+  border: 1px solid rgba(216, 195, 173, 0.15);
+  background: var(--surface-container-low);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background-color 300ms ease, color 300ms ease, border-color 300ms ease;
+}
+
+.filterPill:hover {
+  background: var(--surface-container-high);
+}
+
+.filterPill:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.filterPillActive {
+  background: var(--color-primary);
+  color: #ffffff;
+  border-color: var(--color-primary);
 }
 
 /* Grille responsive per CAT-02 — mobile first 1 col */

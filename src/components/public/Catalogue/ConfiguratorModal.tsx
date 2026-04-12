@@ -285,10 +285,6 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
     if (abortControllerRef.current) abortControllerRef.current.abort()
   }, [])
 
-  const handleReessayer = useCallback(() => {
-    handleLancerSimulation(placementRectRef.current ?? undefined)
-  }, [handleLancerSimulation])
-
   // Phase 12 — Download resultat JPEG (D-06)
   const handleDownload = useCallback(() => {
     if (!resultBlobUrl) return

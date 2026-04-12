@@ -25,7 +25,7 @@ const DEFAULT_SCALE = 45
 
 export function SofaPlacer({
   imageUrl,
-  sofaName,
+  sofaName: _sofaName,
   sofaWidth,
   sofaDepth,
   onLaunch,

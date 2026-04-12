@@ -5,9 +5,11 @@ import Image from 'next/image'
 import { X, Download, Share2, ExternalLink, RefreshCw } from 'lucide-react'
 import type { ModelWithImages, ModelImage, Fabric, VisualWithFabricAndImage } from '@/types/database'
 import { getPrimaryImage, getPrimaryImageId, formatStartingPrice, calculatePrice, formatPrice } from '@/lib/utils'
+import { SofaPlacer, type PlacementRect } from './SofaPlacer'
+import { parseDimensions } from '@/lib/utils'
 import styles from './ConfiguratorModal.module.css'
 
-type SimulationState = 'idle' | 'preview' | 'generating' | 'done' | 'error'
+type SimulationState = 'idle' | 'placing' | 'generating' | 'done' | 'error'
 
 // Module-level constants (IN-01 code review)
 const ACCEPTED_TYPES = new Set(['image/jpeg', 'image/png', 'image/heic', 'image/heif'])
@@ -77,6 +79,7 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [resultBlobUrl, setResultBlobUrl] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const placementRectRef = useRef<PlacementRect | null>(null)
 
   const abortControllerRef = useRef<AbortController | null>(null)
   const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -150,7 +153,7 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
     const url = URL.createObjectURL(file)
     setSelectedFile(file)
     setPreviewUrl(url)
-    setSimulationState('preview')
+    setSimulationState('placing')
     setErrorMessage(null)
   }, [previewUrl, validateFile])
 
@@ -223,8 +226,9 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
   }, [stopProgressTimer])
 
   // Phase 11 — Fetch simulation avec AbortController (D-15, D-16, D-17, D-18)
-  const handleLancerSimulation = useCallback(async () => {
+  const handleLancerSimulation = useCallback(async (rect?: PlacementRect) => {
     if (!selectedFile || !model) return
+    if (rect) placementRectRef.current = rect
     if (abortControllerRef.current) abortControllerRef.current.abort()
 
     const controller = new AbortController()
@@ -239,6 +243,9 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
       formData.append('image', selectedFile)
       formData.append('model_id', model.id)
       if (selectedFabricId) formData.append('fabric_id', selectedFabricId)
+      if (placementRectRef.current) {
+        formData.append('rect', JSON.stringify(placementRectRef.current))
+      }
 
       const response = await fetch('/api/simulate', {
         method: 'POST',
@@ -263,7 +270,7 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
     } catch (err) {
       stopProgressTimer()
       if (err instanceof Error && err.name === 'AbortError') {
-        setSimulationState('preview')
+        setSimulationState('placing')
         setProgress(0)
         setProgressStage(0)
       } else {
@@ -279,7 +286,7 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
   }, [])
 
   const handleReessayer = useCallback(() => {
-    handleLancerSimulation()
+    handleLancerSimulation(placementRectRef.current ?? undefined)
   }, [handleLancerSimulation])
 
   // Phase 12 — Download resultat JPEG (D-06)
@@ -349,7 +356,7 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
     if (abortControllerRef.current) abortControllerRef.current.abort()
     stopProgressTimer()
     setModalStep('configurator')
-    setSimulationState(selectedFile ? 'preview' : 'idle')
+    setSimulationState(selectedFile ? 'placing' : 'idle')
     setProgress(0)
     setProgressStage(0)
     setErrorMessage(null)
@@ -681,28 +688,24 @@ export function ConfiguratorModal({ model, onClose, fabrics, visuals }: Configur
                   <p className={styles.errorMessage} role="alert" aria-live="assertive">{errorMessage}</p>
                 )}
 
-                {/* Etat preview ou error : apercu image */}
-                {(simulationState === 'preview' || simulationState === 'error') && previewUrl && (
+                {/* Etat placing : SofaPlacer avec rectangle draggable */}
+                {(simulationState === 'placing' || simulationState === 'error') && previewUrl && (
                   <>
-                    <div className={styles.previewContainer}>
-                      <img src={previewUrl} alt="Apercu de votre salon" className={styles.previewImage} />
-                      <div className={styles.previewOverlay}>
-                        <button type="button" className={styles.changePhotoLink} onClick={() => fileInputRef.current?.click()}>
-                          Changer de photo
-                        </button>
-                      </div>
-                    </div>
+                    {(() => {
+                      const dims = model.dimensions ? parseDimensions(model.dimensions) : null
+                      return (
+                        <SofaPlacer
+                          imageUrl={previewUrl}
+                          sofaName={model.name}
+                          sofaWidth={dims?.width ?? 250}
+                          sofaDepth={dims?.depth ?? 160}
+                          onLaunch={handleLancerSimulation}
+                          onChangePhoto={() => fileInputRef.current?.click()}
+                        />
+                      )
+                    })()}
                     {simulationState === 'error' && errorMessage && (
                       <p className={styles.errorMessage} role="alert" aria-live="assertive">{errorMessage}</p>
-                    )}
-                    {simulationState === 'error' ? (
-                      <button type="button" className={styles.retryButton} onClick={handleReessayer}>
-                        Reessayer
-                      </button>
-                    ) : (
-                      <button type="button" className={styles.launchButton} onClick={handleLancerSimulation}>
-                        Lancer la simulation
-                      </button>
                     )}
                   </>
                 )}

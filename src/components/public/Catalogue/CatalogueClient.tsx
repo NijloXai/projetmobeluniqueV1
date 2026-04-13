@@ -1,14 +1,17 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo, useEffect } from 'react'
 import { Search, X } from 'lucide-react'
 import type { ModelWithImages, Fabric, VisualWithFabricAndImage } from '@/types/database'
 import { ProductCard } from './ProductCard'
-import { ConfiguratorModal } from './ConfiguratorModal'
+import Configurator from '@/components/public/Configurator'
 import styles from './CatalogueSection.module.css'
 
-// Fonction pure : normalise une chaine pour comparaison insensible aux accents et a la casse
-// Ex: 'Canapé Milano' → 'canape milano' | 'canape' → 'canape'
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+// Normalise une chaine pour comparaison insensible aux accents et a la casse
 function normalize(str: string): string {
   return str
     .normalize('NFD')
@@ -16,6 +19,26 @@ function normalize(str: string): string {
     .toLowerCase()
     .trim()
 }
+
+// Debounce un string avec un delai en ms
+function useDebounce(value: string, delay: number): string {
+  const [debounced, setDebounced] = useState(value)
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay)
+    return () => clearTimeout(timer)
+  }, [value, delay])
+  return debounced
+}
+
+// ---------------------------------------------------------------------------
+// Filter categories (v1 — seul "Tous" filtre, les autres sont des placeholders)
+// ---------------------------------------------------------------------------
+
+const FILTER_CATEGORIES = ['Tous', '2 places', '3 places', 'Angle', 'Meridienne'] as const
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 
 interface CatalogueClientProps {
   models: ModelWithImages[]
@@ -25,20 +48,27 @@ interface CatalogueClientProps {
 
 export function CatalogueClient({ models, fabrics, visuals }: CatalogueClientProps) {
   const [query, setQuery] = useState('')
+  const [activeFilter, setActiveFilter] = useState<(typeof FILTER_CATEGORIES)[number]>('Tous')
   const inputRef = useRef<HTMLInputElement>(null)
   const [selectedModel, setSelectedModel] = useState<ModelWithImages | null>(null)
   const triggerRef = useRef<HTMLButtonElement | null>(null)
 
-  // Valeur derivee — pas de useState supplementaire ni de useEffect
-  const filteredModels = query
-    ? models.filter((m) => normalize(m.name).includes(normalize(query)))
-    : models
+  const debouncedQuery = useDebounce(query, 300)
 
-  // Singulier/pluriel FR — per D-08
+  const filteredModels = useMemo(() => {
+    let result = models
+    if (debouncedQuery) {
+      result = result.filter((m) => normalize(m.name).includes(normalize(debouncedQuery)))
+    }
+    // v1 : activeFilter n'agit pas encore (pas de champ categorie sur models)
+    return result
+  }, [models, debouncedQuery])
+
+  // Singulier/pluriel FR
   const countLabel =
     filteredModels.length === 1
-      ? '1 canapé'
-      : `${filteredModels.length} canapés`
+      ? '1 canape'
+      : `${filteredModels.length} canapes`
 
   function handleReset() {
     setQuery('')
@@ -78,7 +108,7 @@ export function CatalogueClient({ models, fabrics, visuals }: CatalogueClientPro
       aria-labelledby="catalogue-title"
     >
       <div className={styles.container}>
-        {/* En-tete section — inchange */}
+        {/* En-tete section */}
         <div className={styles.sectionHeader}>
           <h2 id="catalogue-title" className={styles.sectionTitle}>
             Nos Canapes
@@ -88,7 +118,22 @@ export function CatalogueClient({ models, fabrics, visuals }: CatalogueClientPro
           </p>
         </div>
 
-        {/* Barre de recherche — D-01, D-02, D-03, D-04 */}
+        {/* Filter pills */}
+        <div className={styles.filterBar} role="tablist">
+          {FILTER_CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              role="tab"
+              aria-selected={activeFilter === cat}
+              className={`${styles.filterPill} ${activeFilter === cat ? styles.filterPillActive : ''}`}
+              onClick={() => setActiveFilter(cat)}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Barre de recherche */}
         <div className={styles.searchWrapper}>
           <Search size={16} aria-hidden="true" className={styles.searchIcon} />
           <input
@@ -116,11 +161,10 @@ export function CatalogueClient({ models, fabrics, visuals }: CatalogueClientPro
         <p className={styles.resultCount}>{countLabel}</p>
 
         {/* Grille ou etat vide recherche */}
-        {filteredModels.length === 0 && query !== '' ? (
-          /* Etat vide recherche — SRCH-02, D-11, D-12, D-13 */
+        {filteredModels.length === 0 && debouncedQuery !== '' ? (
           <div className={styles.emptySearch}>
             <p className={styles.emptyMessage}>
-              Aucun canapé ne correspond à &ldquo;{query}&rdquo;
+              Aucun canape ne correspond a &ldquo;{debouncedQuery}&rdquo;
             </p>
             <button
               type="button"
@@ -131,20 +175,21 @@ export function CatalogueClient({ models, fabrics, visuals }: CatalogueClientPro
             </button>
           </div>
         ) : (
-          /* Grille de cards filtrées */
+          /* Grille de cards filtrees */
           <div className={styles.grid}>
-            {filteredModels.map((model) => (
+            {filteredModels.map((model, index) => (
               <ProductCard
                 key={model.id}
                 model={model}
                 onConfigure={handleConfigure}
+                index={index}
               />
             ))}
           </div>
         )}
       </div>
 
-      <ConfiguratorModal model={selectedModel} onClose={handleModalClose} fabrics={fabrics} visuals={visuals} />
+      <Configurator model={selectedModel} onClose={handleModalClose} fabrics={fabrics} visuals={visuals} />
     </section>
   )
 }

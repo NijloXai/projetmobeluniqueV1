@@ -1,10 +1,5 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
 /node_modules
-
-# testing
-/coverage
 
 # next.js
 /.next/
@@ -45,46 +40,27 @@ next-env.d.ts
 .vscode/
 *.code-workspace
 
-# ── Claude Code (tooling local) ──
+# Claude Code
 .claude/
 
-# ── GSD (track planning artifacts, ignore runtime data) ──
-.gsd/runtime/
-.gsd/activity/
-.gsd/worktrees/
-.gsd/browser-state/
-.gsd/browser-baselines/
-.gsd/completed-units.json
-.gsd/.cache/
-.gsd/gsd.db*
-.gsd/journal/
-.gsd/metrics.json
-.gsd/doctor-history.jsonl
-.gsd/DISCUSSION-MANIFEST.json
-.gsd/QUEUE-ORDER.json
-.gsd/repo-meta.json
-.gsd/STATE.md
+# GSD
+.gsd/
 
-# ── Runtime artifacts ──
+# Planning
+.planning/
+
+# Runtime artifacts
 .bg-shell/
 .artifacts/
 .playwright-mcp/
-isolate-*-v8.log
+.superpowers/
 
-# ── UI review screenshots (generated artifacts) ──
-.planning/ui-reviews/*/
-
-# ── Brand kit source (assets lourds, pas du code) ──
+# Brand kit source (assets lourds)
 fichier-mobelunique/
 
-# ── MCP config (contient des tokens) ──
+# MCP config (contient des tokens)
 .mcp.json
 
-# ── Supabase CLI runtime ──
+# Supabase CLI runtime
 supabase/.temp/
 supabase/.branches/
-
-# ── Playwright ──
-playwright/.auth/
-playwright-report/
-test-results/

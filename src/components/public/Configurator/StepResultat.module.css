@@ -1,0 +1,16 @@
+.container { display: flex; flex-direction: column; gap: var(--spacing-lg); width: 100%; max-width: 640px; }
+.title { font-size: var(--font-size-2xl); font-weight: 600; color: var(--color-text); }
+.subtitle { font-size: var(--font-size-sm); color: var(--color-muted); margin-top: 4px; }
+.disclaimer { font-size: var(--font-size-xs); color: var(--color-muted); font-style: italic; text-align: center; }
+
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm); }
+
+.actionButton { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border-radius: var(--radius-sm); font-size: var(--font-size-sm); font-weight: 600; font-family: inherit; cursor: pointer; transition: transform 300ms ease, box-shadow 300ms ease; text-decoration: none; }
+.actionButton:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+.actionButton:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+
+.downloadButton { composes: actionButton; background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary)); color: #ffffff; border: none; }
+.shareButton { composes: actionButton; background: var(--color-whatsapp); color: #ffffff; border: none; }
+.shareButton:hover { background: var(--color-whatsapp-hover); }
+.orderButton { composes: actionButton; background: transparent; border: 1px solid var(--color-primary); color: var(--color-primary); }
+.retryButton { composes: actionButton; background: transparent; border: 1px solid var(--outline-variant); color: var(--color-text); }

@@ -1,115 +1,118 @@
-/* Card — tonal layering, pas de bordures per D-04 */
 .card {
-  background-color: var(--surface-container-low); /* #F6F3EF */
-  border-radius: 0; /* design editorial bord-a-bord per D-02 */
+  background: var(--surface-container-lowest);
+  border-radius: var(--radius-lg);
   overflow: hidden;
+  transition: transform 400ms ease-in-out, box-shadow 400ms ease-in-out;
   cursor: pointer;
-  transition: background-color var(--transition-fast); /* 300ms */
 }
 
 .card:hover {
-  background-color: var(--surface-container-high); /* #EBE8E4 per D-04 */
+  transform: translateY(-4px);
+  box-shadow: 0 10px 40px rgba(28, 28, 26, 0.04);
 }
 
-/* Image wrapper — aspect 4/5 portrait per D-02 */
 .imageWrapper {
   position: relative;
   aspect-ratio: 4 / 5;
   overflow: hidden;
+  background: var(--surface-container-low);
 }
 
 .image {
-  transition: transform 700ms ease; /* per D-05 */
+  transition: opacity 400ms ease-in-out;
 }
 
-.card:hover .image {
-  transform: scale(1.05); /* per D-05 */
+.imageHidden {
+  opacity: 0;
 }
 
-/* Placeholder quand aucune image per D-10 */
+.imageSecond {
+  opacity: 0;
+  transition: opacity 400ms ease-in-out;
+}
+
+.imageSecondVisible {
+  opacity: 1;
+}
+
 .imagePlaceholder {
-  width: 100%;
-  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--surface-container); /* #F0EDEA */
+  height: 100%;
+  color: var(--color-muted);
 }
 
-.placeholderIcon {
-  color: var(--color-muted); /* #888888 */
-}
-
-/* Corps card — padding 16px per UI-SPEC */
 .body {
-  padding: var(--spacing-md); /* 16px */
-}
-
-/* Row nom/prix — flex per D-02 */
-.metaRow {
+  padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg);
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: var(--spacing-sm); /* 8px */
+  flex-direction: column;
+  gap: 6px;
 }
 
-.nameGroup {
-  flex: 1;
-  min-width: 0; /* pour text-overflow */
-}
-
-/* Nom produit — Montserrat 700, 20px, uppercase per D-02 */
 .name {
-  font-size: var(--font-size-xl); /* 1.25rem = 20px */
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--color-text); /* #1D1D1B */
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-}
-
-/* Description courte — 14px, muted, ellipsis per UI-SPEC */
-.description {
-  font-size: var(--font-size-sm); /* 0.875rem = 14px */
-  font-weight: 400;
-  line-height: 1.5;
-  color: var(--color-muted); /* #888888 */
-  margin-top: var(--spacing-xs); /* 4px */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Prix — 20px, primary bold, aligne droite per D-02 */
-.price {
-  font-size: var(--font-size-xl); /* 1.25rem = 20px */
-  font-weight: 700;
-  color: var(--color-primary); /* #E49400 */
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-/* CTA pleine largeur per D-03 */
-.cta {
-  display: block;
-  width: 100%;
-  margin-top: var(--spacing-md); /* 16px */
-  padding: 12px var(--spacing-md);
-  min-height: 44px; /* touch target accessibilite */
-  background: transparent;
-  border: 1px solid rgba(228, 148, 0, 0.2); /* primary 20% opacity per D-03 */
+  font-size: var(--font-size-lg);
+  font-weight: 600;
   color: var(--color-text);
+  margin: 0;
+}
+
+.description {
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.price {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-primary);
+  margin-top: 4px;
+}
+
+.cta {
+  margin-top: var(--spacing-sm);
+  padding: 12px;
+  background: transparent;
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
   font-family: inherit;
-  font-size: var(--font-size-sm); /* 14px */
-  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.05em;
   cursor: pointer;
-  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 400ms ease-in-out, transform 400ms ease-in-out,
+    background-color 300ms ease, color 300ms ease;
+}
+
+.card:hover .cta {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .cta:hover {
-  background-color: var(--color-primary); /* #E49400 per D-03 */
-  color: #FFFFFF;
-  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #ffffff;
+}
+
+.cta:focus-visible {
+  opacity: 1;
+  transform: translateY(0);
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 1023px) {
+  .cta {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

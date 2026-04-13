@@ -1,10 +1,12 @@
-export const maxDuration = 60
+export const maxDuration = 120
 
 import { NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
+import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { getIAService } from '@/lib/ai'
 import { ImageSafetyError } from '@/lib/ai/nano-banana'
+import { generatePlacementMask } from '@/lib/ai/masking'
 
 const MAX_FILE_SIZE = 15 * 1024 * 1024 // 15 Mo (D-10)
 
@@ -13,6 +15,13 @@ const MAX_FILE_SIZE = 15 * 1024 * 1024 // 15 Mo (D-10)
 const rateMap = new Map<string, { count: number; resetAt: number }>()
 const RATE_LIMIT_MAX = 5
 const RATE_WINDOW_MS = 60_000
+
+const placementRectSchema = z.object({
+  x: z.number().min(0).max(100),
+  y: z.number().min(0).max(100),
+  width: z.number().min(5).max(100),
+  height: z.number().min(5).max(100),
+})
 
 function checkRateLimit(ip: string): { allowed: boolean; retryAfter: number } {
   const now = Date.now()
@@ -66,6 +75,7 @@ export async function POST(request: NextRequest) {
   const image = formData.get('image') as File | null
   const modelId = (formData.get('model_id') as string | null)?.trim()
   const fabricId = (formData.get('fabric_id') as string | null)?.trim()
+  const rectRaw = formData.get('rect') as string | null
 
   // Validation des champs requis
   if (!image || image.size === 0) {
@@ -109,10 +119,10 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
 
-    // Récupérer le modèle (nom pour le prompt)
+    // Récupérer le modèle (nom + dimensions pour le prompt)
     const { data: model, error: modelError } = await supabase
       .from('models')
-      .select('id, name')
+      .select('id, name, dimensions')
       .eq('id', modelId)
       .single()
 
@@ -147,9 +157,35 @@ export async function POST(request: NextRequest) {
       .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
       .jpeg({ quality: 80 })
       .toBuffer()
+    const resizedMeta = await sharp(resizedBuffer).metadata()
     const sourceImageUrl = `data:image/jpeg;base64,${resizedBuffer.toString('base64')}`
 
-    // Générer le visuel via le service IA
+    // Parse et valider le rectangle de placement
+    let maskDataUrl: string | undefined
+    let placementRect: { x: number; y: number; width: number; height: number } | undefined
+
+    if (rectRaw) {
+      try {
+        const parsed = placementRectSchema.parse(JSON.parse(rectRaw))
+        const rect = {
+          x: Math.min(parsed.x, 100 - parsed.width),
+          y: Math.min(parsed.y, 100 - parsed.height),
+          width: parsed.width,
+          height: parsed.height,
+        }
+        placementRect = rect
+        const maskBuffer = await generatePlacementMask(
+          resizedMeta.width!,
+          resizedMeta.height!,
+          rect
+        )
+        maskDataUrl = `data:image/png;base64,${maskBuffer.toString('base64')}`
+      } catch (maskErr) {
+        console.warn('[POST /api/simulate] Masque ignore:', maskErr instanceof Error ? maskErr.message : maskErr)
+      }
+    }
+
+    // Generer le visuel via le service IA
     const iaService = getIAService()
     let resultBuffer: Buffer
     try {
@@ -158,6 +194,9 @@ export async function POST(request: NextRequest) {
         fabricName,
         viewType: 'simulation',
         sourceImageUrl,
+        dimensions: model.dimensions ?? undefined,
+        maskDataUrl,
+        placementRect,
       })
       resultBuffer = await iaService.addWatermark(
         result.imageBuffer,

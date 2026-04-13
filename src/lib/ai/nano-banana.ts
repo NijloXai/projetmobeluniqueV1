@@ -13,14 +13,19 @@
 import { GoogleGenAI, type Part } from '@google/genai'
 import sharp from 'sharp'
 import type { IAService, GenerateRequest, GenerateResult } from './types'
-import { buildBackOfficePrompt, buildSimulatePrompt } from './prompts'
+import {
+  buildBackOfficePrompt,
+  buildBackOfficePromptNoSwatch,
+  buildSimulatePrompt,
+  buildSimulateWithMaskPrompt,
+} from './prompts'
 
 // ---------------------------------------------------------------------------
 // Constantes
 // ---------------------------------------------------------------------------
 
 const MODEL = 'gemini-3.1-flash-image-preview'
-const TIMEOUT_MS = 30_000
+const TIMEOUT_MS = 120_000
 const MAX_RETRIES = 3
 const BASE_DELAY_MS = 1_000
 
@@ -87,16 +92,39 @@ export class NanoBananaService implements IAService {
   // -------------------------------------------------------------------------
 
   async generate(request: GenerateRequest): Promise<GenerateResult> {
-    const { modelName, fabricName, viewType, sourceImageUrl } = request
-
-    // Determiner le prompt selon le type de vue
-    const prompt =
-      viewType === 'simulation'
-        ? buildSimulatePrompt(modelName, fabricName)
-        : buildBackOfficePrompt(modelName, fabricName, viewType)
+    const { modelName, fabricName, viewType, sourceImageUrl, fabricSwatchUrl, dimensions } = request
 
     // Resoudre l'image source en part SDK
-    const imagePart = await this.resolveImagePart(sourceImageUrl)
+    const sourcePart = await this.resolveImagePart(sourceImageUrl)
+
+    // Resoudre le swatch tissu si disponible (2e image de reference)
+    const swatchPart = fabricSwatchUrl
+      ? await this.resolveImagePart(fabricSwatchUrl)
+      : undefined
+
+    // Construire le prompt et le contents selon le mode
+    let prompt: string
+    const contents: Array<string | Part> = []
+
+    if (viewType === 'simulation') {
+      if (request.maskDataUrl) {
+        const maskPart = await this.resolveImagePart(request.maskDataUrl)
+        const rect = request.placementRect ?? { x: 0, y: 0, width: 100, height: 100 }
+        prompt = buildSimulateWithMaskPrompt(modelName, fabricName, rect, dimensions)
+        contents.push(prompt, sourcePart, maskPart)
+      } else {
+        prompt = buildSimulatePrompt(modelName, fabricName, dimensions)
+        contents.push(prompt, sourcePart)
+      }
+    } else if (swatchPart) {
+      // Back-office avec swatch : prompt multi-image
+      prompt = buildBackOfficePrompt(modelName, fabricName, viewType)
+      contents.push(prompt, sourcePart, swatchPart)
+    } else {
+      // Back-office sans swatch : fallback nom du tissu seul
+      prompt = buildBackOfficePromptNoSwatch(modelName, fabricName, viewType)
+      contents.push(prompt, sourcePart)
+    }
 
     let lastError: Error | undefined
 
@@ -107,9 +135,10 @@ export class NanoBananaService implements IAService {
         // AbortSignal.timeout() cree DANS chaque tentative
         const response = await this.ai.models.generateContent({
           model: MODEL,
-          contents: [prompt, imagePart],
+          contents,
           config: {
             responseModalities: ['TEXT', 'IMAGE'],
+            imageConfig: { imageSize: '1K' },
             abortSignal: AbortSignal.timeout(TIMEOUT_MS),
           },
         })

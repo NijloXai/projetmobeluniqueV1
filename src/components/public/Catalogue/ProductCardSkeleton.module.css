@@ -7,7 +7,7 @@
   background: linear-gradient(
     90deg,
     var(--surface-container) 0%,
-    var(--surface-container-highest) 50%,
+    var(--surface-container-high) 50%,
     var(--surface-container) 100%
   );
   background-size: 200% 100%;

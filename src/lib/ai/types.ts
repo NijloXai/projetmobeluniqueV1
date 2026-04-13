@@ -9,6 +9,14 @@ export interface GenerateRequest {
   viewType: string
   /** URL de l'image source model_image (la photo d'angle) */
   sourceImageUrl: string
+  /** URL du swatch tissu (envoyé comme 2e image de référence pour Gemini) */
+  fabricSwatchUrl?: string
+  /** Dimensions du modèle, ex: "L 280 × P 180 × H 85 cm" */
+  dimensions?: string
+  /** Data URI du masque d'inpainting PNG (blanc = zone de placement) */
+  maskDataUrl?: string
+  /** Coordonnees du rectangle de placement (pourcentages 0-100) */
+  placementRect?: { x: number; y: number; width: number; height: number }
 }
 
 export interface GenerateResult {

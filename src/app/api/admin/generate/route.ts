@@ -1,4 +1,4 @@
-export const maxDuration = 60
+export const maxDuration = 120
 
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/supabase/admin'
@@ -35,10 +35,10 @@ export async function POST(request: NextRequest) {
   const { model_id, model_image_id, fabric_id } = parseResult.data
 
   try {
-    // Récupérer le modèle (besoin du slug pour le chemin storage + nom pour le prompt)
+    // Récupérer le modèle (besoin du slug, nom et dimensions pour le prompt)
     const { data: model, error: modelError } = await supabase!
       .from('models')
-      .select('id, slug, name')
+      .select('id, slug, name, dimensions')
       .eq('id', model_id)
       .single()
 
@@ -66,10 +66,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Récupérer le tissu (besoin du nom pour le prompt)
+    // Récupérer le tissu (nom + swatch pour le prompt multi-image)
     const { data: fabric, error: fabricError } = await supabase!
       .from('fabrics')
-      .select('id, name')
+      .select('id, name, swatch_url')
       .eq('id', fabric_id)
       .single()
 
@@ -112,6 +112,8 @@ export async function POST(request: NextRequest) {
       fabricName: fabric.name,
       viewType: modelImage.view_type,
       sourceImageUrl: modelImage.image_url,
+      fabricSwatchUrl: fabric.swatch_url ?? undefined,
+      dimensions: model.dimensions ?? undefined,
     })
     const duration = Date.now() - startTime
 

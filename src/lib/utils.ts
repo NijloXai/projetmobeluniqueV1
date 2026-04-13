@@ -73,3 +73,16 @@ export function extractStoragePath(url: string): string | null {
     return null
   }
 }
+
+/**
+ * Parse une chaine de dimensions "L 280 × P 180 × H 85 cm" en {width, depth}.
+ * Retourne null si le format n'est pas reconnu.
+ */
+export function parseDimensions(str: string): { width: number; depth: number } | null {
+  const match = str.match(/L\s*(\d+)\s*[×x]\s*P\s*(\d+)/i)
+  if (!match) return null
+  const width = parseInt(match[1], 10)
+  const depth = parseInt(match[2], 10)
+  if (isNaN(width) || isNaN(depth) || width <= 0 || depth <= 0) return null
+  return { width, depth }
+}
